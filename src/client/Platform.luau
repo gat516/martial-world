@@ -32,10 +32,17 @@ end
 -- Roblox's top bar in a ScreenGui's own coordinates: how far down it reaches (windows
 -- start below it) and where its free space starts after Roblox's menu and chat
 -- buttons (the toast's lane lives in that row). Zero in Studio's Edit view.
+-- AbsolutePosition is measured from below Roblox's GUI inset (GetGuiInset: a
+-- full-screen ScreenGui sits at y -58 under the 58 px bar) while TopbarInset is
+-- measured from the screen's top, so the gui's screen top is AbsolutePosition.Y
+-- plus the inset. Without that the bar read 116 px deep (2026-10-23, in the device
+-- emulator and on PC alike): the toast sat under the bar against Roblox's chat
+-- button and the phone Inventory started 122 px down.
 function Platform.topbar(gui: GuiBase2d): (number, number)
 	local inset = GuiService.TopbarInset
 	local origin = gui.AbsolutePosition
-	return math.max(0, inset.Max.Y - origin.Y), math.max(0, inset.Min.X - origin.X)
+	local guiInset = GuiService:GetGuiInset()
+	return math.max(0, inset.Max.Y - (origin.Y + guiInset.Y)), math.max(0, inset.Min.X - origin.X)
 end
 
 -- Fires when the top bar's size or free space changes.

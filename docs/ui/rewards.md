@@ -134,6 +134,22 @@ the toast, it moves below that (or above it). It fades in and out
 (`Motion.fadeIn/fadeOut`); the queue and timing are unchanged. Feed rows use the same
 plaque, plain, so the two read as one family.
 
+The bar's depth comes from `Platform.topbar`, which until 2026-10-23 read it twice
+over (116 px for the 58 px bar: `AbsolutePosition` is measured from below the GUI
+inset, `TopbarInset` from the screen top), so in play the toast sat under the bar,
+centred on its bottom edge, rather than in it, on PC and phones alike.
+
+Phone (touch and short screen; user, 2026-10-23: "the toast is fkn TERRIBLE for
+mobile", a two-line plaque jammed against Roblox's chat button, as tall as the
+tiles): a slimmer plaque (SliceScale 0.3, 20/6 px padding, no studs) and 14 px text,
+read by contrast (cream, near-black stroke). It takes the bar's free lane (Roblox's
+buttons to the tiles) only when the message fits there on one line; otherwise it
+drops just under the top band (8 px below the tiles), from the end of Roblox's
+buttons to the objective column's left edge, where it wraps if it must. The
+meditation toast is shorter for it: "Cultivation ×2.5 on your peak" (was
+"Meditating on your peak: passive cultivation ×2.5"). Queue (4 at most, repeats
+skipped) and timing (3.2 s plus up to 2 s for long text) are unchanged.
+
 Measured 2026-10-23 (sandbox preview, faked top bar 58 px PC / 44 px phone): 36 px
 tall; message centre on the plaque centre to 0.0 px; studs 15.0 / 15.0 px from the
 tips and on the centre line; 7.5 / 7.5 px from the studs to the text. 1366x768: at

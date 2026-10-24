@@ -25,6 +25,12 @@ local TOAST_SECONDS = 3.2
 local TOAST_QUEUE_MAX = 4 -- older pending toasts are dropped past this
 local TOAST_GAP = 8 -- px kept from Roblox's buttons, the tiles, windows and the edges
 local TOAST_MAX_TEXT = 380 -- widest a toast's text runs before it wraps
+-- A touch phone's toast (user, 2026-10-23: "the toast is fkn TERRIBLE for mobile":
+-- a two-line plaque jammed against Roblox's chat button, as tall as the tiles): a
+-- slimmer plaque with no studs and 14 px text (contrast does the reading: cream with
+-- a near-black stroke), one line in the bar's free lane when it fits there, else
+-- just under the top band, clear of the tiles and the objective column.
+local PHONE_TOAST = { text = 14, padX = 20, padY = 6, slice = 0.3 }
 local BUFF_LABELS = { QiRate = "cultivation", WalkSpeed = "speed" }
 local TIP_SECONDS = 4 -- a tapped buff chip shows its words this long
 
@@ -42,17 +48,53 @@ local said: { [string]: number } = {} -- message -> os.clock() it was queued
 -- Centred on the screen when it fits, else slid clear of Roblox's buttons on the
 -- left and, while they show, the top-right tiles. Should an open window or the
 -- build banner still reach it, it goes below that, or above it.
+local function phone(): boolean
+	return Platform.isTouch() and Platform.isSmall()
+end
+
+-- Phone: the toast's text width on one line, unwrapped.
+local function lineWidth(message: TextLabel): number
+	local params = Instance.new("GetTextBoundsParams")
+	params.Text = message.Text
+	params.Font = message.FontFace
+	params.Size = message.TextSize
+	params.Width = 10000
+	local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
+	return if ok then math.ceil(bounds.X) + 1 else math.huge
+end
+
 local function placeToast(toast: GuiObject)
 	local message = toast:FindFirstChild("Message") :: TextLabel
 	local pad = toast:FindFirstChild("UIPadding") :: UIPadding
 	local padX = pad.PaddingLeft.Offset + pad.PaddingRight.Offset
+	local padY = pad.PaddingTop.Offset + pad.PaddingBottom.Offset
 	local origin = gui.AbsolutePosition
 	local barBottom, freeLeft = Platform.topbar(gui)
 	local left, right = freeLeft + TOAST_GAP, gui.AbsoluteSize.X - TOAST_GAP
 	local open = Menus.current()
 	local tiles = gui:FindFirstChild("Buttons") :: GuiObject?
-	if not open and tiles and tiles.Visible then
-		right = math.min(right, tiles.AbsolutePosition.X - origin.X - TOAST_GAP)
+	local tilesShown = not open and tiles ~= nil and tiles.Visible
+	if tilesShown then
+		right = math.min(right, (tiles :: GuiObject).AbsolutePosition.X - origin.X - TOAST_GAP)
+	end
+	local below: number? = nil -- phone: the toast's top when it drops under the top band
+	if phone() and not open then
+		local oneLine = lineWidth(message) + padX
+		if oneLine > right - left or message.TextSize + padY > barBottom then
+			-- no room in the bar's lane: under the tiles (or the bar), left of the
+			-- objective column when it shows
+			local top = barBottom
+			if tilesShown then
+				local t = tiles :: GuiObject
+				top = math.max(top, t.AbsolutePosition.Y - origin.Y + t.AbsoluteSize.Y)
+			end
+			below = top + TOAST_GAP
+			right = gui.AbsoluteSize.X - TOAST_GAP
+			local tracker = gui:FindFirstChild("Tracker", true) :: GuiObject?
+			if tracker and tracker.Visible and (tracker.Parent :: GuiObject).Visible then
+				right = math.min(right, tracker.AbsolutePosition.X - origin.X - TOAST_GAP)
+			end
+		end
 	end
 	-- the text's own size at the lane's width (one line when it fits, else wrapped)
 	local params = Instance.new("GetTextBoundsParams")
@@ -66,7 +108,9 @@ local function placeToast(toast: GuiObject)
 	end
 	local size = Vector2.new(message.Size.X.Offset + padX, message.Size.Y.Offset + pad.PaddingTop.Offset + pad.PaddingBottom.Offset)
 	local x = math.clamp(gui.AbsoluteSize.X / 2, left + size.X / 2, math.max(left + size.X / 2, right - size.X / 2))
-	local y = if barBottom >= size.Y then barBottom / 2 else (if barBottom > 0 then 4 else 10) + size.Y / 2
+	local y = if below then below + size.Y / 2
+		elseif barBottom >= size.Y then barBottom / 2
+		else (if barBottom > 0 then 4 else 10) + size.Y / 2
 	-- an open window, the build banner or a lifted boss bar in the way: go below it,
 	-- or above it
 	local banner = gui:FindFirstChild("BuildBanner") :: GuiObject?
@@ -369,6 +413,21 @@ function Hud.init(screenGui: ScreenGui)
 	end)
 	if player.Character then
 		task.spawn(watchHealth, healthBar, healthText, player.Character)
+	end
+
+	if phone() then
+		local toast = gui:FindFirstChild("Toast") :: ImageLabel
+		local pad = toast:FindFirstChild("UIPadding") :: UIPadding
+		(toast:FindFirstChild("Message") :: TextLabel).TextSize = PHONE_TOAST.text
+		pad.PaddingLeft, pad.PaddingRight = UDim.new(0, PHONE_TOAST.padX), UDim.new(0, PHONE_TOAST.padX)
+		pad.PaddingTop, pad.PaddingBottom = UDim.new(0, PHONE_TOAST.padY), UDim.new(0, PHONE_TOAST.padY)
+		toast.SliceScale = PHONE_TOAST.slice
+		for _, stud in { "StudL", "StudR" } do
+			local s = toast:FindFirstChild(stud) :: GuiObject?
+			if s then
+				s.Visible = false
+			end
+		end
 	end
 
 	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent

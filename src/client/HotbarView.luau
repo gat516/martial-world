@@ -210,6 +210,14 @@ function HotbarView.justDragged(): boolean
 	return drag ~= nil or os.clock() - lastDragEnd < 0.15
 end
 
+-- What is being dragged, if anything, and a hook run when a drag starts or ends
+-- with what it carries (the Inventory raises the hotbar on a phone while one is
+-- under way, and chooses what was dropped).
+function HotbarView.dragging(): string?
+	return if drag then drag.id else nil
+end
+HotbarView.dragChanged = nil :: ((id: string) -> ())?
+
 local function inventoryWindow(): GuiObject?
 	local window = gui:FindFirstChild("Inventory") :: GuiObject?
 	return if window and window.Visible then window else nil
@@ -323,6 +331,9 @@ local function pickUp(id: string, from: (number | string)?, source: GuiObject, t
 	g.Parent = gui
 	drag = d
 	showTip(nil, nil)
+	if HotbarView.dragChanged then
+		HotbarView.dragChanged(id)
+	end
 	moveGhost(d, position)
 	-- a short lift so the pick-up reads (a hold on touch has no other feedback)
 	local scale = g:FindFirstChild("Motion") :: UIScale?
@@ -347,6 +358,9 @@ local function endDrag(drop: boolean)
 	end
 	lastDragEnd = os.clock()
 	d.finish()
+	if HotbarView.dragChanged then
+		HotbarView.dragChanged(d.id)
+	end
 	local target = d.target
 	if not drop or not target then
 		return

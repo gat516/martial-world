@@ -882,8 +882,8 @@ Quests.Lessons = {
 			return seatedTile(player, "PracticeTechnique")
 		end,
 	},
-	-- QR: the second weapon and the Dao drill (Pacing.DaoPractice.FROM, QR1),
-	-- moved out of QC so Qi Condensation teaches only the loop
+	-- The second weapon at QR1 (Pacing.DaoPractice.RACK_FROM); the Dao drill at QC7
+	-- (Pacing.DaoPractice.FROM), its own chapter's idea
 	{
 		id = "WeaponRack",
 		elder = "A cultivator need not keep to one blade. The sect's weapon rack on the Main Peak lends each disciple one weapon of every kind.",
@@ -897,10 +897,10 @@ Quests.Lessons = {
 		objective = "Take a new kind of weapon from the Main Peak rack",
 		reward = REWARDS.WeaponRack,
 		when = function(_, data)
-			return reached(data, DaoPacing.FROM) and weaponClasses(data) < 2
+			return reached(data, DaoPacing.RACK_FROM) and weaponClasses(data) < 2
 		end,
 		open = function(_, data)
-			return reached(data, DaoPacing.FROM)
+			return reached(data, DaoPacing.RACK_FROM)
 		end,
 		done = function(_, data)
 			return weaponClasses(data) >= 2

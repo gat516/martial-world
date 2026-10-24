@@ -655,7 +655,8 @@ Pacing.Weapons = {
 -- fighting: one drill per COOLDOWN, worth at most XP_SHARE of the current
 -- level's XP (scaled by the score). Leaving a drill early costs nothing.
 Pacing.DaoPractice = {
-	FROM = "QR1", -- the stage it unlocks, with the second-weapon lesson (QR, docs/roadmap.md section 2)
+	FROM = "QC7", -- the stage it unlocks (user, 2026-10-23: back at QC7; class skills need Dao, and the gardener road needs a way to raise it)
+	RACK_FROM = "QR1", -- the second-weapon lesson (QR, docs/roadmap.md section 2)
 	COOLDOWN = 300, -- seconds between finished drills (saved, so rejoining doesn't skip it)
 	XP_SHARE = 0.25, -- of xpToNext(level), at a perfect score
 	SECONDS = 20,

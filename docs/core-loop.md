@@ -108,7 +108,7 @@ and everything else arrives when it first matters.
 | QC5 | | the quest board (the Board lesson) |
 | QC6 | MINI-WALL | herbs start to matter (the Herbs lesson: eat one for qi) |
 | QC8 | RAMP | rumours: a hidden cache in the wilds (the Rumours lesson) |
-| QR1 | | second weapon class and its Dao drills (moved out of QC) |
+| QR1 | | a second weapon class (moved out of QC; the Dao drill opens at QC7) |
 | QC9 | WALL | the biggest bar, and the first tribulation for heaven-defiers |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |

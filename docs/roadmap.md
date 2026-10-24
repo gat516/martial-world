@@ -193,7 +193,7 @@ The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboardi
 - **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
   (out and home, the garden, the board); QR the social layer and the abode
   (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
-  refinement, treasures, pets). Built: the second weapon and Dao drills moved to QR1.
+  refinement, treasures, pets). Built: the second weapon moved to QR1; the Dao drill stays at QC7 (user, 2026-10-23).
 - **QC4 end:** the elder names the loop ("cultivate until you hit a wall, go out and
   break it, come home stronger"): FreePlay's one-liner, and his talk. Built.
 - **QC4 "your home grows":** built as the Home lesson (plant a seed). Peak building
@@ -207,8 +207,8 @@ The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboardi
   wild garden waits for one to exist.
 - **QC9 the realm wall:** built as the Wall lesson (break into Qi Refining). The quiet
   ceremony and the heaven-defier's tribulation dialogue are still to do.
-- **QR1 weapon and Dao:** second weapon class, a Dao drill (the WeaponRack and
-  DaoPractice lessons; the drill unlocks at QR1). Built.
+- **QC7 the Dao drill** (DaoPractice lesson; class skills need Dao, so the gardener
+  road needs it early) and **QR1 the second weapon** (WeaponRack lesson). Built.
 - **Every major** repeats the pattern: one new idea, said once by the elder,
   with a rewarded objective and a guide.
 - **The wall card:** a persistent "your wall is X, go to Y" line (the objective line

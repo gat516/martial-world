@@ -95,7 +95,7 @@ kills); the aura and the per-beast extra moves wait on `vfx` and `animator`.
 Rank becomes **Inner Disciple** at QR1.
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
-| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class and Dao drills (moved from QC7) | region seal |
+| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class (moved from QC7; the Dao drill stays at QC7) | region seal |
 | QR2 | BREATHER | Wastes | weekly sect tasks | none |
 | QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
 | QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |

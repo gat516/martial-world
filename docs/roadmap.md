@@ -1,542 +1,312 @@
-# Roadmap: progression, onboarding, techniques, garden, building
+# Roadmap: what's next, deferred and open
 
-The plan for taking the game from "QC1-9 plus a thin Foundation" to a full game
-that lasts QC1 to FE9. [progression](progression.md) is the stage ladder and the
-sect; [core-loop](core-loop.md) is the north star. This page is **what we build,
-in what order, and why**. Written 2026-10-22 from conversation. Proposals unless
-marked built; nothing here has been playtested.
+The plan for taking the game to a full climb from QC1 to FE9. **Plans only:** what is
+built lives in its system doc ([README](README.md) maps them); this page holds what's
+open, deferred or next, in order, and the owner's decisions that constrain it.
+[progression](progression.md) is the stage ladder; [core-loop](core-loop.md) is the
+north star. Nothing here has been playtested.
 
-## Principles (from the user)
+## Principles (owner)
 1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
-   progress. No difficulty modes with scaling. Mobile players always have a road. (Open against boss tiers and variants: [enemies](systems/enemies.md), Known gaps.)
+   progress. No difficulty modes with scaling. Mobile players always have a road. (Open
+   against boss tiers and variants: [enemies](systems/enemies.md), Known gaps.)
 2. **Two ways to climb, both complete:** the fighter (hunt, bosses, events) and the
    gardener (meditate, garden, seclusion, building, non-combat quests). Fighters are
    faster. Gardeners are never stuck.
-3. **You can't skip the world.** Rushing a breakthrough hurts; experiencing the
-   world heals and rewards. A soft cost, not a lock.
-4. **Story over rules.** Every system reads as cultivation fiction (cracked
-   foundation, heart demons, sect rank), not a menu.
+3. **You can't skip the world.** Rushing a breakthrough hurts; experiencing the world
+   heals and rewards. A soft cost, not a lock.
+4. **Story over rules.** Every system reads as cultivation fiction (cracked foundation,
+   heart demons, sect rank), not a menu.
 5. Every system names its **arrow into the loop** (core-loop rules).
-6. **Few mechanics at once (user, 2026-10-23).** Fun for kids and mobile players
-   first; depth for hardcore players without permadeath. Each mechanic is taught
-   alone and fits in one sentence from the elder, or it's cut.
+6. **Few mechanics at once (2026-10-23).** Fun for kids and mobile players first; depth
+   for hardcore players without permadeath. Each mechanic is taught alone and fits in
+   one sentence from the elder, or it's cut.
+7. **PvP is off by default (2026-10-23).** No forced PvP: realm gaps would let a strong
+   player delete a weak one, and the audience is kids and mobile (section 3f).
+8. **How we work (2026-10-22):** one system at a time, designed and built with the
+   owner in the main session and checked at each step. Subagents are for mass assets
+   only (technique VFX batches, building sets, model batches). Each phase ends in a
+   commit and a test-build playtest.
 
-## Deferred to a later update (user, 2026-10-22)
-These are real plans but **not in this pass**. Nothing before FE9 depends on them.
+**Pacing rules for new content (2026-10-23):** no stretch over 2-3 h of active play
+without something new (a zone, boss, rift or verb); each major brings a new verb, not
+just numbers (QC the body and combat, QR the abode, FE weapon refinement and a first
+sword glide; body refinement and others for later realms); the mid-QR slowdown is met
+by the garden and the peak, not alchemy. Targets and the curve:
+[progression](progression.md).
+
+## Deferred (owner)
+Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **Alchemy:** the peak furnace, crafted pills (qi, heal, buffs, breakthrough aids,
-  foundation repair), pill impurities and talismans. The mid-QR slowdown is met by
-  the garden and the peak instead (user, 2026-10-23).
-- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's
-  grade. Candidate verb for Foundation Establishment.
-- **Mining and ores** (the out verb that feeds refinement).
-- **Body refinement:** a candidate verb for a later realm.
+  foundation repair), pill impurities and talismans.
+- **Mining and ores**, and **full weapon refinement** (spend ore and stones to raise a
+  weapon's grade; the candidate FE verb). Body refinement: a candidate later verb.
+- **Bloodlines,** absorbed or injected; they will replace race rerolls. Granting by
+  masters: [relationships](roadmap/relationships.md).
+- **Halls, masters and lineage** (sections 3b, 3d).
+- **Rifts and paths** (section 9, [replayability](roadmap/replayability.md)).
+- **World events** (section 7; separate work).
+- **PvP-adjacent competition** (section 3f).
+- **The Grow now dev product** rework ([garden review](design-reviews/garden-and-herbarium.md) rec 1).
+- **The junior disciple NPC escort** (section 3e).
+- **Legendary herb pity**, and **herbs beyond FE (tier V)**.
+- **A physical heart-demon scene:** a mirror copy of the player with red eyes
+  ([heart-demon](systems/heart-demon.md), "Later").
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
-  and shop items; foundation repair uses meditation, seclusion and tending; stones
-  sink into the Herbalist, the Pavilion and building; weapon grades come from
-  caches, bosses and the rack. Keep the hooks open (herb tier qi share, the item
-  `use` system, a spare building slot for a furnace) so the update drops in.
-- [core-loop](core-loop.md) already lists these as unscheduled crafting.
+  and shop items; foundation repair uses meditation and the heart-demon trial; stones
+  sink into the Herbalist, the Pavilion and building; weapon grades come from caches,
+  bosses and the rack. Keep the hooks open (herb tier qi share, the item `use` system, a
+  spare building slot for a furnace) so the update drops in.
 
 ## 1. Progression
+- **Tuning:** the QR and FE curve from analytics; region seals wait for the map.
+- **Heaven-defiers:** nothing sets `heavenDefying` yet. The flag must be an explicit,
+  warned opt-in; open whether they get a real perk or a smaller tax
+  ([pacing review](design-reviews/pacing-and-realms.md) rec 3).
+- **The new verb per major** is not built (QR's abode is; FE's waits on refinement).
+- **Foundation:** a second catch-up road besides the heart-demon trial (seclusion
+  tempering or a band revisit; [seclusion](systems/seclusion.md) says seclusion
+  doesn't temper today, so decide), the Cultivate-window line, and QR/FE hunts once
+  variants ship to the main map (section 8).
+- **The haul:** a dedicated spirit-light for the spill (vfx), and materials joining the
+  haul once they exist ([haul](systems/haul.md)).
 
-### Built (untuned)
-27-stage ladder, `heavenDefying` tribulation gate, optional bosses on the quest
-board ([progression](progression.md)).
-
-### Phase A: foundation, the haul and the surge (decided 2026-10-23)
-Replaces the solidity meter and the insight gate. No new HUD meter: the phone HUD
-has no room, so the grade rides on toasts and the breakthrough card, and the surge
-button only appears while it's ready.
-
-**Foundation grade (per breakthrough). Built 2026-10-23 (untuned), see
-[cultivation](systems/cultivation.md#foundation-grade); the heart-demon trial and
-tempering by it built 2026-10-23 (untested, [heart-demon](systems/heart-demon.md));
-per-band pools, deeds and the percent built 2026-10-23 (untested); seclusion
-tempering, the Cultivate-window line and the Self card's percent are not.**
-- **A percent that can pass 100% (user, 2026-10-23):** "so players are okay with
-  breaking through by doing the bare minimum. that way it isn't super negatively viewed
-  if they break through at like 90 or 80 percent effectiveness." What the player
-  experienced during the stage over its target is the stage's foundation percent, up to
-  200%; the bonus is proportional (100% +2% health and power, 200% +4%) and never zero
-  for trying. The words Unsteady, Steady, Solid, Deep are flavour on it. Hunt (first
-  kills of a beast at each tier), Boss (counts double, the fast road), Home (first
-  harvest of a herb tier, a rare mutation, a Herbarium page), Dao (weapon Dao
-  milestones), Discover (caches, racks) and World (events and treasures), plus per-stage
-  deeds (Hunter, Gardener, Haul, Daring) that ask for range, not grinding. Pools are per
-  realm band (named for its region: Inner Wilds, Borderlands, Outer Wastes, Deep Wilds,
-  Far Reaches), so every band refills them; the expected sources per realm are in
-  `Pacing.luau`'s Foundation header. Time fills the bar, not the foundation. The hunts
-  past QC wait on realm variants shipping to the main map (`Config.Wilds.VARIANTS`).
-- **Shown only where there's room:** the grade and percent on the breakthrough card and
-  in the Cultivate window; one toast when the bar fills below 50% ("Your foundation
-  is unsteady. The world still has things to teach you."). Breaking through anyway
-  is always allowed and simply takes the lower percent.
-- **Each stage's foundation is a permanent stat bonus.** Two players at the same stage
-  differ by how they climbed. A deep foundation is the reward for exploring, never a
-  requirement.
-- **It weighs on the trials, not on the wall:** an unsteady foundation (below 50%) makes
-  the tribulation (heaven-defiers only) and the optional heart-demon trial harder.
-  No normal player is walled by it.
-- **Tempering:** old stages can be raised later (seclusion, passing a heart-demon
-  trial at a major), so nobody replays stages to fix one. The heart-demon trial is
-  built: up to 3 lowest stages +25 points each, to 150% at most ([heart-demon](systems/heart-demon.md)).
-- **Rejected:** a visible solidity meter (no HUD room); damaging your own
-  cultivation to reroll stats (the best play becomes regrinding, which players hate).
-  Shattering your cultivation stays a one-time story beat on the demon path
-  ([replayability](roadmap/replayability.md)).
-
-**The haul and the spirit ring: the cost of death (user, 2026-10-23). Built (untested):
-haul tracking, banking, the death spill, combat-leave loss and the ring's server side
-([haul](systems/haul.md)); the ring's Inventory button and a dedicated spirit-light wait
-for UI and vfx passes.**
-- Today death costs nothing, so surviving a fight doesn't matter. Now what you
-  carry home is at stake, which gives "bring it home" in the loop its weight.
-- **At risk: this trip's haul,** everything picked up since you last banked: raw qi
-  in the dantian, herbs, seeds, materials and Spirit Stones. **Never at risk:**
-  refined cultivation, stages, the equipped weapon, learned techniques, and rare
-  finds (manuals, weapons, bloodline essences), which are banked the moment you
-  pick them up.
-- **Banking** happens on reaching home, the sect, or any teleport array, as a one-tap
-  "Store all" (user, 2026-10-23: "think sell all but you store all"); riding an array
-  banks too, with the same summary and flare on arrival; logging out at home banks
-  silently.
-- **The spirit ring:** a storage ring with a few safe slots; whatever is in it is
-  banked even out in the wilds. More slots by realm or from the Pavilion. Choosing
-  what goes in the ring is the interesting decision.
-- **Death spills about half the unbanked haul** where you died, as a spirit-light
-  only you can pick up, for about 5 minutes. No other player can loot it (no griefing,
-  no PvP looting). A death never costs cultivation or a stage.
-- **Leaving while combat-tagged counts as a death** (no combat logging): the share
-  spills where you stood and waits for your next join (a phone drop costs a walk back,
-  not the haul). A second death merges into the waiting spill.
-- **Rejected:** a wound on the cultivation bar as the death cost. Two death
-  penalties at once is where it turns hardcore.
-
-**The qi surge (replaces the forced breakthrough). Built 2026-10-23 (untuned), see
-[cultivation](systems/cultivation.md#qi-surge): 15 s, 20% heal, 25% of the dantian's raw
-qi, once per engagement; a Surge button in the touch cluster, the pill on PC
-([HUD vitals](ui/hud-vitals.md#qi-surge-button-and-notice)).**
-- **Its point:** survive and keep your haul. A clutch comeback, not insurance.
-- **Ready** when the bar is at least 90% and health is low (today's `canForce`
-  conditions).
-- **Fire:** on mobile a surge button appears in the touch cluster while it's ready;
-  on PC a notice reads "M to qi surge". M is Meditate today; while the surge is
-  ready in combat, M surges instead (nobody meditates mid-fight). No prompt, no pause.
-- **Effect:** about 15 s at the next stage's stats and a small heal; the realm plaque
-  shows the higher stage.
-- **Cost:** it burns a share of the raw qi in your dantian (or essence blood, if that
-  becomes a resource), so it trades a little of the haul to save the rest. When the
-  combat tag drops, one toast: "Your cultivation falls back."
-- The real forced breakthrough and its qi debt are removed; breakthroughs are seated only.
-
-**Insight is deleted (built).** It no longer gates breakthroughs (the walls are the bar,
-plus the tribulation for heaven-defiers) and no longer pays for comprehension.
-Its sources (first kills, bosses, milestones) become foundation experiences.
-Technique gating moves to weapon Dao (section 4). First kills and boss kills are
-foundation experiences (built).
-
-**Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
-prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the grade line on the breakthrough card and the
-spilled-haul spirit-light (the touch surge button and the Inventory's Ring button and
-slot count are built).
-
-**Build order:** docs and Pacing numbers; the haul, banking and death spill (built); the
-spirit ring (built, Inventory UI included); foundation grades and experience pools; the surge (insight deletion
-is built).
-
-### Pacing, realm gaps and verbs (decided 2026-10-23)
-Research behind it: Roblox median sessions are 5-9 min and D7 is 3-8%, so the
-first session decides; full Roblox RPGs run 30-100 h; cultivation games use about
-8-12% per minor stage and 2-2.5x at a major.
-- **Targets (active play):** QC about 2.5 h, QR about 7 h, FE about 20 h, so about
-  30 h to FE9, which stays the cap and should be hard to reach. Passive and
-  offline cultivation stretch it over real days.
-- **Shape:** every realm is early (1-3), middle (4-6) and late (7-9), each easy to
-  hard, with a breather opening each third so a breakthrough feels good. QC never
-  slows early: the first session lands two or three breakthroughs. **The real
-  slowdown is mid Qi Refining**, where investing in your spirit garden and your
-  peak (abode, formations, herbs) is what keeps cultivation moving (user,
-  2026-10-23; not alchemy).
-- **No stretch over 2-3 h without something new** (a zone, boss, rift or verb).
-- **Strength:** about +10% per minor stage and about 2-2.5x at a major, plus
-  **realm suppression**: damage from a lower major realm is heavily reduced
-  against a higher one, so a QC player can barely scratch an FE beast. That's the
-  heaven-and-earth gap without huge multipliers. Techniques count about as much
-  as realm, so one minor stage up is fightable and a major is not.
-- **Each major brings a new verb, not just numbers:** QC the body and combat, QR
-  the abode: the garden and peak building that boost cultivation (and qi leaving
-  the body), FE weapon refinement and a first
-  sword glide. Body refinement and others are kept for later realms.
-- **Heaven-defiers** resist suppression partly, so they fight above their level
-  and farm stronger beasts, bosses and herbs. They pay with about a 1.5x bar and a
-  tribulation at every major.
-- **Herbs:** the tier share of the dantian needs a floor per tier (early herbs
-  became tiny), and event herbs (Thousand-Year Ginseng) must stay big.
-
-**Built 2026-10-23 (untuned in play):** the curve to these targets (table and
-formulas in the `Pacing.luau` header), strength (+10% a minor, x2.25 a major, beasts
-following through `Pacing.BeastBaseline`), realm suppression (`Pacing.Suppression`,
-0.2x per major, both ways), heaven-defiers' 1.5x bar and half suppression resist
-(`Pacing.HeavenDefying`), herb floors and event-herb shares (`Pacing.Herbs`). Not
-built: the new verb per major; nothing sets `heavenDefying` yet.
-
-### Pacing follow-ups
-Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
-re-tiered; region seals wait for the map.
-
-## 2. Onboarding (QC1 to QC9, then each realm)
-The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboarding.md)
-"The first session" has the beat table and timeline).
-- **The hook (built 2026-10-23, from Roblox metrics; untimed in play):** circulate ->
-  a guaranteed first breakthrough (~1:15) -> ride out and fight (~2:00) -> 3 kills
-  for Fire Seal -> cast it -> store the haul -> refine at the node by the fight ->
-  QC3 (~4:30-5) -> the spirit root and the formations -> QC4 (~9-10), with a guide
-  the whole way. Five mechanics (six with the haul) before the third breakthrough;
-  the Gate ride beat is merged into the first fight; no starting technique.
-- **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
-  (out and home, the garden, the board); QR the social layer and the abode
-  (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
-  refinement, treasures, pets). Built: the second weapon moved to QR1; the Dao drill stays at QC7 (user, 2026-10-23).
-- **QC4 end:** the elder names the loop ("cultivate until you hit a wall, go out and
-  break it, come home stronger"): FreePlay's one-liner, and his talk. Built.
-- **The re-slot (user, 2026-10-24; built, untested):** one idea per chapter, each a
-  live system ([onboarding](systems/onboarding.md) "One idea per chapter" has the
-  table and lines). Elder lines at most 12 words, objectives at most 5.
-  - **QC4 "your home grows":** Home only (plant a seed). The foundation gets one line
-    on the QC4 -> QC5 breakthrough card.
-  - **The second session:** Seclusion, offered on the first sit after the next join
-    (or at QC5), the first one 45 s.
-  - **QC5:** the Ruined Borderlands and their rumours as one idea (find a hidden
-    cache; no guide). The sect board is pointed at from the elder's Talk; dailies,
-    contribution and the chapter quest are the sect MVP (section 3).
-  - **QC6 herbs matter:** the Herbs lesson (eat a herb).
-  - **QC7 the Dao drill** (DaoPractice; class skills need Dao, so the gardener road
-    needs it early). The owner moved it back here; it stays.
-  - **QC8:** a breather. The wild garden waits for one to exist.
-  - **QC9:** the heart-demon trial (HeartDemon lesson), replacing the old Wall lesson.
-    The quiet ceremony and the heaven-defier's tribulation dialogue are still to do.
-  - **QR1:** the second weapon (WeaponRack). **QR2:** building (place one piece; the
-    peak score raises meditation).
-  - **The hook plays only the Maze;** the other minigames are met from QC4, still
-    untaught.
-- **Every major** repeats the pattern: one new idea, said once by the elder,
-  with a rewarded objective and a guide. Next: one lesson per QR third (QR4: the
-  garden aura and build items against the slowdown).
-- **The wall card:** built as free play's objective line: one verb per state (Hunt,
-  Refine, Break through, Store) with progress, from the guides' checks. An icon per
-  verb waits on the tracker UI.
-- Build: reuse the lesson system in `Quests.luau`; add lessons, not beats. UI by
-  the ui-designer.
+## 2. Onboarding (each realm)
+The built schedule is [onboarding](systems/onboarding.md) "One idea per chapter".
+- **Every major** repeats the pattern: one new idea, said once by the elder, with a
+  rewarded objective and a guide. Next: one lesson per QR third (QR4: the garden aura
+  and build items against the slowdown); FE lessons as their systems ship.
+- **QC9:** the quiet ceremony and the heaven-defier's tribulation dialogue.
+- **QC8** stays a breather until a wild garden exists to teach.
+- The other circulation games (from QC4) and the Dao drill's game get a lesson each,
+  one per breather.
+- The wall card's verbs get icons once the tracker supports them.
+- Build: reuse the lesson system in `Quests.luau`; add lessons, not beats. UI by the
+  ui-designer.
 
 ## 3. The sect and quests
-**MVP first (user, 2026-10-23):** rank, contribution, the board with dailies and one
-chapter chain, and the Pavilion. **Built (untested, numbers are proposals):**
-[sect](systems/sect.md). Halls, masters, weeklies, bounties, spirit quests
-and sect-wide goals are sprinkled in later as the player advances (QR onward).
-Per [progression](progression.md): ranks, board, dailies, weeklies, chapter chains,
-bounties, sect tasks, contribution and a Pavilion shop (never qi).
-- **Data:** a contribution counter and rank in `PlayerData`; quest defs reuse
-  `Quests.Quest`; dailies reset by day (like the daily login).
+The MVP is built ([sect](systems/sect.md)). Next, sprinkled in from QR onward: weeklies,
+bounties, sect tasks, spirit quests, sect-wide goals, Halls and masters.
 - **Peaceful quests exist beside every combat quest** (herb errand, tend the sect
   garden, find a place, build a feature on your peak).
-- **Build order:** rank and contribution, then the board UI, then dailies, then
-  chains per region. UI by the ui-designer.
+- Chains per region after the Borderlands one.
 
-## 3b. Sect structure and contribution (proposed 2026-10-22)
-- **One official sect, run by NPCs, that everyone starts in.** It is the hub, the
-  elder, the board and the Pavilion. The demon path leaves it for the Blood Sect
-  (also NPC-run); a rogue belongs to neither.
-- **Player groups sit under it as Halls.** A Hall is 10-30 players with a shared
-  name, banner, a hall they furnish together, a shared plot, and a small board of
-  group goals. A Hall can belong to the sect, the Blood Sect or be independent, so
-  every path can form one. **Hall is the name (user, 2026-10-22).** Lineage is
-  kept for the mentor tie below.
+## 3b. Sect structure and Halls (proposed 2026-10-22; deferred)
+- **One official sect, run by NPCs, that everyone starts in.** The demon path leaves it
+  for the Blood Sect (also NPC-run); a rogue belongs to neither.
+- **Player groups sit under it as Halls.** A Hall is 10-30 players with a shared name,
+  banner, a hall they furnish together, a shared plot, and a small board of group
+  goals. A Hall can belong to the sect, the Blood Sect or be independent, so every path
+  can form one. **Hall is the name (owner, 2026-10-22).** Lineage is kept for the
+  mentor tie below.
 - **Lineage as a light mentor tie inside a Hall:** a senior takes a junior, both earn
-  contribution when the junior advances. It helps new players, which helps retention.
-- **Contribution is soft.** The sect board offers tasks; nothing nags. At most one
-  dismissible prompt per session ("The elder summons disciples to the hall"), no
-  penalty for ignoring it. Each playstyle contributes in its own currency: herbs from
-  the gardener, beast cores from the fighter, pieces for the hall from the builder.
-- **Spirit quests:** occasional special asks from a spirit or the heavens (find a
-  lost spirit, tend a dying tree, carry a message), rare, a story beat each, with a
-  small reward. They are flavour and a cadence hook, never a chore.
-- **Sect-wide goals:** server-wide shared tasks (fill the storehouse, light the
-  wards before a beast tide) that reward everyone who helped. Cadence and social in one.
+  contribution when the junior advances.
+- **Contribution is soft.** Nothing nags: at most one dismissible prompt per session,
+  no penalty for ignoring it. Each playstyle contributes in its own currency (herbs,
+  beast cores, pieces for the hall).
+- **Spirit quests** (rare story asks from a spirit or the heavens, flavour and a cadence
+  hook, never a chore) and **sect-wide goals** (server-wide shared tasks that reward
+  everyone who helped).
+- The Hall and lineage screens are built ahead and wait for this
+  ([halls and masters](ui/halls-masters.md)).
 
-## 3e. Reasons to meet other players (2026-10-23)
-The realm gap shows against content, so players need reasons to cross paths:
-- **Parties and shared credit: built (2026-10-23, untested; UI to build,
-  [party](systems/party.md)).** Server-local parties of 4, every credited damager gets
-  their own full drop (no kill-stealing), nearby members and light hitters share the
-  qi, a small capped group bonus, "Join" a member by array, the player card, the People
-  list (safe zones only), friend nudges, visiting peaks.
+## 3c. Reward banners
+Built ([reward banners](ui/rewards.md), one card for three jobs; sect quests send it).
+Still to send their specs: onboarding objectives and bloodlines.
+
+## 3d. Relationships: masters, disciples and sect siblings (deferred)
+NPC masters at QR1, cohorts of nine with numbered seats and epithets, player masters,
+up to three masters, bloodline granting (trial chains, the Blood Rite) and the safety
+rules: [relationships](roadmap/relationships.md).
+
+## 3e. Reasons to meet other players
+Parties, shared credit, realm pressure and the shelter bonus quests are built
+([party](systems/party.md), [sect](systems/sect.md) "Bonus quests"). Next:
 - **Group world events and roaming beast kings**, rewards scaled to each player's realm,
   so a senior helping still earns.
 - **Co-op rifts** with better loot as a party; sect board tasks with shared credit.
-- **Bonus quests that teach the party shelter: built (2026-10-24, untested;
-  [sect](systems/sect.md) "Bonus quests").** Escort a Junior and Seek a Senior.
-- **Deferred (user, 2026-10-24: "that'll have to be deferred onto a roadmap but that's
+- **Deferred (owner, 2026-10-24: "that'll have to be deferred onto a roadmap but that's
   a very good idea"): the NPC junior escort**, so a player alone still learns the
   shelter. A friendly junior sect disciple (a stock R6, runtime clone) follows the
   player into the wilds; beasts target it; the player shelters it to a destination (a
   region landmark, or a set distance in the testbed) while it lands a few weak hits so
-  the shelter lifts the Suppressed status; minimal AI (follow, flee when hurt, a weak attack).
-  Offered once per major from QR1 as a bonus quest, and once as the shelter's solo
-  teaching moment (one elder line). Needs EnemyService to target a non-Player (today
-  `target` and every hit path are Player-only).
-- Halls and lineage after the MVP.
+  the shelter lifts the Suppressed status; minimal AI (follow, flee when hurt, a weak
+  attack). Offered once per major from QR1 as a bonus quest, and once as the shelter's
+  solo teaching moment (one elder line). Needs EnemyService to target a non-Player
+  (today `target` and every hit path are Player-only).
 
-## 3f. PvP and competition (user, 2026-10-23; deferred)
-- **PvP is off by default.** No forced PvP: realm gaps would let a strong player delete
-  a weak one, and the audience is kids and mobile.
-- **Deferred, liked by the user:** competition only between players of similar realm.
-  Ideas: opt-in **spar** duels from the player card (nothing at stake), and
-  **contested ground** for some high-realm world events (a marked PvP zone, same
-  realm band only, bigger rewards, entered by choice).
-- **Deferred:** world-event competition by contribution (base reward for all, extra for
-  top contributors, a channelled treasure claim weighted by contribution, party
-  contribution pooled).
+## 3f. PvP-adjacent competition (owner, 2026-10-23; deferred)
+- **Liked:** competition only between players of similar realm. Opt-in **spar** duels
+  from the player card (nothing at stake), and **contested ground** for some high-realm
+  world events (a marked PvP zone, same realm band only, bigger rewards, entered by
+  choice).
+- World-event competition by contribution: a base reward for all, extra for top
+  contributors, a channelled treasure claim weighted by contribution, party
+  contribution pooled.
 
-## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
-NPC masters at QR1, cohorts of nine with numbered seats and epithets, player masters, up to three masters, bloodline granting (trial chains, the Blood Rite) and the safety rules: [relationships](roadmap/relationships.md).
-
-## 3c. Reward banners: show cultivation gains
-Today gains show as small toasts, floating numbers and a Rewards feed. Players should
-feel the big ones.
-- **Three tiers.** *Small:* a floating number or a line in the feed (qi, stones).
-  *Medium:* a top banner for a notable gain (a technique tier, a foundation
-  tempered, a Herbarium entry, a quest done). *Big:* a full card with a short beat and
-  sound for milestones (a breakthrough, a first of a category, a bloodline, a rank).
-- **The card shows what changed:** the stat deltas, the new unlock, and one line on
-  what to do next ("Your foundation is firm. The Outer Wastes are open.").
-- **One card, three jobs (user, 2026-10-22).** The boss victory card
-  (`Rewards.luau`, `StarterGui.Rewards.BossReward`: a title, a subtitle, reward tiles
-  that land on it, rays, tap to close) is reused for **quest completion** and for
-  **onboarding objectives**, which are two different things with different looks:
-  - *Boss victory:* as today ("Victory", "<boss> defeated").
-  - *Quest complete:* "Quest complete" with the quest's name; tiles for stones, qi,
-    contribution and a manual; the sect or Hall crest. Rare and weighty.
-  - *Onboarding objective:* "Objective complete", lighter and quicker (a smaller card
-    or banner, short life), because the hook fires many in a few minutes. Same tiles.
-  The server sends one Effect with a `kind`, a title and a subtitle (today it is
-  `"boss"` with a name and qi); `openCard` takes those instead of hard-coding "Victory".
-- **Never block play;** big cards are skippable and queue, one at a time.
-- **Build:** a reward-banner component in the HUD, fed by one server event with a tier;
-  existing "breakthrough" cards fold into it. `ui-designer`, designed with the user.
-  **Built (2026-10-23, [reward banners](ui/rewards.md)):** `Rewards.show` with small,
-  feed, banner and card tiers and `Effect "reward"`; the boss card, feed, region banner
-  and toast restyled onto the kit; breakthroughs open the milestone card. Quests,
-  onboarding objectives and bloodlines still have to send their specs.
-
-## 4. Techniques and weapons (why they feel lackluster, and the fix)
-**What exists:** 12 techniques (5 any-weapon, one skill per weapon class; the table in [combat](systems/combat.md)). They
-are mostly damage with a cooldown, plus a comprehension bottleneck. I haven't
-playtested them; this diagnosis is from the numbers and docs.
-
-**Why they feel weak:** there is one skill per class, so there's no choice; nothing
-rewards using them over M1; no enemy asks for a technique; and nothing combines.
-
-**The fix, in four layers (revised 2026-10-22: fewer techniques, deeper ones):**
-1. **Three skills per weapon class (21), found as manuals, unlocked by weapon
-   mastery (user, 2026-10-23).** A technique can only be *learned* once that class's
-   Dao level reaches the threshold its power and rarity set: about level 2, 5 and 8
-   for the three skills (Dao runs 0-10). A beginner can't pick up a greatsword and
-   learn Heaven-Splitting Descent. A found manual is always kept: it sits in the pouch
-   reading "Requires Greatsword Dao 6", so a drop is a goal, never a dead pickup.
-   Any-weapon arts check the player's highest class Dao (open: or their own threshold).
-   Comprehension (breaking a tier bottleneck) costs Spirit Stones and needs a higher
-   Dao level in the class, not insight (built: bottleneck k needs min(10, learn + 2k),
-   or learn + k for Adept and Peak skills). **Retier built (user, 2026-10-23):** the
-   existing class skills look impressive, so they sit at the top of the ladder
-   (`Pacing.Comprehension.SKILL_DAO`): Dao 8 Rampaging Tiger, Heaven-Splitter, Great
-   Sage; Dao 5 the other four. Palm Strike and Sword Qi Wave stay the mediocre starter
-   arts (Dao 0). **Pending:** each class's plain Dao 2 first skill, on the level of Palm
-   Strike (none made, so no class skill is learnable before Dao 5), and the rest of the 21.
-2. **Techniques deepen instead of multiplying.** Each technique levels up
-   (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
-   so one skill grows from a plain cast into a spectacle. No new content per level
-   beyond the tiers.
-3. **Give them jobs.** Statuses the game already has (poison, slow, stun,
-   bleed) plus a few new ones (burn, chill, break): each class owns a status
-   (sword: bleed; spear: pierce armor; staff: stun; greatsword: break guard).
-4. **Make enemies ask for them.** Armoured beasts (the Stone Tortoise) need
-   guard-break; fliers (the Flame Raven) need ranged or pull; packs reward area
-   moves; bosses have weak points and openers that a technique exploits. Enemy
-   designers bake this into each beast's card. Root element resonance (exists)
-   and combo windows (a status plus a technique = a bonus) reward pairing.
-- **Quantity target:** about 28: 21 class skills (3 per class, the 7 that exist
-  are the first of each), plus 7 any-weapon arts (the 5 existing and 2 elemental).
-  Cut from the earlier 50; more can come later as manuals.
-- **Weapon and arts UI is a separate flow fix.** The Inventory holds the pouch,
-  arts and weapons in tabs and the player juggles badges and "Requires a sword".
-  Proposal: an **Arms window per weapon** (Dao level, its three skill slots and
-  their unlock levels) and a **hotbar preset per weapon**, so swapping weapons
-  swaps the arts row, and a quick-swap on the HUD badge. To scope with the
-  ui-designer after the user lists what is clunky now.
-- **Visuals:** `vfx` agent per technique batch.
-- **Build order:** statuses and combo rules, then the Arms window and per-weapon
-  presets, then re-pass the existing techniques, then a class at a time (fresh
-  agent per class).
+## 4. Techniques and weapons
+**Why they feel weak:** nothing rewards using them over M1, no enemy asks for a
+technique, and nothing combines. Learning and comprehension gated on weapon Dao are
+built ([combat](systems/combat.md)). **Deferred (2026-10-23): enough enemies; systems
+first.** The plan (revised 2026-10-22: fewer techniques, deeper ones):
+1. **Three skills per weapon class (21), found as manuals, unlocked by weapon Dao
+   (owner, 2026-10-23)** at about Dao 2, 5 and 8. Pending: each class's **plain Dao 2
+   first skill**, on the level of Palm Strike (none exists, so no class skill is
+   learnable before Dao 5), and the rest of the 21. Open: do any-weapon arts check the
+   highest class Dao, or their own threshold?
+2. **Techniques deepen instead of multiplying:** each levels up through its visual
+   tiers T1-T4 ([vfx style](vfx/style.md)).
+3. **Statuses give them jobs:** poison, slow, stun and bleed plus a few new ones (burn,
+   chill, break); each class owns one (sword bleed, spear pierce armour, staff stun,
+   greatsword break guard).
+4. **Enemies ask for them:** armoured beasts (the Stone Tortoise) need guard-break;
+   fliers (the Flame Raven) need ranged or pull; packs reward area moves; bosses have
+   weak points a technique exploits. Combo windows (a status plus a technique = a
+   bonus) and root element resonance reward pairing.
+- **Quantity target:** about 28: 21 class skills plus 7 any-weapon arts (the 5 existing
+  and 2 elemental).
+- **The Arms window:** one per weapon (Dao level, its three skill slots and their
+  unlock levels) and a hotbar preset per weapon, so swapping weapons swaps the arts row.
+  Scope with the ui-designer after the owner lists what is clunky now.
+- **Build order:** statuses and combo rules, then the Arms window and presets, then
+  re-pass the existing techniques, then a class at a time (a `vfx` agent per batch).
 
 ## 5. The spirit garden
-**Today:** 22 herbs in 3 soils (bed, pond, grove), tiers I-V with 3-5 each, 7
-mutations, sizes, weather effects, wild sprouts, the Herbalist, Grow Now, and an aura
-on cultivation. Eating a qi herb gives its tier's share of the current dantian
-(`Pacing.Herbs.EAT_SHARE`), beasts drop their region's seeds (`Herbs.Regions`), and the
-Herbarium is wired with discovery and tier-page rewards (built 2026-10-23, untuned;
-[garden](systems/garden.md), [herbarium](ui/herbarium.md)). The 11 new herbs draw
-tinted stand-ins until the modeler builds them (garden "Models to build").
-
-**Plan:**
-- **Herb tiers** I-V tied to regions, qi as a share of the dantian
-  ([progression](progression.md)); built with 3-5 herbs per tier. More herbs later as
-  regions get their maps.
-- **Alchemy is deferred** (see "Deferred to a later update"). Herbs are eaten directly
-  for now; their sinks are the Herbalist, the sect's errands, the Herbarium and buffs.
-- **Tending matters:** watering, pests or weather events, rare mutation chances,
-  and size records. Keep it calm, no punishment for being away.
-- **The Herbarium:** a collection index of every herb, size and mutation seen,
-  with rewards. It's the "grow a garden" hook and feeds the Home experiences. Built:
-  each discovery pays a few Spirit Stones; a completed tier page pays more and is a
-  Home foundation experience (first guess, 2026-10-23). Still to do: a HUD tile so
-  phones can open it, and maybe size or mutation milestones.
-- **Wild gardens:** discoverable spots in each region ("Discover" foundation
-  experiences); harvest once a day; a reason to explore.
-- **Visiting:** walk through a friend's peak and gift a herb. A cheap social hook,
-  and a way to show building.
-- **Gardener road:** garden aura, seclusion and tempering carry a pure gardener to every
-  wall, just slower than a fighter ([progression](progression.md) "Difficulty").
+Herb tiers, region seeds and the Herbarium are built ([garden](systems/garden.md)). Next:
+- **Herb models** for the stand-ins (garden "Models to build").
+- **Tending matters:** watering, pests or weather events, rare mutation chances, size
+  records. Calm, no punishment for being away.
+- **Wild gardens:** discoverable spots in each region (Discover experiences), harvest
+  once a day; they need the map.
+- **Gifting:** walk through a friend's peak and gift a herb.
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- **Build order:** herb tiers and qi scaling, regional tiers IV-V and region seeds,
-  the Herbarium (all built, untuned), then wild gardens (map), then visiting.
+- More herbs as regions get their maps; past tier V is deferred.
 
 ## 6. Building and assets
-**Today:** about 40 items in 7 categories (cultivation, decor, furniture, garden,
-lighting, nature, structures), realm-gated, with meditation and garden bonuses;
-peak tiers per major with room, item caps and a peak score (backend built, below).
-**Needed:** more assets, more reasons to build.
-- **Peak tiers per major** (QC, QR, FE): the peak itself changes look at each
-  major, not only Foundation. **Backend built 2026-10-23** (`Config.Build.TIERS`,
-  [build](systems/build.md#peak-tiers-backend-built-looks-wait-for-the-building-pass)):
-  the swap, per-tier radius, item caps and Herb Bed caps. The QC and QR looks
-  (and any `Ground` terraces that unlock the bigger radius) wait for the building
-  pass, which works to the template contract there.
+Peak tiers, room and the peak score are built ([build](systems/build.md)). Next:
+- **Peak tier looks (the building pass):** the QC and QR looks, and `Ground` terraces
+  that unlock the bigger radius on the real map, to the template contract in build.
 - **Themed sets**, 10-15 pieces each, unlocked by realm, rank or quest:
   1. *Mortal courtyard* (QC): walls, gate, simple halls, bridges, stairs.
   2. *Jade pavilion* (QR): pavilions, a spirit pond with a bridge, lanterns.
   3. *Cloud palace* (FE): floating platforms, tiered halls, banners, sky gardens.
-  4. *Herb house* (QR3): drying racks, herb shelves, a tea pavilion (the furnace comes with alchemy).
+  4. *Herb house* (QR3): drying racks, herb shelves, a tea pavilion (the furnace comes
+     with alchemy).
   5. *Library and training* (QR7): scroll shelves, weapon racks, training dummies.
-  6. *Formations:* functional arrays (a meditation array, a garden-growth array),
-     which are where most bonuses should live.
-- **Rewards for building:** bonuses stay small and capped, but more
-  items count: a "peak score" that adds to meditation and garden up to a cap.
-  **Built 2026-10-23, untuned** (`Pacing.PeakScore`; cap per tier 60/150/250,
-  meditation and plant growth); since 2026-10-24 it also lifts the garden aura's cap
-  ("decorate your abode", `Pacing.Aura.DECOR`; [progression rules](systems/progression-rules.md)).
-- **Sources:** sect contribution (Pavilion), quest rewards, event drops, the
-  Herbalist and market for stones, and a few cosmetic robux items.
-- **Peak size and rooms:** a larger buildable area per major (a plot unlock).
-  **Backend built** with the tiers (radius 47/56/66, 120/160/200 items, 16/20/24
-  Herb Beds); the area grows on the real map once a tier's look brings `Ground`.
-- **Pipeline:** the `modeler` agent in Blender (FBX plus a placement script) for
-  structures, and Studio parts for small props; `ui-designer` for the catalog.
-  A fresh modeler per set; see [build](systems/build.md). Roughly 60-80 pieces over
-  the three majors.
+  6. *Formations:* functional arrays (a meditation array, a garden-growth array), where
+     most bonuses should live.
+- **Sources:** sect contribution (Pavilion), quest rewards, event drops, the Herbalist
+  and market for stones, and a few cosmetic Robux items (earnable first).
+- **Pipeline:** a fresh `modeler` per set (Blender, FBX plus a placement script) for
+  structures, Studio parts for small props, `ui-designer` for the catalog. Roughly
+  60-80 pieces over the three majors.
 
-## 7. World events and tribulation VFX
-Per [progression](progression.md) "World events" and
-[world events plan](vfx/world_events.md): resume `world-fx` (Heaven Split,
-Beast Surge, new events) and rebuild the tribulation (clouds, bolts, eye, aftermath).
-Tribulations stay rare, so the VFX can be big.
+## 7. World events and tribulation VFX (separate work)
+Per [progression](progression.md) "World events" and the
+[world events plan](vfx/world_events.md): resume `world-fx` (Heaven Split, Beast Surge,
+new events) and rebuild the tribulation (clouds, bolts, eye, aftermath). Tribulations
+stay rare, so the VFX can be big.
 
 ## 8. Enemies
-The roster is enough for now. **Built (2026-10-23, testbed behind `VARIANTS`, untested):
-realm variants**, the backend for elite and apex tiers: a spawn sets a beast's realm, and
-it scales on the curve and takes a tier (young, adult, elite, apex) with size, speed,
-cadence, a tint and moves unlocked by tier ([enemies](systems/enemies.md#realm-variants-2026-10-23)),
-applied to the ring-1 and Borderlands beasts. Still to do for tiers: the aura and the
-per-beast extra move (animator and vfx briefs). Next: wire the **cultivator enemies** as
-human opponents and sect-quest targets, and tune the old FE1 bosses.
+- **Flag (owner, 2026-10-24): beast variety for QR and FE.** Every regular beast is
+  native to QC2-QC8; the bosses are QC7, QC9, QR5 and QR9; nothing is native to FE. QR
+  and FE are filled only by elite and apex variants of the same 8 beasts, and variants
+  are off on the live map. **Plan:** about 3-4 new beasts for QR/FE plus one FE boss
+  (the Ember-Scale Pangolin and Blood-Fed Hound designs are parked:
+  [next beasts](enemies/next-beasts.md)), and turn variants on for the live map
+  (`Config.Wilds.VARIANTS`, [variants](enemies/variants.md)).
+- **Elite art follow-ups:** the elite/apex aura, the serpent's twin spit, the tortoise's
+  stomp wave, the mane's third rend (animator + vfx per beast), a tier seal on the
+  nameplate.
+- **Cultivator enemies** wired as human opponents and sect-quest targets.
+- Promote the second and third waves from the testbed after a playtest each.
 
 ## 9. Replayability: why come back after the ladder
-**Baked in, not bolted on (user, 2026-10-23):** no reincarnation at FE. What makes a
+**Baked in, not bolted on (owner, 2026-10-23):** no reincarnation at FE. What makes a
 second run different is designed in now: races and bloodlines, the sect, rogue and
-demon paths, random rifts, foundation grades to beat, and the haul's risk.
-Rebirth with a legacy, paths as affiliations (sect, rogue, a secret demon path), mixed secret realms and rifts, cadence, endless goals, social, new realms; then the discoverable demon secret chain: [replayability](roadmap/replayability.md). Rule: build 1-3 only after the core loop and the ladder are proven in playtests.
+demon paths, random rifts, foundation percents to beat, and the haul's risk.
+Rebirth with a legacy, paths as affiliations (sect, rogue, a secret demon path), mixed
+secret realms and rifts, cadence, endless goals, social, new realms; then the
+discoverable demon secret chain: [replayability](roadmap/replayability.md). Rule: build
+1-3 only after the core loop and the ladder are proven in playtests.
 
-## 9b. More cultivation elements (candidates, 2026-10-22; QC to FE9 only)
-Proposals to pick from; none decided. Each must name its arrow into the loop.
-1. **Seclusion (closed-door cultivation).** *(Built 2026-10-23, untested:
-   [seclusion](systems/seclusion.md).)* Entered from the seat on your own peak; AFK
-   cultivation (the same as offline), a stone trickle, the garden tended (and, online
-   only, mutating), a streak, hourly rare finds, a result card; the onboarding's first
-   one at QC4. No foundation experiences and no tempering (the heart demon tempers).
-   Arrow: home. Perfect for gardeners and mobile players.
-2. **Heart-demon trial.** *(Built 2026-10-23, untested: [heart-demon](systems/heart-demon.md).)* A choice-based, no-reflex inner trial at a major breakthrough
-   (dialogue and choices that reflect how you played), optional, repairs or deepens
-   the foundation. Replaces "skill" with story. Arrow: breakthrough and foundation grade.
-3. **Fortuitous encounters.** Rare, random, sharable moments while out: an old hermit
-   in a ring, a dying cultivator's bequest, a hidden spring. Small rewards, big
-   stories. Arrow: out (explore). The genre's best content-creator fuel.
-4. **Pill impurities** *(later update, with alchemy).* Pills leave toxicity that clouds
-   your foundation. Purify by meditating.
-5. **Talismans** *(crafting is a later update).* Consumable charms: heals, wards, buffs,
-   tribulation protection. Found and bought ones can come sooner.
-6. **Formations (arrays).** Functional building: a gathering array, a growth array, a
-   ward. Mostly the building plan; also a Dao ("Formation Dao") to comprehend.
-7. **Spirit beast taming.** A tamed beast follows you (the cosmetic pet at FE6, earlier
-   as an egg). Becomes the soul companion later. Arrow: strongest kid hook.
-8. **Alignment and reputation.** Righteous, neutral and demonic standing from your
-   deeds; changes how NPCs and masters treat you. Ties to the demon secret.
-9. **Spar and rank duels (opt-in).** Friendly duels for rank, no progress at stake, a
-   Hall rivalry. Optional, kids and mobile safe.
+## 9b. More cultivation elements (candidates, 2026-10-22; none decided)
+Each must name its arrow into the loop.
+1. **Fortuitous encounters:** rare, random, sharable moments while out (an old hermit
+   in a ring, a dying cultivator's bequest, a hidden spring). Arrow: out.
+2. **Pill impurities** (with alchemy): pills cloud the foundation; purify by meditating.
+3. **Talismans** (crafting later): heals, wards, buffs, tribulation protection; found
+   and bought ones can come sooner.
+4. **Formations (arrays):** functional building, and a Formation Dao to comprehend.
+5. **Spirit beast taming:** a tamed beast follows you (the cosmetic pet at FE6, earlier
+   as an egg), later the soul companion. The strongest kid hook.
+6. **Alignment and reputation:** righteous, neutral and demonic standing from deeds;
+   ties to the demon secret.
 - **Skip for now:** lifespan (stress), dual cultivation (audience), PvP-for-progress,
   an open player auction (scams).
 
-## 10. Order of work and who does it
+## 10. Open from the design reviews
+Recommendations the owner hasn't built or declined yet ([design reviews](design-reviews/README.md)).
+- **Front door and HUD:** hide the paid Change buttons on a first creation and add a
+  `PolicyService` check (retention rec 1); reveal HUD tiles and seated tiles as they're
+  taught; Herbarium card names at 12 px; profile the HUD on a 2-3 GB Android; A/B a wolf
+  pup before Circulate.
+- **Cultivation:** one run refines a whole dantian from QC5, a higher efficiency floor,
+  a seated "steady breathing" option from QR1, a new circulation game at QR1 and FE1,
+  "spirit" for combat qi on screen (minigames review).
+- **Qi surge** (the 90% gate stays): teach it once, scripted; its own PC key.
+- **Seclusion and AFK:** logging out on your peak counts as seclusion; show AFK on the
+  calm view; mutations roll offline too, and Wood's growth perk offline.
+- **Heart demon:** curious, not accusing, judging lines; visible tempering on the
+  closing screen; "may add a question" and a pool cap of about 8.
+- **Pacing:** a post-FE9 loop before FE ships; the QR5 aura objective line; a toast the
+  first time a hit is suppressed.
+- **Combat and techniques:** arts as seals in the touch cluster (and seal art for the
+  words-only hotbar), M1 hit-stop and impact, `NEW_TELEGRAPHS` to main, one guard line
+  at the first boar charge, combat events; the first boss drops an art for the class in
+  hand, Dao out of comprehension, an unlock card, one job (the Tortoise and guard-break)
+  before twenty arts.
+- **Enemies:** a Bestiary page; boss tiers as rare "corrupted" world variants, not
+  modes; phone-check variant names.
+- **Haul:** the ring holding a share of raw qi or stones; one elder line on nodes as
+  waystations.
+- **World events and exploration:** finds that pay daily and a Wilds Journal, shared
+  event rewards, events on a clock, early rumour lines, caches that refill stones daily.
+- **Garden:** a shared Herbalist restock; an opt-in "herbs ready" notification.
+- **Peak building:** the tier-up as a moment, score sets not counts, a Travel row to
+  visit a friend and an "admire", the peak score on the Self card.
+- **Party:** `PromptGameInvite` with a once-a-day friend reward, free private servers,
+  a 4-ping quick wheel.
+- **Sect:** a starter board at QC3-4, one sect-wide storehouse goal in the MVP, dailies
+  that ask for range, an active home daily instead of seclusion, the reset time.
+- **Retention:** one honest fixed-price cosmetic line, opt-in notifications, a like
+  prompt, a session-end "tomorrow" line, a weekly beat (rotating seed, a weekend world
+  boss).
 
-**How we work (user, 2026-10-22):** one system at a time, designed and built with the
-user in the main session, checked at each step. Subagents are for mass asset
-generation only (technique VFX batches, building sets, model batches). The Agents
-column below is who builds the *assets*, not who designs the system.
-Each phase ends in a commit and a test-build playtest.
-
+## Order of work
 | Phase | Work | Agents |
 |---|---|---|
-| A | Foundation grades, the haul and spirit ring, the qi surge, insight deleted | main session; `ui-designer` for the surge button, ring slots and grade line |
-| B | Herb tiers, qi scaling, Herbarium | main session |
-| C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
-| D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
-| E | Statuses, combo rules, then techniques class by class (**deferred**, 2026-10-23: enough enemies; systems first) | main; one `vfx` per batch |
-| F | Building: peak tiers, sets, formations | `modeler` per set; `ui-designer` |
-| G | World events and tribulation VFX | `world-fx` |
-| H | Elite tiers, cultivators, curve tuning | `enemy-designer` per beast; analytics |
+| H | Beast variety for QR/FE, variants on the live map, elite art, cultivators, curve tuning | `enemy-designer` per beast; analytics |
+| F | Building: peak tier looks, sets, formations | `modeler` per set; `ui-designer` |
+| D | Onboarding past QC: QR thirds, the QC9 ceremony | main; `ui-designer` |
+| E | Statuses, combo rules, then techniques class by class (deferred) | main; one `vfx` per batch |
+| G | World events and tribulation VFX (separate work) | `world-fx` |
 | I | Replayability: paths, rifts, cadence, leaderboards, then rebirth | main; `world-fx`, `modeler` |
 
-A, B and C can run together if we split files carefully; D waits for C; E and F can
-run alongside them. Before spawning, ask how many agents and sandbox Studios at once
+Before spawning, ask how many agents and sandbox Studios at once
 ([orchestration](agents/orchestration.md#how-many-at-once)).
 
-**UI built ahead of its systems (ready to wire, 2026-10-23):** the
-Herbarium ([herbarium](ui/herbarium.md)), the sect board, quest log, rank, Hall and
-lineage screens ([sect board](ui/sect-board.md), [halls and masters](ui/halls-masters.md))
-and the dialogue screen ([dialogue](ui/dialogue.md)). The systems behind them are not built.
-The solidity meter and death-save prompt are shelved by Phase A.
-
 ## Open questions
-- Foundation bonuses: which stats, and how big a gap between a bare 50% and 200%?
-- How many experiences per stage make each grade?
-- Spill share (half proposed), spirit-light lifetime (5 min proposed), ring slot counts.
-- Surge tuning (built at 15 s, 25% raw qi, once per engagement): right numbers, and a cooldown beyond that?
+- Foundation: which stats, and how big a gap between a bare 50% and 150%?
+- Spill share (half), spirit-light lifetime (5 min), ring slot counts: right numbers?
+- Surge (15 s, 25% raw qi, once per engagement): right numbers, and a cooldown beyond that?
 - Essence blood: a resource of its own (for the surge, the Blood Rite, the demon path) or flavour?
-- How much harder is a tribulation or heart-demon trial per grade below Solid?
-- Does the Herbarium reward cosmetics only, or foundation experiences? (First guess
-  built: small Spirit Stones per discovery, more plus a Home experience per tier page.)
-- Which building sets are robux and which are earnable? (earnable first)
-- Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
+- How much harder is a tribulation or heart-demon trial below 50% foundation?
+- Does the Herbarium reward cosmetics only, or more than stones and a Home experience?
+- Which building sets are Robux and which are earnable? (earnable first)
+- Rebirth: a full reset (keeping the legacy) or a parallel second character?
 - How harsh is the Blood Rite's cost (one stage plus days of ebb, as drafted)?
-- Which NPC masters, and what does each teach? (draft the cast with the user)
+- Which NPC masters, and what does each teach? (draft the cast with the owner)
 - Does a player master unlock at FE1 or a major above the disciple, whichever is later?
 - How hinted is the demon secret: rumours only, or does the elder give a nudge?
 - Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

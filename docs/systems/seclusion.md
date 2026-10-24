@@ -2,7 +2,7 @@
 
 ## Purpose
 Closed-door cultivation, framed: the player shuts themselves away on their own peak
-and comes back to a result card. It's the game's AFK mode (roadmap 9b item 1), and
+and comes back to a result card. It's the game's AFK mode, and
 for gardeners and mobile players the "leave it running" reward moment.
 
 ## Design (user, 2026-10-23)

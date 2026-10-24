@@ -44,9 +44,9 @@ Layout (PC 1616x784 Studio view, phone at 844x390): tiles are 54 px (phone: the 
 floor), 22 px apart, the row centred on the stack (row mid 808.0 = stack mid 808.0);
 the row's bottom is 20 px above the stack top (the realm crest's top), so the captions sit
 2 px under the tiles and their 14 px boxes end 4 px above the crest on every size (PC,
-844x390, 750x369, 600x300). Touch phones (the stack at `TOUCH_SMALL_SHARE`) touched the
-crest, so `Layout` raises the row 8 px more there (captions end about 7 px above the
-crest at 749x388), and the Dantian line's box grows to 28 % of the seated bars' height
+844x390, 750x369, 600x300) on PC. On touch the tiles are icons alone (user, 2026-10-24:
+no letters on mobile buttons; at a phone's `TOUCH_SMALL_SHARE` the captions sat on the
+crest); only the Weapon Dao countdown shows there. On touch phones the Dantian line's box grows to 28 % of the seated bars' height
 (it scaled to 8 px text in its 9 px box; 12 px now, still centred on the dantian bar,
 clear of the hotbar). The eye toggle is `LOTUS_GAP` 22 px past the last tile, the row's own
 gap, and level with the tiles' centre.

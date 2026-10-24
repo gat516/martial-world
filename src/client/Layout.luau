@@ -43,12 +43,11 @@ local TOUCH_WORDS_MAX = 11
 -- top-bar button height (they were 50, 0.9, and read too large next to them).
 local TOUCH_SMALL_TILES = 0.78
 -- Seated on a touch phone (2026-10-24, "cultivation bar is looking rough for mobile"):
--- the Dantian line scaled to its 9 px box (8 px text) and the seated tiles' captions
--- sat on the realm crest. The line's box grows to fill the space between the
--- cultivation bar and the hotbar (12 px text, still centred on the dantian bar), and
--- the tile row rises to clear the crest by about 7 px.
+-- the Dantian line scaled to its 9 px box (8 px text), so its box grows to fill the
+-- space between the cultivation bar and the hotbar (12 px text, still centred on the
+-- dantian bar). The seated tiles' captions, which sat on the realm crest, are gone on
+-- touch (Meditation).
 local PHONE_DANTIAN_TEXT = { top = 0.685, height = 0.28 } -- of SeatBars' height
-local PHONE_SEAT_ROW_RISE = 8
 
 local player = Players.LocalPlayer
 
@@ -107,21 +106,15 @@ function Layout.apply()
 		end
 	end
 
-	-- seated on a touch phone: a readable Dantian line, tiles clear of the crest
-	local phone = touch and Platform.isSmall()
+	-- seated on a touch phone: a readable Dantian line
 	local seatBars = stack:FindFirstChild("SeatBars") :: Instance
 	local dantianText = seatBars:FindFirstChild("DantianText") :: GuiObject
-	local seatRow = stack:FindFirstChild("CultivatePrompt") :: GuiObject
-	for _, obj in { dantianText, seatRow } do
-		authored[obj] = authored[obj] or { position = obj.Position, size = obj.Size }
-		obj.Position, obj.Size = authored[obj].position, authored[obj].size
-	end
-	if phone then
+	authored[dantianText] = authored[dantianText] or { position = dantianText.Position, size = dantianText.Size }
+	dantianText.Position, dantianText.Size = authored[dantianText].position, authored[dantianText].size
+	if touch and Platform.isSmall() then
 		local p, size = dantianText.Position, dantianText.Size
 		dantianText.Position = UDim2.new(p.X, UDim.new(PHONE_DANTIAN_TEXT.top, 0))
 		dantianText.Size = UDim2.new(size.X, UDim.new(PHONE_DANTIAN_TEXT.height, 0))
-		local row = seatRow.Position
-		seatRow.Position = UDim2.new(row.X, UDim.new(row.Y.Scale, row.Y.Offset - PHONE_SEAT_ROW_RISE))
 	end
 
 	-- touch: the big Dash and Strike buttons show their own cooldowns, so the mini

@@ -55,6 +55,7 @@ local Layout = require(script.Parent.Layout)
 local MeditationMenu = require(script.Parent.MeditationMenu)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Platform = require(script.Parent.Platform)
 local SelfCard = require(script.Parent.SelfCard)
 local State = require(script.Parent.State)
 
@@ -133,11 +134,15 @@ end
 
 -- The Weapon Dao tile's caption is its countdown while resting; dimmed while
 -- resting or locked. The Technique tile is dimmed with nothing to comprehend.
+-- Touch tiles are icons alone (user, 2026-10-24: no letters on buttons on mobile),
+-- so there the caption shows only for the countdown.
 local function paintPractice()
 	local t = tile("PracticeDao")
 	local wait = practiceWait()
-	local resting = daoOpen() and wait > 0;
-	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Weapon Dao"
+	local resting = daoOpen() and wait > 0
+	local caption = t:FindFirstChild("Caption") :: TextLabel
+	caption.Text = if resting then clock(wait) else "Weapon Dao"
+	caption.Visible = resting or not Platform.isTouch()
 	dim(t, resting or not daoOpen())
 	dim(tile("PracticeTechnique"), not techniqueReady())
 end
@@ -494,6 +499,15 @@ function Meditation.init(gui: ScreenGui)
 	local stack = gui:FindFirstChild("Stack") :: Frame
 	row = stack:FindFirstChild("CultivatePrompt") :: Frame
 	calmToggle = stack:FindFirstChild("CalmToggle") :: ImageButton
+	-- touch: icons alone (paintPractice brings the Weapon Dao countdown back)
+	if Platform.isTouch() then
+		for _, t in row:GetChildren() do
+			local caption = t:FindFirstChild("Caption")
+			if caption and caption:IsA("GuiObject") then
+				caption.Visible = false
+			end
+		end
+	end
 	local actions: { [string]: () -> () } = {
 		Circulate = function()
 			task.spawn(circulate)

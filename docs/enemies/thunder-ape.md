@@ -2,10 +2,10 @@
 
 Boss (testbed trial): fight, phases, numbers, effects. Shared systems (AI states, wire, cues, attack mechanics, template contract): [enemies.md](../systems/enemies.md).
 
-A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
+A 30-stud storm boss for Qi Refining 5 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
 Body `ThunderApeB` (3.71x the roster ape; root box 14.8 x 14.8 x 16.3, so every reach below is measured from
 its centre and starts past ~15 studs). No testbed zone: spawn it from the admin panel ("Spawn beasts"), which puts it just in front of the player, clear of its body.
-3000 HP, FE1, weight 9 (a FE1 fist cannot shove it), walk 8, run 22 (the player walks 16; each phase x1.09),
+2840 HP, QR5, weight 9 (a QR5 fist cannot shove it), walk 8, run 22 (the player walks 16; each phase x1.09),
 aggro 90, leash 240, `resetOnEvade`. A fresh engagement opens with `challenge` (2.4 s entrance, no damage,
 `pack.howl`). `def.rotate` picks the next pattern attack whose phase, range band and cooldown fit
 (`rotateAttack`), so a boulder is skipped at melee; `chainOnly` attacks (`backhand`, `thunderPound`,
@@ -13,22 +13,26 @@ aggro 90, leash 240, `resetOnEvade`. A fresh engagement opens with `challenge` (
 {0.66, 0.33} (the boss bar's ticks) call `def.phaseCall` (`phaseRoar`, `phaseStep`), which on resolving raises
 the `Phase` model attribute (1-3), fires `enemyCue "phase"` and applies `phaseSpeed`.
 
-| Attack | Kind | Windup / active / recover | Area (from centre) | Damage (500 HP player) | Phase |
+| Attack | Kind | Windup / active / recover | Area (from centre) | Damage (def; share of a QR5 player) | Phase |
 |---|---|---|---|---|---|
-| `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .80/-/.45, .60/-/.45, .85/-/1.30 | | 50, 50, 110 | 1 |
-| `poundWave` (cue only) | ring from the pound, r34, 0.45 s later, spares the slam's own circle | | | 55 | 2+ |
-| `bodySlam` | lunge box 20 x 34 at 55/s | 1.10 / ~.62 / 1.10 | | 140 | 1 |
-| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55; `arrive` `skyfallSweep`, else `skyfallSlamSkid` | 1.20 / .75 / 1.10 | | 150 | 1 |
-| `skyfallSweep` | cone r32 140 deg backhand on landing (target within 34, in front) | .50 / - / 1.00 | | 55 | 1 |
-| `thunderRush` | charge box 14 x 24-64 at 95/s, pulls up 12 short of where the target stood; `arrive` `rushSwipe`, else `thunderRushSkid` | 1.20 / ~.5 / .90 | | 110 | 1 |
-| `rushSwipe` | cone r30 110 deg at the end of the rush (target within 32, in front) | .40 / - / .90 | | 60 | 1 |
+| `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .80/-/.45, .60/-/.45, .85/-/1.30 | | 48, 48, 106 (10%, 10%, 22%) | 1 |
+| `poundWave` (cue only) | ring from the pound, r34, 0.45 s later, spares the slam's own circle | | | 53 (11%) | 2+ |
+| `bodySlam` | lunge box 20 x 34 at 55/s | 1.10 / ~.62 / 1.10 | | 134 (28%) | 1 |
+| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55; `arrive` `skyfallSweep`, else `skyfallSlamSkid` | 1.20 / .75 / 1.10 | | 144 (30%) | 1 |
+| `skyfallSweep` | cone r32 140 deg backhand on landing (target within 34, in front) | .50 / - / 1.00 | | 53 (11%) | 1 |
+| `thunderRush` | charge box 14 x 24-64 at 95/s, pulls up 12 short of where the target stood; `arrive` `rushSwipe`, else `thunderRushSkid` | 1.20 / ~.5 / .90 | | 106 (22%) | 1 |
+| `rushSwipe` | cone r30 110 deg at the end of the rush (target within 32, in front) | .40 / - / .90 | | 58 (12%) | 1 |
 | `bound` | hop, no telegraph (an empty `bound` shape so the windup cue fires); landing mode `BoundMode` (never twice running; `BoundSide` +1/-1 says which way it travels across the body, so the windup leans into it): `over` past the target 22-28 (target within 50; flight .80, arc 24, turns in the air to face back), `flank` left or right 22-28 (.60, arc 11), `back` a retreat hop 14-20 farther away (target within 40; .55, arc 9), `short` a small hop round the target at the same distance (.42, arc 5) | .45 / per mode / .35 | | 0 | 1 |
-| `boulderHurl` | spit r10 on the target, range 45-85 (flight always readable) | 1.7 / - / .90 (rip 0-.6, lift .6-1.0, rear back 1.0-1.25, release 1.25, flight to 1.7) | | 70 | 1 |
-| `thunderLance` | `lance` box 8 x 90 | 1.4 / - / .90 | | 120 | 2+ |
+| `boulderHurl` | spit r10 on the target, range 45-85 (flight always readable) | 1.7 / - / .90 (rip 0-.6, lift .6-1.0, rear back 1.0-1.25, release 1.25, flight to 1.7) | | 67 (14%) | 1 |
+| `thunderLance` | `lance` box 8 x 90 | 1.4 / - / .90 | | 115 (24%) | 2+ |
 | `thunderRoar` | howl, stun circle r42, stagger 0.9 s | 1.3 / - / 1.0 | | 0 | 2+ |
-| `stormCall` | `storm`: 5 bolts (7 in P3), 0.45 s apart on where the target stands, r8, 0.9 s warning each (`stormBolt` telegraphs) | 1.2 / - / ~3.0 | | 70 each | 2+ |
-| `judgment` | leap r28, arc 48, range 25-70, stuns 1.0 s only players its damage hit (`stun.onHit`) | 1.6 / 1.0 / 1.8 | | 190 | 3 |
+| `stormCall` | `storm`: 5 bolts (7 in P3), 0.45 s apart on where the target stands, r8, 0.9 s warning each (`stormBolt` telegraphs) | 1.2 / - / ~3.0 | | 67 each (14%) | 2+ |
+| `judgment` | leap r28, arc 48, range 25-70, stuns 1.0 s only players its damage hit (`stun.onHit`) | 1.6 / 1.0 / 1.8 | | 182 (38%) | 3 |
 | `phaseRoar` | howl, stun circle r34, stagger 0.8 s | 1.6 / - / 1.2 | | 0 | 66% / 33% |
+
+Numbers are authored against `Pacing.BeastBaseline` QR5 (480 HP, power 2.84), rescaled 2026-10-23 from the
+first FE1 tuning (a 500 HP, power 3 player) with every share kept. Live, the curve scales them to the QR5 player
+(705 HP, power 7.06): 7060 HP and x1.47 damage (club 71), the same shares and hits to kill.
 
 Server additions: attack kinds `lance`, `bound`, `storm`; fields `stun.onHit`, `phase`, `chainOnly`, `phaseStep`,
 `landMin/Max`, `bolts/boltsP3/boltWindup/boltInterval/boltRadius`, `wave`; def fields `rotate`, `phaseCall`,

@@ -48,7 +48,8 @@ to a point `coilRadius` from the centre during the windup, a landed hit stuns an
 `CoilCenter/CoilRadius/CoilGap/CoilHalfAngle/CoilAt/CoilSqueezeAt`; at the squeeze (dash +
 `hold` 3.0 s, P3 2.6) everyone inside `coilRadius` + 1.7 and outside the gap takes damage (no CC:
 stun immunity would swallow it); 3% of max health dealt during the hold breaks the ring (stagger
-0.9 s, cue `coilBreak`). Poison: `PlayerPoison` (3 stacks, 1.2% max health a stack each second,
+0.9 s, cue `coilBreak`). Poison: `PlayerPoison` (3 stacks, each 1.2% of a QC7 player's health a second, realm-suppressed
+like its blows,
 5 s refreshed, never lethal, no flinch; attributes `PoisonStacks`/`PoisonUntil`).
 Making its own range: after `tailShove` the boss only picks `venomLance`, `venomSpray`
 or `venomPools` (`rangedNext`), holding still and facing the target meanwhile, for up to

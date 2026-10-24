@@ -965,16 +965,16 @@ end
 -- (a beast of a lower major realm barely scratches the player). A parry that
 -- closes a chain (or stands alone) staggers the beast; "deflected" (a chained
 -- parry with more blows coming) lets the assault run on.
-local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit)
+local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit): (Combat.HurtResult, number)
 	local data = PlayerData.get(player)
 	if data then
 		damage *= Realms.suppression(enemy.def.realm[1], data.realm.major)
 	end
-	local result = Combat.hurt(player, damage, false, enemy.def.id, hit)
+	local result, dealt = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
 		parried(enemy, hit.chain)
 	end
-	return result
+	return result, dealt
 end
 
 -- A chain whose next blow never came (the beast stopped, or its blows missed):
@@ -991,14 +991,14 @@ end
 local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, origin: Vector3?, dash: boolean?)
 	local hit = guardHit(enemy, attack, origin, dash)
 	landOn(player, function()
-		local result = hurtBy(enemy, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, hit)
+		local result, dealt = hurtBy(enemy, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, hit)
 		if result == "hit" and player.Character then
 			effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
 			local stun = attack.stun
 			reactTo(enemy, attack, player, if stun and stun.onHit then stun else nil, true)
 			local poison = attack.poison
 			if poison then
-				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
+				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id, enemy.def.realm)
 			end
 			local slow = attack.slow
 			if slow then
@@ -1007,8 +1007,8 @@ local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, 
 			end
 			local leech = attack.leech
 			if leech and enemy.health > 0 then
-				-- the bat drinks: it heals a share of what it dealt, up to its maximum
-				local dealt = attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage
+				-- the bat drinks: it heals a share of what it dealt (after suppression and
+				-- the player's reductions), up to its maximum
 				setHealth(enemy, enemy.health + dealt * leech)
 				effectRemote:FireAllClients("enemyCue", enemy.model, "leech", player.Character)
 			end

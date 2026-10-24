@@ -2,7 +2,7 @@
 
 Boss (testbed trial): fight, phases, numbers, effects, animation QA. Shared systems (AI states, wire, cues, attack mechanics, template contract): [enemies.md](../systems/enemies.md).
 
-`Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. FE1 boss, 2600 HP, weight 7,
+`Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. QR9 boss, 2950 HP, weight 7,
 walk 8 / run 22, `body = "NineTailFoxB"` (2.13x, nine extending fox tails: gold stem, cream brush, foxfire lance and flame; `RIGS.md`
 "NineTailFoxB": reach 8.9 studs at rest, 21.6 extended, so every tail lane is 18-20
 studs, shortened from the 30 first designed). Spawn it from the admin panel's "Spawn beasts" list (no testbed zone). Sheets for the build agents: the fox contracts (kept in the
@@ -18,21 +18,25 @@ within 14 studs, or 12% of max health lost in 3 s, it backflips 34 studs away (l
 fire trail) and follows with a Foxfire Volley. Phases at 66% and 33% (`veilBreak`,
 reusing the Thunder Ape's `phaseCall` / `phaseStep` and `Phase` attribute).
 
-| Attack (`name`) | Kind | Windup / active / recover | Area (from the fox's root) | Damage (FE1 500 HP) | Notes |
+| Attack (`name`) | Kind | Windup / active / recover | Area (from the fox's root) | Damage (def; share of a QR9 player) | Notes |
 |---|---|---|---|---|---|
 | `intro` | howl | 2.2 / - / 0.8 | ring | 0 | opener |
-| `fangDance` | barrage `fangs` | 0.65 / 0.12 / 1.2 | 3 cones r 20, 80 deg, at +0, +0.4, +0.8 s | 28 each | melee, range 18 |
-| `tailSweep` | cone | 0.9 / 0.25 / 1.1 | r 18, 200 deg | 55 | range 16 |
-| `tailLance` | barrage `lance` | 0.6 / 0.1 / 0.8 | box 20 x 4 | 60 | 5-24 |
-| `lanceFan` | barrage `lanceFan` | 0.95 / 0.1 / 1.1 (P3 1.8) | 20 x 4 boxes: P1 3 at +-22, P2 5 at +-40, P3 5 then back; 0.18 s apart | 45 each | 5-24 |
-| `tailSnare` | barrage `snare` | 0.85 / 0.1 / 0.9 | box 20 x 4 | 40 | pulls the hit player to 11 studs in 0.45 s (a 0.45 s stagger), then `fangDance` follows (only on a hit) |
-| `rendingPounce` | lunge | 0.75 / dash / 1.0 | box 8 x 30 at 55/s | 75 | 18-36 |
-| `foxfireVolley` | barrage `volley` | 1.1 / 0.1 / 1.0 (P3 1.8) | 5 lanes 56 x 4 at 20 deg steps; P3 7 lanes at 15 deg in two waves 0.7 s apart | 40 each | 20-70; **converted to real projectiles** (below) |
-| `rootfireEruption` (P2) | barrage `ringHeart` | 1.5 / 0.1 / 1.6 | 4 circles r 5 on a ring of 11 round the target, then r 7 under it at +0.8 s | 55 each | heart staggers 0.6 s |
-| `moonLeap` | retreat | 0.4 / 0.6 flight / 0.4 | landing ring + trail box 34 x 6 ticking at +0.5, 1.0, 1.5 s | 12 per tick | then Foxfire Volley |
+| `fangDance` | barrage `fangs` | 0.65 / 0.12 / 1.2 | 3 cones r 20, 80 deg, at +0, +0.4, +0.8 s | 35 each (6%) | melee, range 18 |
+| `tailSweep` | cone | 0.9 / 0.25 / 1.1 | r 18, 200 deg | 68 (11%) | range 16 |
+| `tailLance` | barrage `lance` | 0.6 / 0.1 / 0.8 | box 20 x 4 | 74 (12%) | 5-24 |
+| `lanceFan` | barrage `lanceFan` | 0.95 / 0.1 / 1.1 (P3 1.8) | 20 x 4 boxes: P1 3 at +-22, P2 5 at +-40, P3 5 then back; 0.18 s apart | 56 each (9%) | 5-24 |
+| `tailSnare` | barrage `snare` | 0.85 / 0.1 / 0.9 | box 20 x 4 | 50 (8%) | pulls the hit player to 11 studs in 0.45 s (a 0.45 s stagger), then `fangDance` follows (only on a hit) |
+| `rendingPounce` | lunge | 0.75 / dash / 1.0 | box 8 x 30 at 55/s | 93 (15%) | 18-36 |
+| `foxfireVolley` | barrage `volley` | 1.1 / 0.1 / 1.0 (P3 1.8) | 5 lanes 56 x 4 at 20 deg steps; P3 7 lanes at 15 deg in two waves 0.7 s apart | 50 each (8%) | 20-70; **converted to real projectiles** (below) |
+| `rootfireEruption` (P2) | barrage `ringHeart` | 1.5 / 0.1 / 1.6 | 4 circles r 5 on a ring of 11 round the target, then r 7 under it at +0.8 s | 68 each (11%) | heart staggers 0.6 s |
+| `moonLeap` | retreat | 0.4 / 0.6 flight / 0.4 | landing ring + trail box 34 x 6 ticking at +0.5, 1.0, 1.5 s | 15 per tick (2%) | then Foxfire Volley |
 | `mournfulScream` (P2) | howl + stun | 1.4 / 0.3 / 1.6 | circle r 30 | 0 | stun 1.2 s, cooldown 14 s |
-| `nineTailFall` (P3) | barrage `spiral` | 1.8 / 0.1 / 2.0 | 9 circles r 7 spiralling out from the target, 0.2 s apart, then r 20 under the fox at +1.9 s | 55 each, 110 final | the final circle staggers 0.6 s |
+| `nineTailFall` (P3) | barrage `spiral` | 1.8 / 0.1 / 2.0 | 9 circles r 7 spiralling out from the target, 0.2 s apart, then r 20 under the fox at +1.9 s | 68 each, 136 final (11%, 22%) | the final circle staggers 0.6 s |
 | `veilBreak` | howl + stagger | 1.6 / 0.2 / 1.0 | circle r 16 | 0 | phase step, stagger 0.6 s |
+
+Numbers are authored against `Pacing.BeastBaseline` QR9 (620 HP, power 3.40), rescaled 2026-10-23 from the
+first FE1 tuning (a 500 HP, power 3 player) with every share kept. Live, the curve scales them to the QR9 player
+(1030 HP, power 10.30): about 8940 HP and x1.66 damage (pounce 154), the same shares and hits to kill.
 
 Fox-only mechanics (the shared `barrage`, `retreat`, `spacing` are in enemies.md "Attack mechanics"):
 - Cut for now (later add-ons): snapBite, tailWhirl, crossLash, wispRain, phantomStep (blink),
@@ -54,7 +58,7 @@ bolts fly down; no second warning is drawn). At each lane's `delay` after releas
 the fox's root along the lane at 3.5 studs above the ground (player torso height; the tail tips are
 not readable on the server, so clients draw the start from the tail), velocity lane direction x 70
 studs/s, radius 1.5, range 50, lifetime 1.6, no pierce, stopped by the map. `onHit` goes through
-`hurtPart` (40 damage, dodges and flinch apply); `data = { tail = 1..9, phase = 1..3 }`. A stagger of
+`hurtPart` (50 damage, dodges and flinch apply); `data = { tail = 1..9, phase = 1..3 }`. A stagger of
 the fox or its next attack calls unfired bolts off (strikeId); bolts already in flight keep flying.
 Poses: `EnemyPoses/NineTailFox.luau` (notes in `RIGS.md` "Animating NineTailFoxB"), registered in
 `EnemyAnimator` as `NineTailFoxB` (`scale = 2.13`, `runFrom = 8.5`, death 3.2 s). The animator calls

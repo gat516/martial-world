@@ -728,10 +728,12 @@ if NEW_WOLF_KING then
 end
 
 -- THE THUNDER APE (Config.Wilds.NEW_THUNDER_APE, testbed only): a 30-stud storm
--- boss for Foundation 1 (player 500 HP, power 3). The body is 3.71x the old ape
+-- boss for Qi Refining 5, authored against Pacing.BeastBaseline QR5 (480 HP, power
+-- 2.84; rescaled 2026-10-23 from its first FE1 tuning vs a 500 HP, power 3 player,
+-- shares kept). The body is 3.71x the old ape
 -- (ThunderApeB, root box 14.8 x 14.8 x 16.3, body radius ~15), so every reach is
 -- measured from its centre and starts past ~15 studs: melee cones reach 30, the pound
--- lands 18 ahead. Shares of the player's health at FE1: club/backhand 10%, pound 22%
+-- lands 18 ahead. Shares of a QR5 player's health: club/backhand 10%, pound 22%
 -- (wave 11%), body slam 28%, skyfall 30% + sweep 11%, rush 22% + swipe 12%, boulder 14%,
 -- lance 24%, bolt 14%, judgment 38% + stun. Roars stagger. Chain: clubSwing -> backhand
 -- -> thunderPound. Arrivals (WEIGHTED_MOVES): thunderRush stops short of where you
@@ -745,38 +747,38 @@ if NEW_THUNDER_APE then
 		return a
 	end
 	local clubSwing = atk({
-		kind = "cone", name = "clubSwing", damage = 50, range = 26, windup = 0.80, recover = 0.45,
+		kind = "cone", name = "clubSwing", damage = 48, range = 26, windup = 0.80, recover = 0.45,
 		cooldown = 1.3, radius = 30, angle = 110, followUp = "backhand",
 	})
 	local backhand = atk({
-		kind = "cone", name = "backhand", damage = 50, range = 26, windup = 0.60, recover = 0.45,
+		kind = "cone", name = "backhand", damage = 48, range = 26, windup = 0.60, recover = 0.45,
 		cooldown = 1.1, radius = 30, angle = 120, chainOnly = true, followUp = "thunderPound",
 	})
 	local thunderPound = atk({
-		kind = "slam", name = "thunderPound", damage = 110, range = 28, windup = 0.85, recover = 1.30,
+		kind = "slam", name = "thunderPound", damage = 106, range = 28, windup = 0.85, recover = 1.30,
 		cooldown = 2.65, radius = 15, offset = Vector3.new(0, 0, -18), chainOnly = true,
 		wave = { radius = 34, delay = 0.45, scale = 0.5, phase = 2 },
 	})
 	local bodySlam = atk({
-		kind = "lunge", name = "bodySlam", telegraph = "heavy", damage = 140, range = 38, windup = 1.10, recover = 1.10,
+		kind = "lunge", name = "bodySlam", telegraph = "heavy", damage = 134, range = 38, windup = 1.10, recover = 1.10,
 		cooldown = 3.45, length = 34, width = 20, dashSpeed = 55, react = "stagger",
 	})
 	local skyfallSlam = atk({
-		kind = "leap", name = "skyfallSlam", telegraph = "heavy", damage = 150, range = 55, minRange = 22, windup = 1.20,
+		kind = "leap", name = "skyfallSlam", telegraph = "heavy", damage = 144, range = 55, minRange = 22, windup = 1.20,
 		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.6, radius = 20,
 	})
 	local thunderRush = atk({
-		kind = "charge", name = "thunderRush", damage = 110, range = 80, minRange = 24, windup = 1.20,
+		kind = "charge", name = "thunderRush", damage = 106, range = 80, minRange = 24, windup = 1.20,
 		recover = 0.90, cooldown = 3.4, length = 64, width = 14, dashSpeed = 95,
 		stopPast = -12, -- commits to the line and pulls up just short of you, for the swipe
 	})
 	-- the arrivals: short windups, since the rush or leap itself was the warning
 	local rushSwipe = atk({
-		kind = "cone", name = "rushSwipe", damage = 60, range = 32, windup = 0.40, recover = 0.90,
+		kind = "cone", name = "rushSwipe", damage = 58, range = 32, windup = 0.40, recover = 0.90,
 		cooldown = 0, radius = 30, angle = 110, chainOnly = true,
 	})
 	local skyfallSweep = atk({
-		kind = "cone", name = "skyfallSweep", damage = 55, range = 34, windup = 0.50, recover = 1.00,
+		kind = "cone", name = "skyfallSweep", damage = 53, range = 34, windup = 0.50, recover = 1.00,
 		cooldown = 0, radius = 32, angle = 140, chainOnly = true,
 	})
 	thunderRush.arrive, thunderRush.skid = rushSwipe, true
@@ -791,7 +793,7 @@ if NEW_THUNDER_APE then
 		},
 	})
 	local boulderHurl = atk({
-		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 45, windup = 1.70,
+		kind = "spit", name = "boulderHurl", damage = 67, range = 85, minRange = 45, windup = 1.70,
 		recover = 0.90, cooldown = 3.2, radius = 10,
 		projectile = {
 			cue = "boulder", release = 1.25, flight = 0.45, gravity = 160, radius = 5,
@@ -799,7 +801,7 @@ if NEW_THUNDER_APE then
 		},
 	})
 	local thunderLance = atk({
-		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.40,
+		kind = "lance", name = "thunderLance", damage = 115, range = 85, minRange = 20, windup = 1.40,
 		recover = 0.90, cooldown = 2.9, length = 90, width = 8, phase = 2,
 		projectile = {
 			cue = "thunderLance", radius = 2.5, speed = 150, range = 74, pierce = true,
@@ -811,12 +813,12 @@ if NEW_THUNDER_APE then
 		cooldown = 3.0, radius = 8, phase = 2, stun = { kind = "stagger", radius = 42, seconds = 0.9 },
 	})
 	local stormCall = atk({
-		kind = "storm", name = "stormCall", damage = 70, range = 90, windup = 1.20, recover = 3.0,
+		kind = "storm", name = "stormCall", damage = 67, range = 90, windup = 1.20, recover = 3.0,
 		cooldown = 4.8, phase = 2, bolts = 5, boltsP3 = 7, boltWindup = 0.9, boltInterval = 0.45,
 		boltRadius = 8,
 	})
 	local judgment = atk({
-		kind = "leap", name = "judgment", telegraph = "heavy", damage = 190, range = 70, minRange = 25, windup = 1.60,
+		kind = "leap", name = "judgment", telegraph = "heavy", damage = 182, range = 70, minRange = 25, windup = 1.60,
 		active = 1.00, arc = 48, recover = 1.80, cooldown = 5.0, radius = 28, phase = 3,
 		stun = { kind = "stun", radius = 0, seconds = 1.0, onHit = true },
 	})
@@ -833,10 +835,10 @@ if NEW_THUNDER_APE then
 	Enemies.Defs.ThunderApe = {
 		id = "ThunderApe",
 		name = "Thunder Ape",
-		realm = { "Foundation", 1 },
+		realm = { "QiRefining", 5 },
 		weight = 9,
 		boss = true,
-		health = 3000,
+		health = 2840,
 		walkSpeed = 8,
 		runSpeed = 22, -- the player walks at 16; phases add phaseSpeed
 		phaseSpeed = 1.09,
@@ -1009,11 +1011,13 @@ if NEW_JIAO then
 	} :: Def
 end
 
--- THE NINE-TAILED FOX (Config.Wilds.NEW_NINE_TAIL_FOX, testbed only): an FE1 duelist
+-- THE NINE-TAILED FOX (Config.Wilds.NEW_NINE_TAIL_FOX, testbed only): a QR9 duelist
 -- boss with telescoping tails (NineTailFoxB at 2.13x: tails reach 8.7 studs at rest,
 -- 21.4 extended, so lances and sweeps are 18-20 studs, not the 30 first sketched).
 -- A random pool pick with spacing triggers (EnemyService foxAttack); phases at 66% and
--- 33% (veilBreak, `Phase` attribute); every hit is 8-25% of an FE1 player's 500 HP.
+-- 33% (veilBreak, `Phase` attribute); every hit is 6-15% of a QR9 player's health (the spiral's last circle 22%)
+-- (authored against Pacing.BeastBaseline QR9, 620 HP, power 3.40; rescaled 2026-10-23
+-- from its first FE1 tuning vs a 500 HP, power 3 player, shares kept).
 -- Cut for now, listed in enemies.md as later add-ons: snapBite, tailWhirl, crossLash,
 -- wispRain, phantomStep, mirrorVeil.
 if NEW_NINE_TAIL_FOX then
@@ -1025,41 +1029,41 @@ if NEW_NINE_TAIL_FOX then
 		cooldown = 0, radius = 8, chainOnly = true,
 	})
 	local fangDance = atk({
-		kind = "barrage", barrage = "fangs", name = "fangDance", damage = 28, range = 18, windup = 0.65,
+		kind = "barrage", barrage = "fangs", name = "fangDance", damage = 35, range = 18, windup = 0.65,
 		recover = 1.2, cooldown = 3.0, radius = 20, angle = 80,
 	})
 	local tailSweep = atk({
-		kind = "cone", name = "tailSweep", damage = 55, range = 16, windup = 0.9, recover = 1.1,
+		kind = "cone", name = "tailSweep", damage = 68, range = 16, windup = 0.9, recover = 1.1,
 		cooldown = 3.5, radius = 18, angle = 200,
 	})
 	local tailLance = atk({
-		kind = "barrage", barrage = "lance", name = "tailLance", damage = 60, range = 24, minRange = 5,
+		kind = "barrage", barrage = "lance", name = "tailLance", damage = 74, range = 24, minRange = 5,
 		windup = 0.6, recover = 0.8, cooldown = 2.4, length = 20, width = 4,
 	})
 	local lanceFan = atk({
-		kind = "barrage", barrage = "lanceFan", name = "lanceFan", damage = 45, range = 24, minRange = 5,
+		kind = "barrage", barrage = "lanceFan", name = "lanceFan", damage = 56, range = 24, minRange = 5,
 		windup = 0.95, recover = 1.1, recoverP3 = 1.8, cooldown = 4.5, length = 20, width = 4,
 	})
 	local tailSnare = atk({
-		kind = "barrage", barrage = "snare", name = "tailSnare", damage = 40, range = 24, minRange = 8,
+		kind = "barrage", barrage = "snare", name = "tailSnare", damage = 50, range = 24, minRange = 8,
 		windup = 0.85, recover = 0.9, cooldown = 6.0, length = 20, width = 4,
 		pull = { distance = 11, seconds = 0.45 }, followUpOnHit = "fangDance",
 	})
 	local rendingPounce = atk({
-		kind = "lunge", name = "rendingPounce", damage = 75, range = 36, minRange = 18, windup = 0.75,
+		kind = "lunge", name = "rendingPounce", damage = 93, range = 36, minRange = 18, windup = 0.75,
 		recover = 1.0, cooldown = 4.0, length = 30, width = 8, dashSpeed = 55,
 	})
 	local foxfireVolley = atk({
-		kind = "barrage", barrage = "volley", name = "foxfireVolley", damage = 40, range = 70, minRange = 20,
+		kind = "barrage", barrage = "volley", name = "foxfireVolley", damage = 50, range = 70, minRange = 20,
 		windup = 1.1, recover = 1.0, recoverP3 = 1.8, cooldown = 6.5, length = 56, width = 4,
 	})
 	local rootfireEruption = atk({
-		kind = "barrage", barrage = "ringHeart", name = "rootfireEruption", damage = 55, range = 55, minRange = 8,
+		kind = "barrage", barrage = "ringHeart", name = "rootfireEruption", damage = 68, range = 55, minRange = 8,
 		windup = 1.5, recover = 1.6, cooldown = 8.0, radius = 5, ring = 11, heartRadius = 7, phase = 2,
 		hitStun = { kind = "stagger", seconds = 0.6 },
 	})
 	local moonLeap = atk({
-		kind = "retreat", name = "moonLeap", damage = 40, range = 200, windup = 0.4, active = 0.6, arc = 8,
+		kind = "retreat", name = "moonLeap", damage = 50, range = 200, windup = 0.4, active = 0.6, arc = 8,
 		recover = 0.4, cooldown = 7.0, distance = 34, width = 6, trailScale = 0.3, followUp = "foxfireVolley",
 	})
 	local mournfulScream = atk({
@@ -1067,7 +1071,7 @@ if NEW_NINE_TAIL_FOX then
 		cooldown = 14.0, radius = 8, phase = 2, stun = { kind = "stun", radius = 30, seconds = 1.2 },
 	})
 	local nineTailFall = atk({
-		kind = "barrage", barrage = "spiral", name = "nineTailFall", telegraph = "heavy", damage = 55, range = 45, windup = 1.8,
+		kind = "barrage", barrage = "spiral", name = "nineTailFall", telegraph = "heavy", damage = 68, range = 45, windup = 1.8,
 		recover = 2.0, cooldown = 12.0, radius = 7, finalRadius = 20, phase = 3,
 		hitStun = { kind = "stagger", seconds = 0.6 },
 	})
@@ -1083,10 +1087,10 @@ if NEW_NINE_TAIL_FOX then
 	Enemies.Defs.NineTailFox = {
 		id = "NineTailFox",
 		name = "Nine-Tailed Fox",
-		realm = { "Foundation", 1 },
+		realm = { "QiRefining", 9 },
 		weight = 7,
 		boss = true,
-		health = 2600,
+		health = 2950,
 		walkSpeed = 8,
 		runSpeed = 22, -- the player walks at 16
 		aggro = 70,

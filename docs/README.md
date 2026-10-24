@@ -92,7 +92,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Cultivation past the bar: overflow cap and how much carries over a breakthrough | `src/shared/Pacing.luau` `Breakthrough.OVERFLOW_CAP`, `CARRY_SHARE` ([cultivation](systems/cultivation.md)) |
 | Qi surge: when it's ready, length, heal, raw-qi cost, once per fight | `src/shared/Pacing.luau` `Breakthrough.FORCE_*`, `Surge` ([cultivation](systems/cultivation.md#qi-surge)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
-| Realm suppression across majors, heaven-defier bar and resist, beast stats following the curve | `src/shared/Pacing.luau` `Suppression`, `HeavenDefying`, `BeastBaseline`; applied in `Combat.damageEnemy` and EnemyService `hurtBy` ([combat](systems/combat.md#realm-power-and-suppression-2026-10-23)) |
+| Realm suppression across majors, heaven-defier bar and resist, beast stats following the curve | `src/shared/Pacing.luau` `Suppression`, `HeavenDefying`, `BeastBaseline`; applied in `Combat.damageEnemy`, EnemyService `hurtBy` and `PlayerPoison` ([combat](systems/combat.md#realm-power-and-suppression-2026-10-23)) |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Realm variants (per-spawn realm, tiers: size, speed, cadence, tint, moves by tier) | `src/shared/Pacing.luau` `Variants`; zone and pack realms in `Spawns.luau`; attack `minTier` / `tiers` in `Enemies.luau`; `Config.Wilds.VARIANTS` ([enemies](systems/enemies.md#realm-variants-2026-10-23)) |

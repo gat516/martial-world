@@ -524,10 +524,10 @@ return {
 		-- THE ELDER WOLF KING TRIAL: rigged boss, heavy attacks and two quick paw
 		-- checks. Testbed only until the user approves the fight; set true to ship.
 		NEW_WOLF_KING = TESTBED,
-		-- THE THUNDER APE TRIAL: a 30-stud storm boss (FE1) with fast combos, jump
+		-- THE THUNDER APE TRIAL: a 30-stud storm boss (QR5) with fast combos, jump
 		-- slams, lightning and a stagger roar. Testbed only until the user approves.
 		NEW_THUNDER_APE = TESTBED,
-		-- THE NINE-TAILED FOX TRIAL: an FE1 duelist boss with telescoping tails (lances,
+		-- THE NINE-TAILED FOX TRIAL: a QR9 duelist boss with telescoping tails (lances,
 		-- sweeps, a snare), foxfire volleys, tail-plunge eruptions, a scream stun and
 		-- retreat flips. Testbed only until the user approves.
 		NEW_NINE_TAIL_FOX = TESTBED,

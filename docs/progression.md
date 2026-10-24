@@ -256,10 +256,10 @@ Still open from that pass:
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
   QR regions need the map.
-- **Thunder Ape and Nine-Tailed Fox** sit at FE1 and were tuned for an older FE1
-  player (500 HP, power 3.0), weaker than `Pacing.BeastBaseline`'s FE1. The
-  progression plan puts them at QR5 and QR9: move their `realm` once playtested
-  (the curve then scales them; check them against the baseline at that stage).
+- **Thunder Ape (QR5) and Nine-Tailed Fox (QR9)** moved off FE1 (2026-10-23): their
+  defs were rescaled from the old FE1 player (500 HP, power 3.0) to
+  `Pacing.BeastBaseline` at their new stage, keeping every hit's share of health and
+  the hits to kill. Unplayed at the new realms.
 - **Cultivator enemies** exist but aren't wired. They suit the QR and FE stages as
   human opponents and sect-quest targets.
 - Curve numbers are untuned in play (see the table in `Pacing.luau`).

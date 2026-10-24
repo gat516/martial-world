@@ -279,7 +279,8 @@ Pacing.BeastBaseline = {
 }
 
 -- REALM SUPPRESSION (Realms.suppression; applied in Combat.damageEnemy for player
--- hits and EnemyService's hurtBy for beast and boss blows). Damage from an attacker
+-- hits and EnemyService's hurtBy for beast and boss blows; PlayerPoison's ticks too,
+-- and the Blood Bat's leech heals from the suppressed damage). Damage from an attacker
 -- whose MAJOR realm is below the target's is multiplied by KEEP for each major
 -- between them: a QC player deals 20% to a QR beast and 4% to an FE one, and a QC
 -- beast does the same to a QR player. A higher-realm attacker gets nothing extra

@@ -61,6 +61,7 @@ local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method
 local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
 local PILL_SUB = { RootRebirthPill = "Reform as another element" } -- MarrowWashingPill: its washing progress (washLine)
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
+local NAME_GAP = 6 -- px between a row's name and its button
 local SECLUSION_ICON = "rbxassetid://102118062177874" -- the kit's peak emblem (your own peak; the lotus is the calm toggle and the card crest)
 
 local MeditationMenu = {}
@@ -147,12 +148,14 @@ local function addRow(order: number, spec: RowSpec)
 	if spec.action then
 		local label = button:FindFirstChild("Label") :: TextLabel
 		local bright = spec.ready or spec.plain
-		Ribbon.fit(button, spec.action, {
+		local fit = Ribbon.fit(button, spec.action, {
 			style = if spec.ready then BUTTON_JADE else BUTTON_LACQUER,
 			label = "Label",
 			textSize = 13,
 			minMid = 0,
 		})
+		-- the name stops short of the button, however wide its caption made it
+		name.Size = UDim2.new(1, -(fit.width + NAME_GAP), 1, 0)
 		for _, piece in (button:FindFirstChild("Art") :: Frame):GetChildren() do
 			if piece:IsA("ImageLabel") then
 				piece.ImageTransparency = if bright then 0 else 0.3
@@ -228,11 +231,11 @@ local function seclusionRow(): number
 		nameColor = LIGHT,
 		info = if secluded then "In seclusion" else "Shut out the world",
 		infoColor = if secluded then JADE else LIGHT,
-		sub = `{stones} Spirit Stones an hour · your garden tended`,
+		sub = `{stones} Spirit Stones an hour`, -- one line, unwrapped; the blurb tells the garden
 		blurb = if secluded
 			then "Rise when you wish to return; what you gathered is waiting."
 			else "Cultivate at rest, without breaking through. Stones gather, your garden grows faster and rare finds turn up each hour, even offline. Stay online and your garden may mutate.",
-		action = if secluded then nil else "Enter Seclusion",
+		action = if secluded then nil else "Enter", -- the row is named Seclusion; the guide still says "Enter Seclusion"
 		ready = true,
 		guideKey = "Seclusion",
 		guideSay = "Enter Seclusion",

@@ -35,11 +35,16 @@ for gardeners and mobile players the "leave it running" reward moment.
 ## The flow
 1. Seated on your own peak (`Meditation` spot `own`), the Method tile (it reads
    **Seclusion** until a method is owned) opens the meditation panel; its first row
-   is Seclusion with **Enter Seclusion** (`CultivationAction "seclusion"`).
+   is Seclusion with **Enter** (`CultivationAction "seclusion"`; the guide's callout
+   says "Enter Seclusion"). Its line under the name is only the stones an hour (the
+   row's lines don't wrap; the blurb tells the garden).
 2. Secluded (player attribute `Secluded`): still seated, a slim plaque under the top bar shows the time and what has gathered; the seated row shows only
    Seclusion and Rise. Circulate, Break Through, Practice, the heart demon, method
    and root changes are refused ("Rise to leave it first").
-3. Rising (Rise, a hit, drifting off the seat) ends it and the result card shows
+3. Rising (Rise, a hit, drifting off the seat) ends it. After at least
+   `CARD_MIN_MINUTES` (10) in seclusion, or for the first one, the result card shows
+   (user, 2026-10-24: a quick sit to check something mustn't pop a card); a shorter
+   one only gets a small "+N Spirit Stones from seclusion" line, if it earned any. The card
    (`Rewards.show` card, kind `seclusion`, through Effect "reward"): "9 hours in
    seclusion", the stones, finds, seeds (`seed:<herb>`) and garden (`garden` or
    `mutation`) tiles, Cultivation before and after, and the streak as day pips with the

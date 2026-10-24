@@ -258,9 +258,15 @@ end
 
 -- Show or hide a HUD region; `fade` eases it instead of snapping.
 function Motion.setShown(root: GuiObject, shown: boolean, fade: boolean?)
+	local pending = fading[root]
+	if pending and not shown and fade then
+		-- already on its way out; a new token here would strand that fade (the
+		-- region stays Visible at full transparency, and anything a script repaints
+		-- shows through: the seclusion plaque's streak pips over open windows)
+		return
+	end
 	local token = (fadeTokens[root] or 0) + 1
 	fadeTokens[root] = token
-	local pending = fading[root]
 	if shown then
 		if pending then
 			-- caught mid-fade: ease back to the values it had
@@ -287,13 +293,11 @@ function Motion.setShown(root: GuiObject, shown: boolean, fade: boolean?)
 		end
 		return
 	end
-	if pending then
-		if not fade then
-			fading[root] = nil
-			root.Visible = false
-			restore(pending)
-		end
-		return -- already on its way out
+	if pending then -- hidden without a fade: cut the one under way short
+		fading[root] = nil
+		root.Visible = false
+		restore(pending)
+		return
 	end
 	if not root.Visible then
 		return

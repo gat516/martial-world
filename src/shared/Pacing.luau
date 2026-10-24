@@ -527,6 +527,9 @@ Pacing.Seclusion = {
 	STREAK_MIN_HOURS = 1,
 	STREAK_BONUS = 0.1,
 	STREAK_MAX = 7,
+	-- the result card shows only after this long in seclusion (or for the first one);
+	-- a shorter one rises with a small "+N Spirit Stones" line (user, 2026-10-24)
+	CARD_MIN_MINUTES = 10,
 	-- the first seclusion (the onboarding's Seclusion lesson) ends by itself after
 	-- FIRST_SECONDS with a generous card: FIRST_STONES, FIRST_SEEDS, a FIRST_BAR share
 	-- of the bar as cultivation (never past the bar) and FIRST_GROWTH seconds on every

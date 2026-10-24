@@ -746,37 +746,82 @@ Pacing.Variants = {
 	AMBIENT_SPREAD = 1,
 }
 
--- FOUNDATION GRADES (server Foundation; docs/systems/cultivation.md "Foundation
--- grade"). One-time experiences earned while at a stage (each key once ever per
--- profile) are weighed against the stage's TARGET at the breakthrough out of it:
--- the share of the target reached picks the grade (GRADES, lowest first). Every
--- graded stage adds its grade's BONUS to max health and to power, summed over all
--- stages and applied as its own multiplier on top of Pacing.Curve. Time fills the
--- bar, not the grade. Untuned first guesses (roadmap open questions).
-export type FoundationGrade = "Cracked" | "Steady" | "Solid" | "Deep"
+-- FOUNDATION (server Foundation; docs/systems/cultivation.md "Foundation grade").
+-- Experiences earned while at a stage are weighed against the stage's TARGET at the
+-- breakthrough out of it, as a percent: 100% is a full foundation, more experiences
+-- go past it up to MAX_PERCENT. Each graded stage adds percent x BONUS_PER_PERCENT
+-- to max health and power (always positive: 80% is a good breakthrough, just a bit
+-- less), summed over all stages as its own multiplier on top of Pacing.Curve (about
+-- +104% at most by FE9, below a major jump). The grade words are flavour on the
+-- percent (GRADES). Experiences come from per-region pools (the realm band's region,
+-- Herbs.Regions) plus per-stage deeds, so every stage has fresh ones.
+-- Time fills the bar, not the foundation. Untuned first guesses.
+--
+-- TARGETS AND THEIR SOURCES (a stage's 100%; the pools are shared by the band's stages,
+-- so a band's first stage gets the most and the deeds (4 a stage) are the floor):
+--   QC1-3   2/3/3  hook stages of minutes: a young or adult wolf, a Dao level, a serpent
+--   QC4     4      Inner Wilds pool: wolf/serpent/boar (young and adult with variants),
+--                  the first tier I harvest, Dao levels, Inner caches, the deeds
+--   QC5-8   5      Borderlands pool: the QC6 and QC8 beasts (elite wolves, boars and
+--                  serpents with variants), Jade Jiao (2), tier I and rare mutations
+--                  again, the tier I Herbarium page, events and treasures again, the deeds
+--   QC9     6      the wall (about an hour): the Elder Wolf King (2), what's left, the deeds
+--   QR1-5   5      Outer Wastes pool: apex wolf/boar/serpent (variants), tier II harvest
+--                  and page, mutations, events and treasures again, the deeds
+--   QR6-FE3 5      Deep Wilds band: the Thunder Ape and Nine-Tailed Fox (2 each), tier III,
+--                  events and treasures again, Dao, the deeds
+--   FE4-9   5      Far Reaches band: tier IV (and V), events and treasures, Dao, the deeds
+-- With Config.Wilds.VARIANTS off (the main map today) QR and FE have no beasts at their
+-- realm, so the Hunter and Daring deeds and the hunts there wait on variants; the rest
+-- still reaches about 100% a stage.
+export type FoundationGrade = "Unsteady" | "Steady" | "Solid" | "Deep"
 Pacing.Foundation = {
 	-- what one experience of each category counts for
-	WEIGHTS = { Hunt = 1, Boss = 2, Home = 1, Dao = 1, Discover = 1, World = 1 } :: { [string]: number },
-	-- experiences per stage for a Deep grade; a stage missing here gets DEFAULT_TARGET
-	TARGET = { QC1 = 2, QC2 = 3, QC3 = 3, QC4 = 4, QC5 = 4, QC6 = 4, QC7 = 4, QC8 = 4, QC9 = 5 } :: { [string]: number },
-	DEFAULT_TARGET = 5, -- Qi Refining and Foundation (pools there are thin until their regions exist)
-	-- the share of the target that reaches each grade, lowest first (Cracked below Steady's)
+	WEIGHTS = { Hunt = 1, Boss = 2, Home = 1, Dao = 1, Discover = 1, World = 1, Deed = 1 } :: { [string]: number },
+	-- experiences per stage for 100%; a stage missing here gets DEFAULT_TARGET
+	TARGET = {
+		QC1 = 2, QC2 = 3, QC3 = 3, QC4 = 4, QC5 = 5, QC6 = 5, QC7 = 5, QC8 = 5, QC9 = 6,
+	} :: { [string]: number },
+	DEFAULT_TARGET = 5, -- Qi Refining and Foundation Establishment
+	MAX_PERCENT = 200, -- experiences past the target count up to here
+	BONUS_PER_PERCENT = 0.0002, -- share of max health and power per percent: 100% +2%, 200% +4%
+	-- the grade word for a percent: the share of the target (percent / 100) it starts at, lowest first
 	GRADES = {
-		{ name = "Cracked", share = 0 },
-		{ name = "Steady", share = 0.34 },
-		{ name = "Solid", share = 0.67 },
-		{ name = "Deep", share = 1 },
+		{ name = "Unsteady", share = 0 },
+		{ name = "Steady", share = 0.5 },
+		{ name = "Solid", share = 1 },
+		{ name = "Deep", share = 1.5 },
 	} :: { { name: FoundationGrade, share: number } },
-	SOLID = "Solid", -- grades below this get the unsteady toast and a harder tribulation
-	-- share added to max health and power per stage graded so
-	BONUS = { Cracked = 0, Steady = 0.01, Solid = 0.02, Deep = 0.04 } :: { [string]: number },
+	STEADY = "Steady", -- below this: the unsteady toast and a harder tribulation
 	-- a heaven-defier's tribulation strike damage, by the grade the stage would get now
-	TRIBULATION_DAMAGE = { Cracked = 1.25, Steady = 1.1 } :: { [string]: number },
+	TRIBULATION_DAMAGE = { Unsteady = 1.2 } :: { [string]: number },
+	-- tempering (the heart-demon trial): each step raises one old stage this many points,
+	-- the lowest first, never past TEMPER_MAX
+	TEMPER_POINTS = 25,
+	TEMPER_MAX = 150,
+	-- profiles graded before percents: the old grade word as a percent
+	LEGACY = { Cracked = 25, Steady = 60, Solid = 100, Deep = 150 } :: { [string]: number },
 	MUTATION_BONUS = 1, -- a harvest mutation counts as rare (Home) from this Herbs.Mutations bonus up
 	EVENT_RADIUS = 150, -- studs from a located world event that count as taking part
+	-- a kill is an experience only from a beast at most this many stages below the player
+	-- (so a later realm can't farm the young beasts of the first region)
+	FIT_BELOW = 3,
 	HINTS = 5, -- open experiences listed in the PlayerState push
 	HINT_BELOW = 3, -- beasts suggested from this many stages below the player...
 	HINT_ABOVE = 2, -- ...to this many above (bosses too, as "the fast road")
+	-- Deeds: repeatable once per stage (reset at the breakthrough), each worth WEIGHTS.Deed.
+	-- Each asks for range, not repetition.
+	DEEDS = {
+		-- slay `kills` beasts at most `below` stages under you; only `perKind` of one beast count
+		Hunter = { kills = 10, perKind = 4, below = 2 },
+		-- slay a beast (or boss) at least `above` stages over you
+		Daring = { above = 2 },
+		-- harvest `kinds` different herbs
+		Gardener = { kinds = 3 },
+		-- one Store all banking at least `share` of the dantian in raw qi
+		Haul = { share = 0.75 },
+	},
+	DEED_ORDER = { "Hunter", "Gardener", "Haul", "Daring" },
 }
 
 -- The heart-demon trial (server HeartDemon, docs/systems/heart-demon.md): an

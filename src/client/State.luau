@@ -28,9 +28,10 @@ export type Snapshot = {
 	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
 	daoPracticeReady: number?, -- os.time() when the next Practice Dao drill opens (server DaoPractice)
 	-- the current stage's foundation (server Foundation.state; docs/ui/cultivation.md):
-	-- count/target experiences, the grade it would get now, past grades by stage key,
-	-- the summed bonus share, and up to 5 open experiences { category, text }
-	foundation: { count: number, target: number, grade: string, grades: { [string]: string }, bonus: number, hints: { { category: string, text: string } } }?,
+	-- count/target experiences, the percent it would get now (100 = full, up to `max`) and
+	-- its grade word, past grade words and percents by stage key, the summed bonus share,
+	-- and up to 5 open experiences { category, text }
+	foundation: { count: number, target: number, percent: number, max: number, grade: string, grades: { [string]: string }, percents: { [string]: number }, bonus: number, hints: { { category: string, text: string } } }?,
 	-- the heart-demon trial (server HeartDemon.state): the open major's id and name (nil
 	-- when none), whether the player is at a stage 9 (the Break Through offer), whether a seat offer waits out
 	-- a "Not now", and finished trials by major (`note` is the heart line for the Self card)

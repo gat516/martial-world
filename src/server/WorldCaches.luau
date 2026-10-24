@@ -130,6 +130,11 @@ local function setUp(anchor: Instance, tag: string)
 	end
 	-- the client reads this to hide prompts already claimed
 	prompt:SetAttribute("Cache", cacheId(anchor, tag))
+	local id = cacheId(anchor, tag)
+	if id then
+		local need = anchor:GetAttribute("Realm")
+		Foundation.registerCache(id, anchor.Position, if type(need) == "string" then need else nil) -- the Discover hint
+	end
 	prompt.Parent = anchor
 	prompt.Triggered:Connect(function(player)
 		claim(player, anchor, tag)

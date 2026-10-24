@@ -40,6 +40,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Tuning = require(ReplicatedStorage.Shared.Pacing).Haul
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Travel = require(script.Parent.Travel)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
@@ -318,6 +319,7 @@ function Haul.storeAll(player: Player): (boolean, string?)
 	if isEmpty(gained) then
 		return false, "Nothing to store: your haul is already safe."
 	end
+	Foundation.stored(player, gained.rawQi) -- the Haul deed
 	local line = `Stored: {describe(gained)}`
 	effectRemote:FireClient(player, "banked", line)
 	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })

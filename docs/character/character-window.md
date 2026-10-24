@@ -35,7 +35,7 @@ weapon names.
 - **Foundation** (3, 2026-10-23; the user: "players should optionally try to
   solidify their breakthrough by seeing what they have to do in self"): "Steady
   foundation" (the grade breaking through now would give, the grade word in its
-  colour: Cracked muted red, Steady steel blue, Solid jade, Deep gold), a bar of
+  colour: Cracked muted red, Steady steel blue, Solid jade, Deep gold; the server now sends Unsteady for Cracked and a percent that can pass 100%, see [cultivation UI](../ui/cultivation.md#foundation-row-in-the-self-card-built)), a bar of
   this stage's weighted experiences toward Deep ("2 / 4 experiences",
   right-aligned on the trough, with marks at the Steady and Solid shares of
   `Pacing.Foundation.GRADES`, dark on the fill and pale on the trough), the

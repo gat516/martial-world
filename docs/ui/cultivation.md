@@ -71,11 +71,17 @@ the real flow calls them yet.
 The character window's Self card shows it as its first row ([character
 window](../character/character-window.md), Foundation). It reads
 `State.current.foundation` (server `Foundation.state`, every PlayerState push):
-`{ count, target, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`,
-only through `foundationOf()` in `SelfCard.luau`. `grade` is what the current stage would
-get now (Cracked, Steady, Solid, Deep), `bonus` the summed health/power share from graded
+`{ count, target, percent, max, grade, grades = { [stageKey] = grade }, percents = { [stageKey] = percent }, bonus, hints = { { category, text } } }`,
+only through `foundationOf()` in `SelfCard.luau`. `percent` is what the current stage would
+get now (100 = a full foundation, up to `max`, 200), `grade` its word (Unsteady below 50,
+Steady, Solid from 100, Deep from 150), `bonus` the summed health/power share from graded
 stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
-Dao, Discover, World).
+Dao, Discover, World, Deed).
+- **To adapt (2026-10-23, foundation as a percent):** the row should show the percent
+  ("86%"), not "2 / 4 experiences", on a bar that can overfill past 100% (to `max`), with
+  the grade word as flavour. There is no top grade to stop at any more: drop the "Deep:
+  nothing more to gain" line until `percent` reaches `max`. `Cracked` is gone (the
+  colour map wants `Unsteady`). Not done yet in `SelfCard.luau`.
 
 ### Foundation solidity meter (`FoundationMeter.luau`, shelved)
 Shelved by Phase A (2026-10-23): there's no meter; a foundation grade shows on the

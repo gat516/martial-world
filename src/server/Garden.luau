@@ -219,7 +219,7 @@ function Garden.harvest(player: Player, plotId: any, plantId: any): (boolean, st
 	end
 	local base = rng:NextInteger(herb.yield[1], herb.yield[2])
 	local count = math.max(1, math.floor(base * plant.s * Herbs.multiplier(plant.m) + 0.5))
-	Foundation.harvest(player, herb, plant.m) -- a new herb tier or rare mutation (before regrowth clears it)
+	Foundation.harvest(player, plant.h, plant.m) -- a new herb tier or rare mutation, the Gardener deed (before regrowth clears it)
 	data.stats.harvests += 1 -- the heart-demon trial reads the path walked
 	Herbarium.record(player, plant.h, count, plant.s, plant.m)
 	local extras = {}

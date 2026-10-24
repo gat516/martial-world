@@ -41,6 +41,12 @@
       },
       "HerbMorsel": {
         "$path": "assets/HerbMorsel.rbxmx"
+      },
+      "HerbModelsExtra": {
+        "$path": "assets/HerbModelsExtra.rbxm"
+      },
+      "ItemModels": {
+        "$path": "assets/ItemModels.rbxm"
       }
     },
     "ReplicatedFirst": {

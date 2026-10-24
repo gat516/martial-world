@@ -611,14 +611,22 @@ function Herbs.region(id: string?): SeedRegion?
 	return nil
 end
 
--- A plant's model template in `folder` (ReplicatedStorage.HerbModels): its own
--- (`model`, default the id), else its stand-in. The second value is true for a
--- stand-in, which Herbs.clone tints to the herb's colour.
+-- A plant's model template: its own (`model`, default the id) in `folder`
+-- (ReplicatedStorage.HerbModels, place file only), then in
+-- ReplicatedStorage.HerbModelsExtra (assets/HerbModelsExtra.rbxm, the light-pass
+-- models of the newer herbs), else its stand-in from `folder`. The second value is
+-- true for a stand-in, which Herbs.clone tints to the herb's colour.
 function Herbs.template(folder: Instance, id: string): (Model?, boolean)
 	local herb = Herbs.Defs[id]
-	local own = folder:FindFirstChild(if herb and herb.model then herb.model else id)
+	local name = if herb and herb.model then herb.model else id
+	local own = folder:FindFirstChild(name)
 	if own and own:IsA("Model") then
 		return own, false
+	end
+	local extra = game:GetService("ReplicatedStorage"):FindFirstChild("HerbModelsExtra")
+	local extraOwn = extra and extra:FindFirstChild(name)
+	if extraOwn and extraOwn:IsA("Model") then
+		return extraOwn, false
 	end
 	local standIn = herb and herb.standIn and folder:FindFirstChild(herb.standIn)
 	if standIn and standIn:IsA("Model") then

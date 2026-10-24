@@ -43,6 +43,9 @@ Grade, LightPillar, SkyRift, Meteor, SkyCircle, GroundCircle, CloudRing; and
 `Tribulation` (Vortex, Seal, Strike, Scorch, Finale) built by `tools/vfx_specs/Tribulation.luau`;
 see [event-fx](world/event-fx.md)), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `HerbMorsel` (ReplicatedStorage, temporary eating prop);
+`HerbModelsExtra`, `ItemModels` (binary `assets/HerbModelsExtra.rbxm` and
+`assets/ItemModels.rbxm`, light-pass herb and consumable models built by
+`art/herbs_extra/build_herb_item_models.luau`; see [item-models](systems/item-models.md));
 `Hud`, `Rewards`, `Sect`, `Prompts`, `DeathScreen` (StarterGui); `Music`, `SFX`, `Ambience` (binary
 `assets/SoundGroups/Ambience.rbxm`, positional ambient sound templates placed by
 `AmbientSound`-tagged anchors; see [ambient-sound](world/ambient-sound.md))
@@ -101,7 +104,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Guard: move speed, front arcs (melee, dash), chip, drain, regen, break, parry window and stagger, chain parry, threat facing, race grace; cue volume; per-class guard clips | `Config.Combat.GUARD`; `assets/Animations.rbxmx` (`Guard.<Class>`); `assets/SoundGroups/SFX.rbxmx` (`GuardRaise`, `Parry`, `Block`, `GuardBreak`; [guard and parry](combat/guard-parry.md)) |
 | Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |
 | Herbs and plants | `src/shared/Herbs.luau` |
-| Consumables (cores, treasures) | `src/shared/Items.luau` |
+| Consumables (cores, treasures) | `src/shared/Items.luau`; 3D models in `assets/ItemModels.rbxm` ([item-models](systems/item-models.md)) |
 | Build items | `src/shared/BuildItems.luau` |
 | Weather | `src/shared/Weather.luau` |
 | World events | `src/shared/WorldEvents.luau` |

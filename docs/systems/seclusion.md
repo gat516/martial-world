@@ -6,11 +6,12 @@ and comes back to a result card. It's the game's AFK mode (roadmap 9b item 1), a
 for gardeners and mobile players the "leave it running" reward moment.
 
 ## Design (user, 2026-10-23)
-- **AFK online and offline earn the same cultivation.** Offline (up to
-  `Pacing.Income.OFFLINE_MAX_HOURS`, 12 h), AFK online (no input for
-  `Pacing.Income.AFK_AFTER`, 10 min) and seclusion all earn `Cultivation.afkRate`: the
-  stage's plain passive times `OFFLINE_RATE` (1), with no meditation, aura, weather,
-  buffs, root or method, for at most 12 h of AFK. All stop at the overflow cap
+- **AFK online and offline earn the same cultivation.** Offline, AFK online (no input
+  for `Pacing.Income.AFK_AFTER`, 10 min) and seclusion all earn `Cultivation.afkRate`:
+  the stage's plain passive times `OFFLINE_RATE` (1), with no meditation, aura, weather,
+  buffs, root or method, out of one `Pacing.Income.OFFLINE_MAX_HOURS` (12 h) budget a
+  UTC day shared by all of them (`Cultivation.awayLeft`; rebalance 2026-10-24).
+  Seclusion's own rewards still count up to `MAX_HOURS` of one seclusion. All stop at the overflow cap
   (`Pacing.Breakthrough.OVERFLOW_CAP`); nothing breaks through on its own.
 - **Seclusion pays its own rewards, never stages**, and no foundation experiences:
   - a slow Spirit Stone trickle: `STONES_PER_HOUR` 25 (QC) / 60 (QR) / 150 (FE);

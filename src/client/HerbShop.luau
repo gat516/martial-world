@@ -1,7 +1,8 @@
 --!strict
 -- The Herbalist's window (Hud.HerbShop), opened from the Herbalist prompt at the
 -- Spirit Market on the main peak. Two tabs:
---   Buy Seeds   every herb with a seedCost: Buy 1 / Buy 5
+--   Buy Seeds   every herb with a seedCost sold at your realm (State shop: today's
+--               stock left, Pacing.Herbs.STOCK): Buy 1 / Buy 5
 --   Sell Herbs  every herb you hold, at its sellPrice: Sell 1 / Sell all of it,
 --               plus Sell everything in the footer
 -- The Spirit Stones total sits in the header. Rows rebuild whenever State or the
@@ -124,15 +125,16 @@ function HerbShop.refresh()
 		if not herb then
 			continue
 		end
-		if tab == "buy" and herb.seedCost then
+		local left = State.current.shop and State.current.shop[id]
+		if tab == "buy" and herb.seedCost and left ~= nil then
 			local cost = herb.seedCost :: number
 			local soil = (Herbs.Soils :: any)[herb.soil]
 			local owned = State.current.seeds[id] or 0
 			local have = if owned > 0 then ` · {owned} seeds` else ""
-			local row = addRow(i, id, `{herb.rarity} · {soil and soil.name or herb.soil} · {SeedPicker.growLabel(id)}{have}`, cost, stones() >= cost)
+			local row = addRow(i, id, `{herb.rarity} · {soil and soil.name or herb.soil} · {SeedPicker.growLabel(id)}{have} · {left} left today`, cost, stones() >= cost and left > 0)
 			local one, many = find(row, "OneButton") :: GuiButton, find(row, "ManyButton") :: GuiButton
-			setButton(one, "Buy 1", stones() >= cost)
-			setButton(many, "Buy 5", stones() >= cost * 5)
+			setButton(one, "Buy 1", stones() >= cost and left >= 1)
+			setButton(many, "Buy 5", stones() >= cost * 5 and left >= 5)
 			one.Activated:Connect(function()
 				act("buySeed", id, 1)
 			end)

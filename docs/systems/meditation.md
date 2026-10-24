@@ -7,9 +7,12 @@ circulation happen.
 ## Design intent
 - Idle-safe: you can leave it running. Where you sit matters: anywhere x1.5,
   your own peak x2.5, plus the best meditation seat or artifact within range on
-  your peak (BuildItems `meditation`), which gives building a progression payoff.
-  On your peak the peak score adds too (`Peaks.meditationBonus`: up to +0.6 at
-  the QR cap, +1.0 at FE; [build](build.md#peak-score-built-untuned)).
+  your peak (BuildItems `meditation`: cushion +0.75, mat +0.4, spirit stone +0.5,
+  incense +0.25), which gives building a progression payoff. On your peak the peak
+  score adds too (`Peaks.meditationBonus`: up to +0.36 at the QR cap, +0.6 at FE;
+  [build](build.md#peak-score-built-untuned)), and the garden's aura multiplies it
+  (x (1 + aura), capped by peak tier and lifted by the score; [garden](garden.md#aura)).
+  The spot carries `own` and `decor` (`Peaks.decorShare`) for `Cultivation.rate`.
 - Seated is a calm screen with the meditation menu (below): a row of tiles that
   only appear when they matter.
 - Seated locks the character: no walking, jumping or turning to the camera.

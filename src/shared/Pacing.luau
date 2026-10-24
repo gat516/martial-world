@@ -54,50 +54,59 @@
 --   The walls are the bar (and the tribulation for heaven-defiers); nothing
 --   else gates a breakthrough. A heaven-defier's bar is HeavenDefying.BAR x longer.
 --
--- TIME-TO-BREAKTHROUGH ESTIMATES (Global = 1, no herbs, weather, garden aura,
--- build items or method; a normal player):
---   active   the fighter: passive (never stops) plus about 2 wolf kills'
+-- TIME-TO-BREAKTHROUGH ESTIMATES (Global = 1; bars after Pacing.Adjust). Regenerate
+-- with `python3 tools/pacing_model.py --header` (the model checks this table on every run).
+--   active   the bare fighter: passive (never stops) plus about 2 wolf kills'
 --            worth of raw qi a minute (kills and nodes, net of travel and
---            refining), refined at 1.1 cultivation per raw qi (~0.8 score)
---   on peak  the gardener: meditating on their own peak, nothing else
---   stage     bar    active  on peak  meditate    idle  refine runs, wolf kills of qi
---   QC1        40    1 min    1 min    2 min    3 min    1 runs  ~3 wolves (the starting qi covers it)
---   QC2       100    2 min    3 min    4 min    7 min    1 runs  ~5 wolves
---   QC3       200    3 min    4 min    7 min   11 min    2 runs  ~7 wolves
---   QC4       680    7 min   14 min   24 min   35 min    4 runs  ~18 wolves
---   QC5      1550   12 min   24 min   40 min   60 min    7 runs  ~30 wolves
---   QC6      3050   18 min   36 min   61 min    1.5 h    9 runs  ~45 wolves
---   QC7      3300   15 min   30 min   50 min   75 min    7 runs  ~38 wolves
---   QC8      9350   33 min   66 min    1.8 h    2.7 h   15 runs  ~83 wolves
---   QC9     20000   55 min    1.8 h    3.0 h    4.6 h   23 runs  ~137 wolves   QC total: 2.4 h active, 4.8 h on peak
---   QR1     22000   22 min   56 min    1.6 h    2.4 h   16 runs  ~52 wolves (gather 2.0)
---   QR2     23500   25 min   56 min    1.6 h    2.3 h   14 runs  ~61 wolves (gather 1.6)
---   QR3     25500   35 min   57 min    1.6 h    2.4 h   13 runs  ~93 wolves
---   QR4     26000   32 min   56 min    1.5 h    2.3 h   11 runs  ~83 wolves
---   QR5     53500   58 min    1.6 h    2.7 h    4.0 h   20 runs  ~152 wolves
---   QR6     79500   75 min    2.0 h    3.4 h    5.1 h   26 runs  ~200 wolves
---   QR7     79500   45 min    1.6 h    2.7 h    4.1 h   22 runs  ~110 wolves (gather 1.6)
---   QR8     86000   63 min    1.6 h    2.7 h    4.1 h   20 runs  ~168 wolves
---   QR9    115000   74 min    1.9 h    3.2 h    4.8 h   23 runs  ~198 wolves   QR total: 7.1 h active, 12.6 h on peak
---   FE1    185000   80 min    2.0 h    3.3 h    5.0 h   23 runs  ~218 wolves
---   FE2    270000    1.7 h    2.6 h    4.3 h    6.5 h   30 runs  ~285 wolves
---   FE3    390000    2.3 h    3.4 h    5.6 h    8.5 h   37 runs  ~368 wolves
---   FE4    390000    1.7 h    2.9 h    4.8 h    7.2 h   32 runs  ~263 wolves (gather 1.25)
---   FE5    490000    2.3 h    3.4 h    5.7 h    8.5 h   35 runs  ~369 wolves
---   FE6    665000    2.7 h    4.1 h    6.9 h   10.3 h   42 runs  ~448 wolves
---   FE7    665000    2.2 h    3.5 h    5.9 h    8.8 h   36 runs  ~349 wolves (gather 1.15)
---   FE8    810000    2.7 h    4.0 h    6.7 h   10.0 h   38 runs  ~437 wolves
---   FE9    990000    2.9 h    4.4 h    7.3 h   11.0 h   41 runs  ~478 wolves   FE total: 19.8 h active, 30.3 h on peak
--- The gardener's road is about 2x the fighter's in QC, about 1.6x in QR and 1.5x in
--- FE (before garden aura, build items and herbs, which close it further).
+--            refining), refined at 1.1 cultivation per raw qi (~0.8 score);
+--            no herbs, cores, garden, seat, buffs, method or party
+--   on peak  the bare gardener: meditating on their own peak, nothing else
+--   regular  THE TARGET: the model's regular player (1.5 h a day, hunts about half
+--            the time and sits on the peak the rest, a growing garden, a cushion,
+--            some building, a party a quarter of the time), online time only
+--            (docs/systems/pacing-model.md). Since the 2026-10-24 rebalance the
+--            bars are sized for players who use the systems, so the bare columns
+--            are far slower than the targets, by design.
+--   stage     bar    active  on peak  meditate    idle  regular  refine runs, wolf kills of qi
+--   QC1         40    1 min    1 min     2 min   3 min    1 min     1 runs  ~3 wolves
+--   QC2        100    2 min    3 min     4 min   7 min    1 min     1 runs  ~5 wolves
+--   QC3        200    3 min    4 min     7 min  11 min    3 min     2 runs  ~7 wolves
+--   QC4        782    8 min   16 min    27 min  41 min    7 min     5 runs  ~20 wolves
+--   QC5       1782   14 min   28 min    46 min   1.2 h   13 min     8 runs  ~35 wolves
+--   QC6       3507   21 min   42 min     1.2 h   1.7 h   19 min    10 runs  ~52 wolves
+--   QC7       3795   17 min   35 min    58 min   1.4 h   15 min     8 runs  ~43 wolves
+--   QC8      10752   38 min    1.3 h     2.1 h   3.1 h   33 min    17 runs  ~95 wolves
+--   QC9      23000    1.0 h    2.1 h     3.5 h   5.2 h   51 min    26 runs  ~157 wolves   QC total: 2.8 h active, 5.5 h on peak, regular 2.4 h
+--   QR1      36300   36 min    1.6 h     2.6 h   3.9 h   33 min    26 runs  ~85 wolves (gather 2)
+--   QR2      38775   41 min    1.5 h     2.6 h   3.8 h   31 min    23 runs  ~100 wolves (gather 1.6)
+--   QR3      42075   58 min    1.6 h     2.6 h   3.9 h   43 min    22 runs  ~153 wolves
+--   QR4      42900   53 min    1.5 h     2.5 h   3.8 h   30 min    19 runs  ~138 wolves
+--   QR5      88275    1.6 h    2.7 h     4.4 h   6.7 h   55 min    33 runs  ~251 wolves
+--   QR6     131175    2.1 h    3.4 h     5.6 h   8.4 h    1.2 h    43 runs  ~329 wolves
+--   QR7     131175    1.2 h    2.7 h     4.5 h   6.7 h   48 min    36 runs  ~181 wolves (gather 1.6)
+--   QR8     141900    1.7 h    2.7 h     4.5 h   6.8 h   53 min    34 runs  ~277 wolves
+--   QR9     189750    2.0 h    3.2 h     5.3 h   8.0 h    1.0 h    39 runs  ~327 wolves   QR total: 11.8 h active, 20.8 h on peak, regular 7.1 h
+--   FE1     777000    5.6 h    8.4 h    14.0 h  21.0 h    1.7 h    98 runs  ~916 wolves
+--   FE2    1134000    7.3 h   11.0 h    18.3 h  27.4 h    2.0 h   125 runs  ~1196 wolves
+--   FE3    1638000    9.5 h   14.2 h    23.7 h  35.5 h    2.2 h   156 runs  ~1545 wolves
+--   FE4    1638000    7.1 h   12.1 h    20.2 h  30.3 h    2.2 h   136 runs  ~1104 wolves (gather 1.25)
+--   FE5    2058000    9.5 h   14.3 h    23.8 h  35.7 h    2.4 h   148 runs  ~1551 wolves
+--   FE6    2793000   11.5 h   17.3 h    28.9 h  43.3 h    2.7 h   175 runs  ~1883 wolves
+--   FE7    2793000    9.2 h   14.8 h    24.6 h  36.9 h    2.0 h   153 runs  ~1465 wolves (gather 1.15)
+--   FE8    3402000   11.2 h   16.9 h    28.1 h  42.2 h    2.2 h   161 runs  ~1834 wolves
+--   FE9    4158000   12.3 h   18.4 h    30.7 h  46.0 h    2.4 h   172 runs  ~2006 wolves   FE total: 83.1 h active, 127.4 h on peak, regular 19.9 h
+-- The bare gardener's road is about 2x the bare fighter's in QC and 1.5-1.8x after;
+-- the garden aura, herbs and the seat close it (the model's garden road is within 15%
+-- of the regular; docs/systems/progression-rules.md "No lever is mandatory").
 -- "Wolves" counts qi, not fights: from QC5 on players hunt bigger beasts whose
 -- qiDrop is several wolves'. Untuned in play; tune from analytics with Adjust.
 -- Formulas (w = one spirit wolf's qi at the stage = 14 * (dantian / 120) ^
--- Income.ENEMY_QI_EXPONENT; p = passive):
+-- Income.ENEMY_QI_EXPONENT; p = passive; bar = the curve's bar x Adjust):
 --   active = bar / (60 p + 2 * 1.1 * w * gather) minutes (gather: the row's, default 1)
 --   idle = bar / p; meditate = idle / Meditation.ANYWHERE; on peak = idle / Meditation.ON_PEAK
 --   runs = bar / (dantian / RUNS_PER_DANTIAN * 1.1); wolves = bar / 1.1 / (w * gather)
--- To set a stage: pick its active minutes, then bar = minutes * (60 p + 2.2 w gather).
+-- The curve's rows were set from a bare fighter's minutes (bar = minutes * (60 p +
+-- 2.2 w gather)); Adjust then scales each realm for the stacked systems.
 -- Every bar is at least the previous stage's (user, 2026-10-23: bars never go down).
 -- A breather keeps the previous bar (or a little more) and eases it with the row's
 -- `gather` (QR7 x1.6, FE4 x1.25, FE7 x1.15) and a small passive lift instead.
@@ -106,21 +115,22 @@
 -- the breathers QR7, FE4 and FE7 a little above their neighbours):
 -- it sets the gardener's ratio.
 --
--- AFK, OFFLINE AND SECLUSION (decided 2026-10-23; docs/systems/seclusion.md). Offline
--- (up to Income.OFFLINE_MAX_HOURS), AFK online (no input for Income.AFK_AFTER) and
--- secluded all earn the same: the stage's plain passive (OFFLINE_RATE x p; no
--- meditation, aura, weather, buffs, root or method) for at most 12 h, up to the
--- overflow cap. Nothing breaks through on its own and none of it earns foundation
--- experiences. A night (12 h) is p * 43200 cultivation: it fills the cap (150% of
--- the bar) at every stage but FE3 142%, FE5 141%, FE6 116%, FE7 136%, FE8 119% and
--- FE9 110% (the idle column against 12 h). So a night is worth about one
--- stage, never two: the player breaks through by hand and only CARRY_SHARE carries.
--- The mixed player (simulated on this curve, active rate while playing, a 12 h
--- night every day): 1 h a day finishes QC on day 2, QR on day 7, FE8 on day 15
--- (without the nights: 3, 10, 27); 2 h a day: 2, 4, 9 (without: 2, 5, 14). Nights
--- shorten the calendar by about a stage a day, never a realm; the foundation grade
--- (cracked when a stage was mostly slept through) is their cost.
--- Lowering the AFK ceiling below the cap barely moves this (the carry already
+-- AFK, OFFLINE AND SECLUSION (decided 2026-10-23; docs/systems/seclusion.md). Offline,
+-- AFK online (no input for Income.AFK_AFTER) and secluded all earn the same: the
+-- stage's plain passive (OFFLINE_RATE x p; no meditation, aura, weather, buffs, root or
+-- method), out of ONE Income.OFFLINE_MAX_HOURS (12 h) budget a UTC day shared by every
+-- absence and AFK stretch (Cultivation.awayLeft; rebalance 2026-10-24: two logins used
+-- to earn two nights), up to the overflow cap. Nothing breaks through on its own and
+-- none of it earns foundation experiences. A night (12 h) is p * 43200 cultivation: it
+-- fills the cap (150% of the bar) at every QC and QR stage (the idle column against
+-- 12 h), but since the rebalance only 26-57% of an FE bar (FE1 57%, FE3 34%, FE6 28%,
+-- FE9 26%). So a night is worth about one stage in QC and QR, a third to a half of one
+-- in FE (the owner's call: docs/systems/progression-rules.md "Open calls").
+-- The model's profiles with nights (docs/systems/pacing-model.md): 30 min a day reaches
+-- FE9 on about day 27, 1.5 h a day on day 14, 3 h a day on day 7 (online only: 57,
+-- 18, 8). The foundation grade (cracked when a stage was mostly slept through) is the
+-- cost of sleeping through.
+-- Lowering the AFK ceiling below the cap barely moves QC and QR (the carry already
 -- drops the excess); to slow nights, lower OFFLINE_RATE or OFFLINE_MAX_HOURS.
 --
 -- STRENGTH (health, power): about +10% a minor stage and x2.25 at each major
@@ -360,7 +370,20 @@ Pacing.HeavenDefying = {
 -- Player-side fields (health, power) apply to players AT that stage; beast-side
 -- fields apply to beasts whose Enemies `realm` IS that stage, whoever fights them.
 -- To make a stage harder, use the same fields the other way (bar = 1.2, ...).
-Pacing.Adjust = {} :: { [string]: Adjust }
+-- THE 2026-10-24 REBALANCE (owner-approved; docs/systems/pacing-model.md and
+-- docs/systems/progression-rules.md): the curve's bars were sized for a bare fighter,
+-- but players stack herbs, cores, the garden aura, buffs, the seat, the method and the
+-- rest. After the trims (cores, herb floors, the daily offline budget, buff falloff
+-- and caps, the aura on your own peak, a lighter seat), these bars are solved by
+-- tools/pacing_model.py so the regular profile meets the active targets online
+-- (QC 2.4 h, QR 7.1 h, FE 19.8 h). One multiplier per realm, rising, so bars never
+-- go down; the hook (QC1-3) keeps its bars. Re-solve (solve_bars) after any change
+-- to a lever.
+Pacing.Adjust = {
+	QC4 = { bar = 1.15 }, QC5 = { bar = 1.15 }, QC6 = { bar = 1.15 }, QC7 = { bar = 1.15 }, QC8 = { bar = 1.15 }, QC9 = { bar = 1.15 },
+	QR1 = { bar = 1.65 }, QR2 = { bar = 1.65 }, QR3 = { bar = 1.65 }, QR4 = { bar = 1.65 }, QR5 = { bar = 1.65 }, QR6 = { bar = 1.65 }, QR7 = { bar = 1.65 }, QR8 = { bar = 1.65 }, QR9 = { bar = 1.65 },
+	FE1 = { bar = 4.2 }, FE2 = { bar = 4.2 }, FE3 = { bar = 4.2 }, FE4 = { bar = 4.2 }, FE5 = { bar = 4.2 }, FE6 = { bar = 4.2 }, FE7 = { bar = 4.2 }, FE8 = { bar = 4.2 }, FE9 = { bar = 4.2 },
+} :: { [string]: Adjust }
 
 -- WHOLE-GAME KNOBS, applied on top of every stage (and on top of Adjust).
 Pacing.Global = {
@@ -396,14 +419,18 @@ Pacing.Income = {
 	-- enemy qi = qiDrop * (dantian / QC1 dantian) ^ this, times the stage's gather
 	ENEMY_QI_EXPONENT = 0.8,
 	DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian (times gather)
-	OFFLINE_MAX_HOURS = 12, -- offline cultivation counts at most this long
+	OFFLINE_MAX_HOURS = 12, -- offline and AFK cultivation count at most this long A DAY (UTC day), shared by every absence and AFK stretch
 	OFFLINE_RATE = 1, -- share of the passive rate while away (and while AFK or secluded online)
 	-- AFK online: no input (the client's "awake" pings, Meditate remote) and no active
 	-- action for this many seconds, and online cultivation earns exactly what offline
-	-- would: the plain passive x OFFLINE_RATE, for at most OFFLINE_MAX_HOURS of AFK
-	-- (then nothing until the player is back). Seclusion counts as AFK from the start.
+	-- would: the plain passive x OFFLINE_RATE, out of the same daily OFFLINE_MAX_HOURS
+	-- budget as offline time (then nothing until the next day). Seclusion counts as AFK
+	-- from the start.
 	AFK_AFTER = 600,
 	AWAKE_PING = 30, -- the client sends "awake" on input at most this often (seconds)
+	-- a Lesser Spirit Core is `qiKills` kills of this qiDrop (a spirit wolf's) at the
+	-- eater's stage (Realms.enemyQi): it keeps pace with hunting at every stage
+	CORE_KILL_QIDROP = 14,
 }
 
 -- HERBS: eating a herb whose `eat.qi` is set gives this share of the eater's
@@ -414,9 +441,22 @@ Pacing.Income = {
 -- has a floor in raw qi (about the old flat values). Event herbs (PRIZE, by herb
 -- id) replace their tier's share with a bigger one so they stay a prize at any
 -- stage. Either way raw qi only fills the room left in the dantian.
+-- A herb below the eater's band tier (Herbs.Regions: the region whose stages the
+-- eater is in) gives only its floor (Herbs.eatQi): each band's own tier is the
+-- garden's qi, and a fast low-tier herb stops scaling once you outgrow it
+-- (rebalance 2026-10-24; docs/systems/progression-rules.md).
+-- QiRate buffs from different herbs and items stack with falloff: the strongest
+-- counts whole, the next BUFF_FALLOFF[2], ... the rest nothing, and the sum stops at
+-- BUFF_CAP by the eater's major (Cultivation buffTotal). Every herb's own QiRate is at
+-- most its band's cap, so a blurb never promises more than it gives alone.
+-- STOCK: seeds of one herb the Herbalist sells a player a day (UTC), by tier; tier
+-- III and IV seeds are sold only from their band's first stage (Herbs `soldFrom`).
 Pacing.Herbs = {
 	EAT_SHARE = { 0.06, 0.09, 0.12, 0.16, 0.2 }, -- by tier, I..V
-	EAT_FLOOR = { 120, 400, 2500, 8000, 20000 }, -- raw qi at least, by tier
+	EAT_FLOOR = { 60, 150, 900, 3000, 8000 }, -- raw qi at least, by tier (tier II's 150 is about 4 wolves at QC4)
+	BUFF_FALLOFF = { 1, 0.5, 0.25 },
+	BUFF_CAP = { QiCondensation = 0.2, QiRefining = 0.3, Foundation = 0.5 } :: { [string]: number },
+	STOCK = { 30, 12, 3, 2, 0 }, -- seeds of one herb a day, by tier I..V
 	PRIZE = {
 		ThousandYearGinseng = 1.0, -- a full dantian (the Thousand-Year Ginseng event)
 		RiftLotus = 0.5, -- half a dantian (Heaven Split's wild bloom)
@@ -434,10 +474,28 @@ Pacing.Herbarium = {
 }
 
 -- MEDITATION multiplies the passive rate while seated (build items on the peak
--- add their BuildItems `meditation` bonus on top of ON_PEAK).
+-- add their BuildItems `meditation` bonus on top of ON_PEAK, the best one in range).
 Pacing.Meditation = {
 	ANYWHERE = 1.5,
 	ON_PEAK = 2.5, -- on your own spirit peak
+}
+
+-- THE GARDEN AURA (Cultivation.aura; docs/systems/garden.md "Aura"). Every plant in
+-- your plots radiates spirit energy into your abode: BY_TIER[tier] x RARITY[rarity]
+-- x its size x its mutations, GROWING of that while it grows, all of it once mature.
+-- Summed over every planted herb, so a fuller, rarer garden is always more, up to CAP
+-- by your peak tier (your major). It multiplies MEDITATION ON YOUR OWN PEAK only
+-- (x (1 + aura)), never fighting or meditating elsewhere.
+-- DECORATE YOUR ABODE: the peak score lifts the cap, by up to DECOR of it at the
+-- tier's scoreCap (Config.Build.TIERS): a decorated abode holds more spirit energy.
+-- One mature Legendary tier III herb is +0.3 (the whole QC cap), a Legendary tier IV
+-- +0.6 (the QR cap); a full tier III-IV garden fills the FE cap.
+Pacing.Aura = {
+	BY_TIER = { 0.02, 0.05, 0.15, 0.3, 0.6 }, -- I..V
+	RARITY = { Common = 1, Uncommon = 1.1, Rare = 1.25, Epic = 1.5, Legendary = 2 } :: { [string]: number },
+	CAP = { QiCondensation = 0.3, QiRefining = 0.6, Foundation = 1.0 } :: { [string]: number },
+	GROWING = 0.5, -- a growing plant's share of its mature aura
+	DECOR = 0.25, -- the cap rises by up to this share at the peak tier's score cap
 }
 
 -- SECLUSION (server Seclusion; docs/systems/seclusion.md): the AFK mode, entered from
@@ -498,7 +556,7 @@ Pacing.PeakScore = {
 	} :: { [string]: number },
 	GATED = { QiCondensation = 2, QiRefining = 4, Foundation = 6 } :: { [string]: number },
 	PER_ITEM = 5,
-	MEDITATION = 0.004, -- meditation multiplier per point (QR cap 150: +0.6 on ON_PEAK)
+	MEDITATION = 0.0024, -- meditation multiplier per point (QR cap 150: +0.36, FE cap 250: +0.6 on ON_PEAK); the score also lifts the aura cap (Pacing.Aura.DECOR)
 	GROWTH = 0.002, -- garden growth speed per point (QR cap 150: +30%)
 }
 
@@ -857,32 +915,30 @@ Pacing.Variants = {
 -- Time fills the bar, not the foundation. Untuned first guesses.
 --
 -- TARGETS AND THEIR SOURCES (a stage's 100%; the pools are shared by the band's stages,
--- so a band's first stage gets the most and the deeds (4 a stage) are the floor):
+-- so a band's first stage gets the most and the deeds (4 a stage) are the floor).
+-- Solved with tools/pacing_model.py --foundation (rebalance 2026-10-24) for medians of
+-- about 100% (casual), 115% (regular) and 130% (heavy):
 --   QC1-3   none   the hook has no foundation (FROM): nothing earned, graded or shown,
 --                  so the first breakthroughs never read as a failure
---   QC4     4      Inner Wilds pool: wolf/serpent/boar (young and adult with variants),
---                  the first tier I harvest, Dao levels, Inner caches, the deeds
---   QC5-8   5      Borderlands pool: the QC6 and QC8 beasts (elite wolves, boars and
---                  serpents with variants), Jade Jiao (2), tier I and rare mutations
---                  again, the tier I Herbarium page, events and treasures again, the deeds
---   QC9     6      the wall (about an hour): the Elder Wolf King (2), what's left, the deeds
---   QR1-5   5      Outer Wastes pool: apex wolf/boar/serpent (variants), tier II harvest
---                  and page, mutations, events and treasures again, the deeds
---   QR6-FE3 5      Deep Wilds band: the Thunder Ape and Nine-Tailed Fox (2 each), tier III,
---                  events and treasures again, Dao, the deeds
---   FE4-9   5      Far Reaches band: tier IV (and V), events and treasures, Dao, the deeds
+--   QC4-9   4      Inner Wilds and Borderlands pools: the QC beasts, Jade Jiao and the
+--                  Elder Wolf King (2 each), tier I harvests, mutations, the tier I
+--                  Herbarium page, Dao levels, caches, events and treasures, the deeds
+--   QR1-FE9 2.5    Outer Wastes, Deep Wilds and Far Reaches bands: tier II-IV harvests and
+--                  pages, mutations, events and treasures again, the bosses, Dao, the deeds
+-- CARRY: experiences past what MAX_PERCENT needs carry into the next stage's count
+-- (Foundation.seal), so a band's front-loaded pool spreads over its stages.
 -- With Config.Wilds.VARIANTS off (the main map today) QR and FE have no beasts at their
--- realm, so the Hunter and Daring deeds and the hunts there wait on variants; the rest
--- still reaches about 100% a stage.
+-- realm, so the Hunter and Daring deeds and the hunts there wait on variants (hence
+-- their lower target; raise it toward QC's when variants ship).
 Pacing.Foundation = {
 	-- what one experience of each category counts for
 	WEIGHTS = { Hunt = 1, Boss = 2, Home = 1, Dao = 1, Discover = 1, World = 1, Deed = 1 } :: { [string]: number },
 	-- experiences per stage for 100%; a stage missing here gets DEFAULT_TARGET
 	FROM = "QC4", -- the first stage with a foundation; the hook (QC1-3) has none
 	TARGET = {
-		QC4 = 2, QC5 = 3, QC6 = 3, QC7 = 3, QC8 = 3, QC9 = 3,
+		QC4 = 4, QC5 = 4, QC6 = 4, QC7 = 4, QC8 = 4, QC9 = 4,
 	} :: { [string]: number },
-	DEFAULT_TARGET = 3, -- Qi Refining and Foundation Establishment
+	DEFAULT_TARGET = 2.5, -- Qi Refining and Foundation Establishment (no same-realm beasts there while variants are off)
 	MAX_PERCENT = 150, -- the hidden road tops out here (user, 2026-10-24: hidden tasks "can get u up to 130 or 140")
 	-- 100% is meant to be easy (user, 2026-10-24: "break through at 100 percent should be
 	-- easy to reach... players should have to grind crazy hard so they get the real, extra

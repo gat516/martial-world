@@ -429,10 +429,11 @@ peak tiers per major with room, item caps and a peak score (backend built, below
   5. *Library and training* (QR7): scroll shelves, weapon racks, training dummies.
   6. *Formations:* functional arrays (a meditation array, a garden-growth array),
      which are where most bonuses should live.
-- **Rewards for building:** bonuses stay small and capped (`AURA_CAP`), but more
+- **Rewards for building:** bonuses stay small and capped, but more
   items count: a "peak score" that adds to meditation and garden up to a cap.
   **Built 2026-10-23, untuned** (`Pacing.PeakScore`; cap per tier 60/150/250,
-  meditation and plant growth).
+  meditation and plant growth); since 2026-10-24 it also lifts the garden aura's cap
+  ("decorate your abode", `Pacing.Aura.DECOR`; [progression rules](systems/progression-rules.md)).
 - **Sources:** sect contribution (Pavilion), quest rewards, event drops, the
   Herbalist and market for stones, and a few cosmetic robux items.
 - **Peak size and rooms:** a larger buildable area per major (a plot unlock).

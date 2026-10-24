@@ -18,7 +18,7 @@
 --   growSeconds real time to mature (growth continues offline)
 --   regrowSeconds  plants that stay after harvest fruit again after this long
 --   yield       herbs per harvest at size 1, before mutations (min, max)
---   aura        cultivation speed each mature, unharvested plant radiates
+--   (aura)      no field: a plant's aura is Pacing.Aura BY_TIER x RARITY (Herbs.aura)
 --   tier        I-V (1-5): the region it belongs to (I Common, II Spirit, III Rare,
 --               IV Treasure, V Heavenly; docs/progression.md)
 --   eat         qi = true: raw energy added at once, the tier's share of the
@@ -29,7 +29,9 @@
 --               is put in front at load
 --   scale       mature model size, relative to its HerbModels template
 --   spacing     studs between stems when planting
---   seedCost    Spirit Stones per seed at the Herbalist (nil: not sold)
+--   seedCost    Spirit Stones per seed at the Herbalist (nil: not sold); at most
+--               Pacing.Herbs.STOCK[tier] a player a day
+--   soldFrom    the Herbalist sells it only from this stage key on (its band's first)
 --   sellPrice   Spirit Stones per herb sold to the Herbalist
 --   wild        weather event that makes it sprout wild on owned peaks
 --   mutatesTo   a harvest may give a seed of this rarer plant (mutateChance)
@@ -54,12 +56,12 @@ export type Herb = {
 	growSeconds: number,
 	regrowSeconds: number?,
 	yield: { number },
-	aura: number,
 	eat: { qi: boolean?, buffs: { Buff }? },
 	blurb: string,
 	scale: number,
 	spacing: number,
 	seedCost: number?,
+	soldFrom: string?,
 	sellPrice: number,
 	wild: string?,
 	mutatesTo: string?,
@@ -86,6 +88,7 @@ export type Mutation = { name: string, color: Color3, bonus: number }
 
 local Config = require(script.Parent.Config)
 local Pacing = require(script.Parent.Pacing)
+local Realms = require(script.Parent.Realms)
 
 local Herbs = {}
 
@@ -137,9 +140,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 120,
 		yield = { 2, 3 },
-		aura = 0.007,
-		eat = { buffs = { { kind = "QiRate", amount = 0.15, seconds = 180 } } },
-		blurb = "+15% cultivation speed for 3 min",
+		eat = { buffs = { { kind = "QiRate", amount = 0.1, seconds = 180 } } },
+		blurb = "+10% cultivation speed for 3 min",
 		scale = 1,
 		spacing = 2,
 		seedCost = 10,
@@ -157,14 +159,13 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 300,
 		yield = { 2, 3 },
-		aura = 0.01,
 		eat = {
 			buffs = {
 				{ kind = "WalkSpeed", amount = 6, seconds = 120 },
-				{ kind = "QiRate", amount = 0.1, seconds = 120 },
+				{ kind = "QiRate", amount = 0.05, seconds = 120 },
 			},
 		},
-		blurb = "Lighter steps (+6 speed) and +10% cultivation for 2 min",
+		blurb = "Lighter steps (+6 speed) and +5% cultivation for 2 min",
 		scale = 1,
 		spacing = 2,
 		seedCost = 40,
@@ -182,7 +183,6 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 900,
 		yield = { 1, 2 },
-		aura = 0.017,
 		eat = { qi = true },
 		blurb = "",
 		scale = 1.1,
@@ -202,9 +202,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 1800,
 		yield = { 1, 2 },
-		aura = 0.027,
-		eat = { buffs = { { kind = "QiRate", amount = 0.5, seconds = 600 } } },
-		blurb = "+50% cultivation speed for 10 min",
+		eat = { buffs = { { kind = "QiRate", amount = 0.25, seconds = 600 } } },
+		blurb = "+25% cultivation speed for 10 min",
 		scale = 1.1,
 		spacing = 2.5,
 		sellPrice = 110,
@@ -221,9 +220,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 7200,
 		yield = { 1, 1 },
-		aura = 0.05,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.0, seconds = 900 } } },
-		blurb = "+100% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 900 } } },
+		blurb = "+30% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3,
 		sellPrice = 600,
@@ -240,9 +238,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 1200,
 		yield = { 1, 2 },
-		aura = 0.03,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 300 } } },
-		blurb = "+30% cultivation for 5 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.15, seconds = 300 } } },
+		blurb = "+15% cultivation for 5 min",
 		scale = 1,
 		spacing = 2.5,
 		sellPrice = 150,
@@ -258,9 +255,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 14400,
 		yield = { 1, 1 },
-		aura = 0.1,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.5, seconds = 1200 } } },
-		blurb = "+150% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 1200 } } },
+		blurb = "+30% cultivation for 20 min",
 		scale = 1.6,
 		spacing = 4,
 		sellPrice = 3000,
@@ -275,9 +271,8 @@ Herbs.Defs = {
 		soil = "pond",
 		growSeconds = 480,
 		yield = { 1, 3 },
-		aura = 0.012,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.2, seconds = 180 } } },
-		blurb = "+20% cultivation for 3 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.15, seconds = 180 } } },
+		blurb = "+15% cultivation for 3 min",
 		scale = 1,
 		spacing = 3,
 		seedCost = 60,
@@ -295,9 +290,8 @@ Herbs.Defs = {
 		soil = "pond",
 		growSeconds = 3600,
 		yield = { 1, 1 },
-		aura = 0.06,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.75, seconds = 900 } } },
-		blurb = "+75% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 900 } } },
+		blurb = "+30% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3.5,
 		sellPrice = 700,
@@ -316,7 +310,6 @@ Herbs.Defs = {
 		growSeconds = 600,
 		regrowSeconds = 240,
 		yield = { 2, 3 },
-		aura = 0.01,
 		eat = { buffs = { { kind = "WalkSpeed", amount = 4, seconds = 180 } } },
 		blurb = "Supple stride: +4 speed for 3 min",
 		scale = 1,
@@ -337,9 +330,8 @@ Herbs.Defs = {
 		growSeconds = 2400,
 		regrowSeconds = 600,
 		yield = { 2, 4 },
-		aura = 0.03,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.25, seconds = 300 } } },
-		blurb = "+25% cultivation for 5 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.15, seconds = 300 } } },
+		blurb = "+15% cultivation for 5 min",
 		scale = 1,
 		spacing = 5,
 		seedCost = 400,
@@ -358,9 +350,8 @@ Herbs.Defs = {
 		soil = "pond",
 		growSeconds = 720,
 		yield = { 1, 2 },
-		aura = 0.013,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.15, seconds = 180 } } },
-		blurb = "+15% cultivation for 3 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.1, seconds = 180 } } },
+		blurb = "+10% cultivation for 3 min",
 		scale = 1,
 		spacing = 3,
 		sellPrice = 18,
@@ -378,7 +369,6 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 1500,
 		yield = { 1, 2 },
-		aura = 0.02,
 		eat = { qi = true, buffs = { { kind = "WalkSpeed", amount = 5, seconds = 180 } } },
 		blurb = "a dusk-wind stride: +5 speed for 3 min",
 		scale = 1.1,
@@ -400,11 +390,12 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 5400,
 		yield = { 1, 2 },
-		aura = 0.045,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.6, seconds = 600 } } },
-		blurb = "+60% cultivation for 10 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.25, seconds = 600 } } },
+		blurb = "+25% cultivation for 10 min",
 		scale = 1,
 		spacing = 2.5,
+		seedCost = 400,
+		soldFrom = "QR6",
 		sellPrice = 320,
 		mutatesTo = "NineLeafLingzhi",
 		mutateChance = 0.05,
@@ -422,11 +413,12 @@ Herbs.Defs = {
 		growSeconds = 7200,
 		regrowSeconds = 2700,
 		yield = { 1, 3 },
-		aura = 0.05,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.4, seconds = 600 } } },
-		blurb = "+40% cultivation for 10 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.2, seconds = 600 } } },
+		blurb = "+20% cultivation for 10 min",
 		scale = 1.1,
 		spacing = 5,
+		seedCost = 600,
+		soldFrom = "QR6",
 		sellPrice = 260,
 		mutatesTo = "StarfallBamboo",
 		mutateChance = 0.02,
@@ -444,9 +436,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 14400,
 		yield = { 1, 1 },
-		aura = 0.12,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.2, seconds = 1200 } } },
-		blurb = "+120% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.4, seconds = 1200 } } },
+		blurb = "+40% cultivation for 20 min",
 		scale = 1.3,
 		spacing = 3.5,
 		sellPrice = 1400,
@@ -465,9 +456,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 21600,
 		yield = { 1, 1 },
-		aura = 0.14,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.5, seconds = 1200 } } },
-		blurb = "+150% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.45, seconds = 1200 } } },
+		blurb = "+45% cultivation for 20 min",
 		scale = 1.3,
 		spacing = 3.5,
 		sellPrice = 2000,
@@ -484,9 +474,8 @@ Herbs.Defs = {
 		soil = "pond",
 		growSeconds = 10800,
 		yield = { 1, 1 },
-		aura = 0.11,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.0, seconds = 900 } } },
-		blurb = "+100% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.35, seconds = 900 } } },
+		blurb = "+35% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3.5,
 		sellPrice = 1200,
@@ -506,11 +495,12 @@ Herbs.Defs = {
 		growSeconds = 14400,
 		regrowSeconds = 3600,
 		yield = { 2, 3 },
-		aura = 0.1,
 		eat = { qi = true, buffs = { { kind = "WalkSpeed", amount = 8, seconds = 300 } } },
 		blurb = "a falling-star stride: +8 speed for 5 min",
 		scale = 1.2,
 		spacing = 3.5,
+		seedCost = 1200,
+		soldFrom = "FE4",
 		sellPrice = 500,
 		mutatesTo = "DaoOriginFruit",
 		mutateChance = 0.005,
@@ -528,9 +518,8 @@ Herbs.Defs = {
 		soil = "bed",
 		growSeconds = 28800,
 		yield = { 1, 1 },
-		aura = 0.2,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 2.0, seconds = 1200 } } },
-		blurb = "+200% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.5, seconds = 1200 } } },
+		blurb = "+50% cultivation for 20 min",
 		scale = 1.3,
 		spacing = 3.5,
 		sellPrice = 5000,
@@ -547,9 +536,8 @@ Herbs.Defs = {
 		soil = "pond",
 		growSeconds = 43200,
 		yield = { 1, 1 },
-		aura = 0.25,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 2.5, seconds = 1800 } } },
-		blurb = "+250% cultivation for 30 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.5, seconds = 1800 } } },
+		blurb = "+50% cultivation for 30 min",
 		scale = 1.4,
 		spacing = 4,
 		sellPrice = 7000,
@@ -567,9 +555,8 @@ Herbs.Defs = {
 		growSeconds = 86400,
 		regrowSeconds = 21600,
 		yield = { 1, 1 },
-		aura = 0.3,
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 3.0, seconds = 1800 } } },
-		blurb = "+300% cultivation for 30 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.5, seconds = 1800 } } },
+		blurb = "+50% cultivation for 30 min",
 		scale = 1.3,
 		spacing = 6,
 		sellPrice = 9000,
@@ -676,23 +663,78 @@ function Herbs.clone(folder: Instance, id: string): (Model?, number)
 	return model, template:GetScale()
 end
 
+-- The realm band (a Herbs.Regions entry) a stage belongs to: the last region whose
+-- `from` stage is at or below it.
+function Herbs.band(major: string, minor: number): SeedRegion
+	local at = Realms.index(major, minor)
+	local band = Herbs.Regions[1]
+	for _, r in Herbs.Regions do
+		if at >= Realms.index(r.from[1], r.from[2]) then
+			band = r
+		end
+	end
+	return band
+end
+
 -- The raw qi eating one gives (0, 0 for buff-only herbs): a share of the eater's
 -- current stage dantian (its tier's, or its Pacing.Herbs.PRIZE share) and the
--- least it gives (its tier's floor). The server adds it only up to the dantian's room.
-function Herbs.eatQi(id: string): (number, number)
+-- least it gives (its tier's floor). With the eater's `stage`, a herb below its
+-- band's tier gives only the floor (share 0; event PRIZE herbs keep theirs). The
+-- server adds it only up to the dantian's room.
+function Herbs.eatQi(id: string, stage: { major: string, minor: number }?): (number, number)
 	local herb = Herbs.Defs[id]
 	if not (herb and herb.eat.qi) then
 		return 0, 0
 	end
 	local P = Pacing.Herbs
-	return P.PRIZE[id] or P.EAT_SHARE[herb.tier] or 0, P.EAT_FLOOR[herb.tier] or 0
+	local floor = P.EAT_FLOOR[herb.tier] or 0
+	if P.PRIZE[id] then
+		return P.PRIZE[id], floor
+	end
+	if stage and herb.tier < Herbs.band(stage.major, stage.minor).tier then
+		return 0, floor
+	end
+	return P.EAT_SHARE[herb.tier] or 0, floor
+end
+
+-- A plant's aura at size 1 with no mutations, mature (Pacing.Aura BY_TIER x RARITY).
+function Herbs.aura(id: string): number
+	local herb = Herbs.Defs[id]
+	if not herb then
+		return 0
+	end
+	local A = Pacing.Aura
+	return (A.BY_TIER[herb.tier] or 0) * (A.RARITY[herb.rarity] or 1)
+end
+
+-- Whether the Herbalist sells this seed to a player at this stage (seedCost, soldFrom).
+function Herbs.soldAt(id: string, major: string, minor: number): boolean
+	local herb = Herbs.Defs[id]
+	if not (herb and herb.seedCost) then
+		return false
+	end
+	local from = herb.soldFrom and Realms.ByKey[herb.soldFrom]
+	return not from or Realms.index(major, minor) >= Realms.index(from.major, from.minor)
+end
+
+-- Seeds of `id` the Herbalist still sells this player today (Pacing.Herbs.STOCK by
+-- tier, per UTC day), or nil when it isn't sold to them at all. `herbalist` is the
+-- saved { day, bought }; a new day reads as nothing bought.
+function Herbs.stockLeft(herbalist: { day: number, bought: { [string]: number } }, id: string, major: string, minor: number, now: number): number?
+	if not Herbs.soldAt(id, major, minor) then
+		return nil
+	end
+	local herb = Herbs.Defs[id]
+	local bought = if herbalist.day == now // 86400 then herbalist.bought[id] or 0 else 0
+	return math.max(0, (Pacing.Herbs.STOCK[herb.tier] or 0) - bought)
 end
 
 -- Qi herbs: put the share (and its floor) in front of the buff blurb.
 for id, herb in Herbs.Defs do
 	local share, floor = Herbs.eatQi(id)
 	if share > 0 then
-		local qi = `+{math.floor(share * 100 + 0.5)}% of your dantian in Qi (at least {floor})`
+		local outgrow = if Pacing.Herbs.PRIZE[id] then "" else `, and just that past tier {Herbs.TierNumerals[herb.tier]}'s realms`
+		local qi = `+{math.floor(share * 100 + 0.5)}% of your dantian in Qi (at least {floor}{outgrow})`
 		herb.blurb = if herb.blurb == "" then `Raw energy: {qi} at once` else `{qi} and {herb.blurb}`
 	end
 end

@@ -100,9 +100,18 @@ slots in without code changes.
   Nature 1) plus `GATED` by the item's realm gate (QC +2, QR +4, FE +6). Only the
   first `PER_ITEM` (5) copies of an item count, so spamming buckets doesn't pay.
 - The score counts up to the tier's `scoreCap` (60 / 150 / 250) and adds
-  `MEDITATION` (0.004) per point to the meditation multiplier on your peak and
-  `GROWTH` (0.002) per point to your plants' growth speed: at the QR cap +0.6 on
-  `ON_PEAK` 2.5 and +30% growth; at the FE cap +1.0 and +50%.
+  `MEDITATION` (0.0024) per point to the meditation multiplier on your peak and
+  `GROWTH` (0.002) per point to your plants' growth speed: at the QR cap +0.36 on
+  `ON_PEAK` 2.5 and +30% growth; at the FE cap +0.6 and +50%.
+- **Decorate your abode** (owner, 2026-10-24: "I want players to be incentivized to
+  decorate their spirit abodes"): the score also lifts the garden aura's cap, by up to
+  `Pacing.Aura.DECOR` (25%) at the score cap (`Peaks.decorShare`): a decorated abode
+  holds more spirit energy ([garden](garden.md#aura)). In the model the score is worth
+  about 7% of a heavy builder's time (one lever off) and the cushion 2%: a real but
+  modest reward; no lever is mandatory ([progression rules](progression-rules.md)).
+- Meditation pieces (`meditation`, the best one in range): Meditation Cushion +0.75,
+  Meditation Mat +0.4, Spirit Stone +0.5, Incense Burner +0.25 (halved in the
+  2026-10-24 rebalance: the cushion's +1.5 was +60% on the seat for 260 stones).
 - `Peaks.refreshScore` recounts after every successful build action and on
   `applyRealm`, and sets the `PeakScore`, `PeakScoreCap` and `PeakTier` player
   attributes; the catalog's peak-score gauge shows them. It also keeps the highest
@@ -160,7 +169,8 @@ layout on join and undoes it on leave.
   rate limit, `GROUND`, `RESERVED` zones, restricted names, Spirit Market range.
 - Per item in `BuildItems.luau` (`score` overrides its peak-score points).
 - `Pacing.PeakScore`: points per category and realm gate, copies that count,
-  meditation and growth per point.
+  meditation and growth per point; `Pacing.Aura.DECOR`: how much the score lifts the
+  aura cap.
 
 ## Known gaps
 - Only the Foundation tier has a look; QC and QR show the bare peak until the

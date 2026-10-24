@@ -26,7 +26,8 @@
 -- A kill from a beast more than FIT_BELOW stages under the player earns nothing.
 -- The weighted count this stage (data.foundation.count) against TARGET gives the
 -- percent at the breakthrough (Cultivation.advance calls `seal`), stored by stage key
--- in data.foundation.grades (a number; old profiles' words read as LEGACY).
+-- in data.foundation.grades (a number; old profiles' words read as LEGACY). Experiences
+-- past what MAX_PERCENT needs carry into the next stage's count.
 -- `temper` raises old percents later (the heart-demon trial, HeartDemon.luau).
 -- The hook stages (below Pacing.Foundation.FROM, QC4) have no foundation: nothing is
 -- earned there (the pools stay fresh for QC4), nothing is sealed or shown, and no
@@ -184,17 +185,22 @@ function Foundation.tribulationDamage(data: PlayerData.Data): number
 	return if Foundation.unsteady(Foundation.percent(data)) then Config.UNSTEADY_TRIBULATION else 1
 end
 
--- Settle the stage being left and start the next one's count and deeds. Called by
+-- Settle the stage being left and start the next one's count (with the carry) and deeds. Called by
 -- Cultivation.advance before the realm moves. Returns the sealed percent (nil for a
 -- hook stage, which has no foundation).
 function Foundation.seal(data: PlayerData.Data): number?
 	local stage = stageOf(data)
 	local active = Foundation.active(data)
 	local percent = Foundation.percent(data)
+	-- what's past MAX_PERCENT's need carries into the next stage (rebalance 2026-10-24)
+	local carry = 0
 	if active then
 		data.foundation.grades[stage.key] = percent
+		local target = Foundation.target(stage)
+		local full = target * (1 + (Config.MAX_PERCENT - 100) / 100 * Config.OVER_COST)
+		carry = math.max(0, data.foundation.count - full)
 	end
-	data.foundation.count = 0
+	data.foundation.count = carry
 	data.foundation.warned = false
 	data.foundation.deeds = { kills = {}, herbs = {}, done = {} }
 	return if active then percent else nil

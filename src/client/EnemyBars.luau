@@ -218,6 +218,7 @@ local function restyle(entry: Watched)
 		return
 	end
 	entry.tier = tier
+	local beast = Realms.ofBeast(def.realm) -- the stage on its realm tag
 	local style = STYLES[tier]
 	for _, tween in entry.loops do
 		tween:Cancel()

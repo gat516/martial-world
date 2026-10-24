@@ -71,6 +71,7 @@ local slots: { TextButton } = {}
 local weaponSlot: TextButton -- Stack.Hotbar.WeaponSlot, shown while the Inventory is open
 local lastDragEnd = -math.huge
 
+local showTip: (GuiObject?, string?) -> () -- defined with the tip below; the drag starts use it first
 local function invoke(...: any)
 	local ok, message = inventoryRemote:InvokeServer(...)
 	if not ok and message then
@@ -551,7 +552,7 @@ local function fullName(id: string): string
 	return if def then def.name else ""
 end
 
-local function showTip(slot: GuiObject?, id: string?)
+showTip = function(slot: GuiObject?, id: string?)
 	local name = if slot and id then fullName(id) else ""
 	tipSlot = if name ~= "" then slot else nil
 	tip.Visible = tipSlot ~= nil

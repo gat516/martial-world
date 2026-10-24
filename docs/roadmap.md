@@ -273,6 +273,10 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
    Any-weapon arts check the player's highest class Dao (open: or their own threshold).
    Comprehension (breaking a tier bottleneck) costs Spirit Stones and needs a higher
    Dao level in the class, not insight (deleted in Phase A).
+   **Pending (user, 2026-10-23):** the existing class skills look impressive, so
+   they belong at the top of each class's ladder (Dao 5 or 8), not Dao 2. Each class
+   still needs a plain, mediocre first skill on the level of Palm Strike and Sword
+   Qi Wave, which stay the starter arts. Until then the class skills sit at Dao 2.
 2. **Techniques deepen instead of multiplying.** Each technique levels up
    (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
    so one skill grows from a plain cast into a spectacle. No new content per level

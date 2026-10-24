@@ -94,7 +94,7 @@
     <string name="Name">TravelButton</string>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <float name="BackgroundTransparency">1</float>
-    <int name="LayoutOrder">4</int>
+    <int name="LayoutOrder">2</int>
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <string name="Text"></string>
     <Color3 name="TextColor3"><R>0.745098</R><G>0.823529</G><B>1</B></Color3>
@@ -272,7 +272,7 @@
     <string name="Name">InventoryButton</string>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <float name="BackgroundTransparency">1</float>
-    <int name="LayoutOrder">3</int>
+    <int name="LayoutOrder">4</int>
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <string name="Text"></string>
     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
@@ -549,7 +549,7 @@
     <string name="Name">AdminButton</string>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <float name="BackgroundTransparency">1</float>
-    <int name="LayoutOrder">2</int>
+    <int name="LayoutOrder">3</int>
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <bool name="Visible">false</bool>
     <string name="Text"></string>

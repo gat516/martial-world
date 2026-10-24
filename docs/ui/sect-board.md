@@ -52,7 +52,7 @@ Window anatomy (shared by every window here):
 ```
 board = { tasks = { Task }, status = SectRank.State?,
           onTake = (id) -> (), onClaim = (id) -> (), onSelect = (task) -> () }
-Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn" | "promotion" | "pavilion", title, body,
+Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn" | "promotion" | "pavilion" | "bonus", title, body,
           glyph = "fight" | "harvest" | "plant" | "give" | "quest" | "chest" | "qi" | "bow" | nil,
           reward = number?  -- contribution
           progress = number?, goal = number?,
@@ -80,7 +80,7 @@ Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn" | "promotion" | "pa
 
 **Wired:** `Sect` sends the tasks in board order: a promotion notice (`kind =
 "promotion"`, the daily seal with 升, state "done": Claim promotes), the chapter step,
-the three dailies, then the Pavilion notice (`kind = "pavilion"`, 阁, state "taken"
+any bonus quest (`kind = "bonus"`, the daily seal with 赏; taking it opens People), the three dailies, then the Pavilion notice (`kind = "pavilion"`, 阁, state "taken"
 with no goal: a tap opens the Pavilion). Take, Claim and taps go to `CultivationAction`
 ("sect", ...); a taken notice's tap opens it in the quest log. Glyphs used: fight,
 give, qi, bow, chest, harvest, quest. No weeklies or torn notice yet.

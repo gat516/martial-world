@@ -14,6 +14,10 @@
 --              time, each from its stage; a combat step always has a peaceful path
 --              beside it, and either finishes the step. Each claim sends the quest
 --              card; the last ends at the Broken Pagoda (or the Elder Wolf King).
+--   Bonus      Escort a Junior (QR1+) and Seek a Senior (QC5+): optional notices that
+--              teach the party shelter by doing it, offered only while someone of
+--              the right major is on the server, at most one taken at a time, each
+--              claimable once a day (Tuning.BONUS). Counted on Shelter.onCredit.
 --   Pavilion   seed packets by tier, a spirit ring slot per major, copies of the
 --              kill-milestone manuals, root pill fragments (a few of each a week,
 --              Tuning.FRAGMENTS). Never qi, never whole root pills.
@@ -22,6 +26,7 @@
 -- Client: src/client/SectView.luau, through QuestState { sect = view, open = bool }
 -- and { sectRankUp = ... }; actions come in on CultivationAction ("sect", op, arg):
 --   "take" kind | "claim" kind | "promote" | "buy" stockId | "track" questId ("" = none)
+--   (bonus quests: "take" / "claim" "bonus:<kind>", "track" "bonus")
 
 local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
@@ -52,6 +57,9 @@ local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local Sect = {}
 
 type Task = PlayerData.SectTask
+
+-- Escort a Junior: the juniors whose sheltered kills counted (this session), paid when it completes
+local escortHelpers: { [Player]: { [Player]: boolean } } = {}
 
 --[[ Realm and rank ]]
 
@@ -347,12 +355,108 @@ local function refresh(data: PlayerData.Data)
 			sect.tracked = ""
 		end
 	end
+	-- an unfinished bonus quest lapses with the day (a done one waits to be claimed)
+	local bonus = sect.bonus
+	if bonus and bonus.day ~= day and not bonus.done then
+		sect.bonus = nil
+		if sect.tracked == "bonus" then
+			sect.tracked = ""
+		end
+	end
 	local week = (day + 3) // 7 -- weeks from Monday (1970-01-01 was a Thursday)
 	if sect.weekId ~= week then
 		sect.weekId = week
 		sect.week = 0
 		sect.weekBought = {}
 	end
+end
+
+--[[ Bonus quests: the party shelter, taught by doing it ]]
+
+-- Optional, never nagging: offered only while someone of the right major is on the
+-- server, and only one taken at a time. Progress is a sheltered kill (Shelter.credit):
+-- the escort's patron side, the seeker's junior side.
+local BONUS_ORDER = { "escort", "senior" }
+type Bonus = {
+	title: string,
+	glyph: string,
+	text: string, -- the objective (at most 5 words)
+	body: (goal: number) -> string, -- the notice's line
+	description: (goal: number) -> string, -- the quest log's detail
+	flavour: string, -- the quest card's line
+	wants: (mine: number, theirs: number) -> boolean, -- a major index on the server that offers it
+}
+local BONUSES: { [string]: Bonus } = {
+	escort = {
+		title = "Escort a Junior",
+		glyph = "bow",
+		text = "Shelter a junior's kills",
+		body = function(goal)
+			return `Party with a junior of a lower realm. Shelter {goal} of their kills.`
+		end,
+		description = function(goal)
+			return `A senior's qi steadies a junior. Invite a disciple of a lower major realm from People and stay close in the wilds. Against beasts above their realm they fight at your side as an equal. Shelter {goal} of their kills; they earn a little too.`
+		end,
+		flavour = "A junior walks taller for your shelter.",
+		wants = function(mine, theirs)
+			return theirs < mine
+		end,
+	},
+	senior = {
+		title = "Seek a Senior",
+		glyph = "fight",
+		text = "Fight beside a senior",
+		body = function(goal)
+			return `Party with a senior of a higher realm. Land {goal} kills at their side.`
+		end,
+		description = function(goal)
+			return `A senior's qi shelters a junior. Invite a disciple of a higher major realm from People and stay close to them. Against beasts above your realm you fight at their side as an equal. Land {goal} kills that way.`
+		end,
+		flavour = "Lean on them now. Shelter others later.",
+		wants = function(mine, theirs)
+			return theirs > mine
+		end,
+	},
+}
+
+local function today(): number
+	return os.time() // 86400
+end
+
+-- Someone on the server whose major offers this bonus (the testbed: always, so the
+-- notice can be seen alone; it still needs a second client to progress).
+local function partnerHere(player: Player, data: PlayerData.Data, b: Bonus): boolean
+	if Config.TESTBED then
+		return true
+	end
+	local mine = Realms.majorIndex(data.realm.major)
+	for _, other in Players:GetPlayers() do
+		local od = other ~= player and PlayerData.get(other)
+		if od and b.wants(mine, Realms.majorIndex(od.realm.major)) then
+			return true
+		end
+	end
+	return false
+end
+
+-- The bonus kinds on the board now: the taken one alone, else those offered.
+local function bonusKinds(player: Player, data: PlayerData.Data): { string }
+	local taken = data.sect.bonus
+	if taken then
+		return { taken.kind }
+	end
+	local kinds = {}
+	if not opened(data) then
+		return kinds
+	end
+	for _, kind in BONUS_ORDER do
+		local def, b = Tuning.BONUS[kind], BONUSES[kind]
+		local stageOk = reached(data, def.from) or (Config.TESTBED and kind ~= "escort")
+		if stageOk and data.sect.bonusDay[kind] ~= today() and partnerHere(player, data, b) then
+			table.insert(kinds, kind)
+		end
+	end
+	return kinds
 end
 
 --[[ The chapter chain: Ash Past the Gorge (Ruined Borderlands, QC5-QC9) ]]
@@ -582,7 +686,7 @@ local function stockList(data: PlayerData.Data)
 	return list
 end
 
-local function view(data: PlayerData.Data)
+local function view(player: Player, data: PlayerData.Data)
 	local sect = data.sect
 	local tasks, quests = {}, {}
 	if promotable(data) then
@@ -603,6 +707,22 @@ local function view(data: PlayerData.Data)
 					status = if state == "done" then "Done: claim it at the sect board" else nil,
 					objectives = objectives,
 					rewards = { { kind = "contribution", amount = pay.contribution }, { kind = "stones", amount = pay.stones } } })
+			end
+		end
+		for _, kind in bonusKinds(player, data) do
+			local b, def = BONUSES[kind], Tuning.BONUS[kind]
+			local taken = sect.bonus
+			local goal = if taken then taken.goal else def.goal
+			local p = if taken then math.min(taken.progress, goal) else 0
+			local state = if not taken then "offered" elseif taken.done then "done" else "taken"
+			table.insert(tasks, { id = `bonus:{kind}`, kind = "bonus", glyph = b.glyph, title = b.title, body = b.body(goal),
+				reward = def.contribution, progress = p, goal = goal, state = state })
+			if taken then
+				table.insert(quests, { id = "bonus", kind = "bonus", name = b.title, giver = "The sect board",
+					place = "The wilds", description = b.description(goal),
+					status = if taken.done then "Done: claim it at the sect board" else nil,
+					objectives = { { text = b.text, progress = p, goal = goal, done = taken.done == true } },
+					rewards = { { kind = "contribution", amount = def.contribution }, { kind = "stones", amount = stoneShare(data, def.stones) } } })
 			end
 		end
 		for _, kind in sect.offered do
@@ -654,7 +774,7 @@ function Sect.push(player: Player, open: boolean?)
 		return
 	end
 	refresh(data)
-	local v = view(data)
+	local v = view(player, data)
 	local key = HttpService:JSONEncode(v)
 	if open or lastSent[player] ~= key then
 		lastSent[player] = key
@@ -685,6 +805,20 @@ local function take(player: Player, data: PlayerData.Data, id: any): (boolean, s
 		data.sect.step = record
 		Analytics.event(player, "SectTask", 1, "taken", "chain")
 		Cultivation.notify(player, `Quest taken: {step.title}.`)
+		return true, nil
+	end
+	if type(id) == "string" and string.sub(id, 1, 6) == "bonus:" then
+		local kind = string.sub(id, 7)
+		if data.sect.bonus then
+			return false, "Finish your bonus quest first."
+		end
+		if not table.find(bonusKinds(player, data), kind) then
+			return false, nil
+		end
+		data.sect.bonus = { kind = kind, goal = Tuning.BONUS[kind].goal, progress = 0, day = today() }
+		escortHelpers[player] = nil
+		Analytics.event(player, "SectTask", 1, "taken", `bonus:{kind}`)
+		Cultivation.notify(player, `Bonus quest taken: {BONUSES[kind].title}.`)
 		return true, nil
 	end
 	if type(id) ~= "string" or not table.find(data.sect.offered, id) or data.sect.taken[id] then
@@ -776,6 +910,42 @@ local function claimStep(player: Player, data: PlayerData.Data): (boolean, strin
 	return true, nil
 end
 
+local function claimBonus(player: Player, data: PlayerData.Data, kind: string): (boolean, string?)
+	local b = data.sect.bonus
+	if not (b and b.kind == kind and b.done) then
+		return false, nil
+	end
+	local def, bonus = Tuning.BONUS[kind], BONUSES[kind]
+	local room = math.max(0, Tuning.WEEK_CAP - data.sect.week)
+	local gained = math.min(def.contribution, room)
+	data.sect.week += gained
+	earn(data, gained)
+	local stones = stoneShare(data, def.stones)
+	data.stones += stones
+	data.sect.bonus = nil
+	data.sect.bonusDay[kind] = today()
+	if data.sect.tracked == "bonus" then
+		data.sect.tracked = ""
+	end
+	Analytics.event(player, "SectTask", 1, "claimed", `bonus:{kind}`)
+	Analytics.stones(player, "source", stones, data.stones, "Gameplay", "SectBonus")
+	Analytics.economy(player, "source", "Contribution", gained, data.sect.contribution, "Gameplay", "SectBonus")
+	local items = { { key = "stones", amount = stones } }
+	if gained > 0 then
+		table.insert(items, 1, { key = "contribution", amount = gained })
+	end
+	effectRemote:FireClient(player, "reward", {
+		tier = "card",
+		kind = "quest",
+		title = "Quest Complete",
+		subtitle = bonus.title,
+		items = items,
+		flavour = if gained < def.contribution then `{bonus.flavour} (This week's contribution is full.)` else bonus.flavour,
+	})
+	claimed(player, `Bonus:{kind}`)
+	return true, nil
+end
+
 local function promote(player: Player, data: PlayerData.Data): (boolean, string?)
 	if not promotable(data) then
 		return false, nil
@@ -863,6 +1033,10 @@ local function track(data: PlayerData.Data, id: any): (boolean, string?)
 		data.sect.tracked = id
 		return true, nil
 	end
+	if id == "bonus" and data.sect.bonus then
+		data.sect.tracked = id
+		return true, nil
+	end
 	if type(id) == "string" and string.sub(id, 1, 6) == "daily:" then
 		local t = data.sect.taken[string.sub(id, 7)]
 		if t and not t.claimed then
@@ -886,6 +1060,8 @@ function Sect.handle(player: Player, op: any, arg: any): (boolean, string?)
 	elseif op == "claim" then
 		if arg == "chain" then
 			ok, message = claimStep(player, data)
+		elseif type(arg) == "string" and string.sub(arg, 1, 6) == "bonus:" then
+			ok, message = claimBonus(player, data, string.sub(arg, 7))
 		elseif type(arg) == "string" then
 			ok, message = claimDaily(player, data, arg)
 		end
@@ -906,22 +1082,65 @@ end
 
 --[[ Hooks ]]
 
--- Shelter.onCredit: a patron earns Pacing.Shelter.CONTRIBUTION per kill a sheltered
--- party member is credited with, once the sect is open to them, inside WEEK_CAP
--- (shared with the dailies). Quiet: a feed tile, no toast.
-function Sect.onShelter(player: Player, data: PlayerData.Data)
-	if not opened(data) then
-		return
+local function nameOf(player: Player): string
+	local first = player:GetAttribute("FirstName")
+	return if type(first) == "string" and first ~= "" then first else player.DisplayName
+end
+
+-- An escort is done: every junior who helped and is still here gets a small share.
+local function payJuniors(patron: Player, helped: { [Player]: boolean })
+	for junior in helped do
+		local jd = junior.Parent == Players and PlayerData.get(junior)
+		local share = Tuning.BONUS.escort.junior or 0
+		if jd and share > 0 then
+			local stones = stoneShare(jd, share)
+			jd.stones += stones
+			Analytics.stones(junior, "source", stones, jd.stones, "Gameplay", "SectEscort")
+			feed(junior, "stones", stones)
+			Cultivation.notify(junior, `{nameOf(patron)} saw you safely through. +{stones} Spirit Stones`)
+			Cultivation.pushState(junior)
+		end
 	end
+end
+
+-- Shelter.onCredit (patron, junior): the patron earns Pacing.Shelter.CONTRIBUTION per
+-- kill a sheltered party member is credited with, once the sect is open to them,
+-- inside WEEK_CAP (shared with the dailies; quiet: a feed tile, no toast). The kill
+-- also counts for the patron's Escort a Junior and the junior's Seek a Senior.
+function Sect.onShelter(player: Player, data: PlayerData.Data, junior: Player, jdata: PlayerData.Data)
 	refresh(data)
-	local gained = math.min(Pacing.Shelter.CONTRIBUTION, math.max(0, Tuning.WEEK_CAP - data.sect.week))
-	if gained <= 0 then
-		return
+	refresh(jdata)
+	if opened(data) then
+		local gained = math.min(Pacing.Shelter.CONTRIBUTION, math.max(0, Tuning.WEEK_CAP - data.sect.week))
+		if gained > 0 then
+			data.sect.week += gained
+			earn(data, gained)
+			Analytics.economy(player, "source", "Contribution", gained, data.sect.contribution, "Gameplay", "Shelter")
+			feed(player, "contribution", gained)
+		end
 	end
-	data.sect.week += gained
-	earn(data, gained)
-	Analytics.economy(player, "source", "Contribution", gained, data.sect.contribution, "Gameplay", "Shelter")
-	feed(player, "contribution", gained)
+	local escort = data.sect.bonus
+	if escort and escort.kind == "escort" and not escort.done then
+		local helped = escortHelpers[player] or {}
+		escortHelpers[player] = helped
+		helped[junior] = true
+		escort.progress += 1
+		if escort.progress >= escort.goal then
+			escort.done = true
+			data.stats.escorts = (data.stats.escorts or 0) + 1
+			escortHelpers[player] = nil
+			payJuniors(player, helped)
+			Cultivation.notify(player, `{BONUSES.escort.title} done. Claim it at the sect board.`)
+		end
+	end
+	local seek = jdata.sect.bonus
+	if seek and seek.kind == "senior" and not seek.done then
+		seek.progress += 1
+		if seek.progress >= seek.goal then
+			seek.done = true
+			Cultivation.notify(junior, `{BONUSES.senior.title} done. Claim it at the sect board.`)
+		end
+	end
 end
 
 -- EnemyService.onKill: hunts (beasts near the player's realm; realm variants carry
@@ -992,6 +1211,12 @@ local function trackedObjective(_player: Player, data: PlayerData.Data): string?
 			text = (string.gsub(text, "^Or ", ""))
 			return if goal > 1 then `{text} ({p}/{goal})` else text
 		end
+	elseif id == "bonus" then
+		local b = data.sect.bonus
+		local def = b and BONUSES[b.kind]
+		if b and def then
+			return if b.done then `{def.title}: claim it at the sect board` else `{def.text} ({math.min(b.progress, b.goal)}/{b.goal})`
+		end
 	elseif string.sub(id, 1, 6) == "daily:" then
 		local kind = string.sub(id, 7)
 		local k = KINDS[kind]
@@ -1044,6 +1269,7 @@ end
 
 function Sect.forget(player: Player)
 	lastSent[player] = nil
+	escortHelpers[player] = nil
 end
 
 return Sect

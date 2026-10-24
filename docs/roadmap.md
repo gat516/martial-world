@@ -273,6 +273,17 @@ The realm gap shows against content, so players need reasons to cross paths:
 - **Group world events and roaming beast kings**, rewards scaled to each player's realm,
   so a senior helping still earns.
 - **Co-op rifts** with better loot as a party; sect board tasks with shared credit.
+- **Bonus quests that teach the party shelter: built (2026-10-24, untested;
+  [sect](systems/sect.md) "Bonus quests").** Escort a Junior and Seek a Senior.
+- **Deferred (user, 2026-10-24: "that'll have to be deferred onto a roadmap but that's
+  a very good idea"): the NPC junior escort**, so a player alone still learns the
+  shelter. A friendly junior sect disciple (a stock R6, runtime clone) follows the
+  player into the wilds; beasts target it; the player shelters it to a destination (a
+  region landmark, or a set distance in the testbed) while it lands a few weak hits so
+  the "Sheltered by" cue shows; minimal AI (follow, flee when hurt, a weak attack).
+  Offered once per major from QR1 as a bonus quest, and once as the shelter's solo
+  teaching moment (one elder line). Needs EnemyService to target a non-Player (today
+  `target` and every hit path are Player-only).
 - Halls and lineage after the MVP.
 
 ## 3f. PvP and competition (user, 2026-10-23; deferred)

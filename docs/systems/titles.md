@@ -61,6 +61,7 @@ grind for power: titles give no stats.
 | Path | Fellow Traveler | 1 h in a party with a member nearby (`stats.partied`) | Uncommon |
 | Path | Guiding Elder | 10 kills by juniors you sheltered ([party](party.md) shelter, `stats.sheltered`) | Uncommon |
 | Path | Pillar of Juniors | 100 sheltered kills | Epic |
+| Path | Trusted Escort | 5 Escort a Junior bonus quests (`stats.escorts`) | Rare |
 | Path | Sheltered Junior | 10 kills while sheltered by a senior (`stats.leaned`) | Common |
 | Weapon Dao | Fist / Sword / Saber / Greatsword / Guandao / Spear / Staff Master | That class at Dao 10 (the max) | Epic |
 

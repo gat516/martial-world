@@ -1017,6 +1017,16 @@ Pacing.Sect = {
 		MarrowWashingPill = { cost = 100, week = 3 },
 		RootRebirthPill = { cost = 80, week = 2 },
 	} :: { [string]: { cost: number, week: number } },
+	-- bonus quests (docs/systems/sect.md "Bonus quests"): teach the party shelter by doing
+	-- it. Offered only while someone of the right major is on the server (the testbed:
+	-- always), at most one taken at a time, each claimable once a day. `from` the least
+	-- stage; `goal` sheltered kills; contribution (inside WEEK_CAP) and the DAILY_STONES
+	-- share on claim; `junior` the DAILY_STONES share (at the junior's major) each junior
+	-- who helped gets when an escort completes
+	BONUS = {
+		escort = { from = "QR1", goal = 5, contribution = 50, stones = 1, junior = 0.5 },
+		senior = { from = "QC5", goal = 3, contribution = 30, stones = 0.75 },
+	} :: { [string]: { from: string, goal: number, contribution: number, stones: number, junior: number? } },
 }
 
 return Pacing

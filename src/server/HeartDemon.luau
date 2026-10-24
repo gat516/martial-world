@@ -476,6 +476,7 @@ local function companyQuestion(data: PlayerData.Data): Question?
 	-- the party shelter (Shelter.credit): a stronger friend's hand, or yours over a weaker one
 	local at = Pacing.Shelter.HEART_LINE_AT
 	local ask = if (data.stats.leaned or 0) >= at then "A stronger friend sheltered you. Did you lean on them?"
+		elseif (data.stats.escorts or 0) >= 1 then "You escorted juniors through the wilds. Did they lean on you?"
 		elseif (data.stats.sheltered or 0) >= at then "You sheltered weaker friends. Did you lean on them, too?"
 		else "Did you lean on them?"
 	return {

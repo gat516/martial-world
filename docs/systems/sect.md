@@ -55,6 +55,27 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
   (2) per kill a sheltered party member is credited with, once the sect is open to
   them, counted in the same `WEEK_CAP` (a feed tile, no toast; Analytics economy
   source `Contribution`, sku `Shelter`). `Sect.onShelter` on `Shelter.onCredit`.
+- **Bonus quests** (`Pacing.Sect.BONUS`; user, 2026-10-24: "bonus quests like escort a
+  junior to introduce players to party mechanic of realm suppression"): optional
+  notices that teach the [party](party.md) shelter by doing it, on the board after the
+  chain step and before the dailies, with the daily seal and a live 赏 (bounty).
+  Offered only while someone of the right major is on the server (the testbed: always,
+  progress still needs two clients), at most one taken at a time, each claimable once
+  a day (`data.sect.bonusDay`); an unfinished one lapses at 00:00 UTC, a done one waits.
+  Taking one closes the board and opens People (`Social.openPeople`) to find a partner.
+  Progress is a sheltered kill (`Sect.onShelter` on `Shelter.onCredit`, which passes both
+  sides). Claiming sends the Quest Complete card; contribution counts in `WEEK_CAP`.
+
+| Bonus | Offered | Objective | Goal | Contribution | Stones share |
+|---|---|---|---|---|---|
+| Escort a Junior | QR1+, someone of a lower major here | Shelter a junior's kills | 5 kills a party junior is credited with under your shelter | 50 | 1 |
+| Seek a Senior | QC5+, someone of a higher major here | Fight beside a senior | 3 kills credited to you while sheltered | 30 | 0.75 |
+
+  When an escort completes, every junior whose kill counted (this session, still on the
+  server) gets `junior` (0.5) of `DAILY_STONES` at their own major (a feed tile and
+  "<name> saw you safely through"), and the senior's `stats.escorts` goes up (the
+  Trusted Escort title at 5, [titles](titles.md); the heart demon's company line).
+  The solo version, a sect junior NPC to escort, is deferred ([roadmap](../roadmap.md) 3e).
 - **The chain, "Ash Past the Gorge"** (Ruined Borderlands, giver Elder Qingyun), one
   step at a time, each pinned (quest scroll) once its stage is reached; taking it
   starts it, claiming it sends the Quest Complete card (contribution and stones tiles,
@@ -94,21 +115,24 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
 ## Heart demon
 `stats.contribution` (earned) and `stats.dailies` (claimed) feed the sect question
 ([heart-demon](heart-demon.md)): the dutiful disciple from `DUTY_MIN` (10) dailies, or
-the lone wolf (at most `LONE_MAX` 1, the board read).
+the lone wolf (at most `LONE_MAX` 1, the board read). `stats.escorts` (Escort a Junior
+finished) names the escorts in the company question's second line.
 
 ## Data and remotes
 - `data.sect`: `rank`, `contribution` (to spend), `earned`, `week`/`weekId`, `day`,
   `offered`, `taken` (by kind: goal, base counter, progress, tier, claimed), `chain`
-  (steps done), `step` (the taken step's paths), `tracked`, `ring`, `bought`. Stats:
-  `contribution`, `dailies`, `gathered`.
+  (steps done), `step` (the taken step's paths), `tracked`, `ring`, `bought`, `bonus`
+  (the taken bonus quest: kind, goal, progress, day, done), `bonusDay` (by kind, the day
+  last claimed). Stats: `contribution`, `dailies`, `gathered`, `escorts`.
 - Server to client on `QuestState`: `{ sect = view, open }` (status, tasks in board
   order, quests for the log, tracked, the Pavilion stock), sent when it changes and
   on the Read prompt; `{ sectRankUp = { rank, line, items } }`. Onboarding ignores both.
 - Client to server on `CultivationAction` `("sect", op, arg)` (Main routes it to
   `Sect.handle`): `take` / `claim` (a kind or "chain"), `promote`, `buy` (`seeds:<tier>`,
   `ring`, `manual:<id>`), `track` (`daily:<kind>`, `chain` or ""). Refusals come back
-  as toasts. Claims call `Quests.onClaimed` (`Daily:<kind>`, `Chain:Borderlands:<n>`,
-  `Rank:<rank>`) for analytics and traits.
+  as toasts. Bonus quests: `take` / `claim` `bonus:<kind>`, `track` `bonus` (task kind
+  `bonus`, log id `bonus`). Claims call `Quests.onClaimed` (`Daily:<kind>`,
+  `Chain:Borderlands:<n>`, `Bonus:<kind>`, `Rank:<rank>`) for analytics and traits.
 
 ## Key files
 - `src/server/Sect.luau`: everything above; `Sect.onKill` on `EnemyService.onKill`,
@@ -130,5 +154,7 @@ the lone wolf (at most `LONE_MAX` 1, the board read).
   sent yet.
 - Chain steps are defined in `Sect.luau`, not as `Quests.Quest` defs; a second chain
   should move them to a shared def format.
+- Bonus quests: the People list doesn't mark who is a junior or senior to you; a
+  dedicated bonus seal would read better than the daily seal with 赏.
 - Untested in play: all of it. Place positions without the map POIs are estimates.
 - Later (roadmap 3): weeklies, bounties, sect tasks, the torn notice, Halls, masters.

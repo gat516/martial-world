@@ -123,17 +123,19 @@ confirmed for the redo. One rule for every area: go-backs are expensive.
 
 ## Build order (user, 2026-10-24)
 Big to small, one area finished before the next.
-0. **Style slice:** one small corner using every rule once (a terrain lawn, one Blender
-   rock pillar, enlarged boulders, one small part-built pavilion, library greenery,
-   grass decoration, the sky, haze and bloom). Locks textures, colours and lighting on
-   something small; settles how textured the meshes are.
+0. **The first spirit peak is the style slice** (user, 2026-10-24): one peak to final
+   quality uses every rule once (terrain lawn, a Blender rock pillar, enlarged
+   boulders, the dwelling, library greenery, grass decoration, the sky, haze and bloom,
+   the cloud-sea view) and locks textures, colours and lighting on something we keep.
+   It's self-contained and moves as one piece (saved layouts are relative to
+   `Plateau`), so the macro block-out can still place it.
 1. **Macro block-out** (gray masses only): the sect's pillar tops and their heights,
    the stairs and bridges between them, the 8 spirit peak pillars, the cloud sea's
    height, three layers of backdrop pillars. Checked by capture from the gate, the
    plaza, the balcony, a spirit peak's lawn and its abode.
 2. **Sky, clouds and backdrop:** the cloud sea, atmosphere and the pillar kit placed
    in its layers; everything after is judged against this view.
-3. **Spirit peak template**, finished to final quality, **then the 8 characters**.
+3. **The other 7 spirit peaks**, as characters of the first.
 4. **Outer court** (the plaza).
 5. **Mountain Gate, Testing Stone and the Ascending Stair** (waits for the trial's
    onboarding code to be ready to use it).
@@ -178,9 +180,9 @@ and lanterns). NPCs make it lived in.
 - Done: the reference sheet and its read-out, the style targets, the build rules
   (landforms by size, buildings as meshes or parts, grass decoration on behind a
   setting), the build order.
-- **Next:** step 0, the style slice ("Build order"). Pick a spot clear of everything,
-  plan it in a few lines, build it, capture it, and review it with the user before
-  step 1.
+- **Next:** step 0, the first spirit peak ("Build order"), as its own area: written
+  plan (from sheet panels 5 and 6 and the style targets), gray block-out, then each
+  step reviewed with the user. Build it clear of everything else.
 - Studio: the user's sandbox is `mw-sandbox-martial-world-test.rbxl` (find its id
   with `list_roblox_studios`; ids change per session). It's built from
   `test.project.json`, so it has no old `Workspace.Map` and may lack the place-only

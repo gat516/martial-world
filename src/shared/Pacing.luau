@@ -463,7 +463,7 @@ Pacing.Breakthrough = {
 	-- through). On a breakthrough the excess carries into the next stage,
 	-- at most CARRY_SHARE of the new bar.
 	OVERFLOW_CAP = 1.5,
-	CARRY_SHARE = 0.25,
+	CARRY_SHARE = 0.5, -- the whole overflow carries (it is at most 0.5 of a bar, and bars never go down), so AFK hours past the bar are never wasted
 }
 
 -- THE QI SURGE (server QiSurge; docs/systems/cultivation.md "Qi surge"). In combat,

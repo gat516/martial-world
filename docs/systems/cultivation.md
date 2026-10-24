@@ -45,7 +45,8 @@ felt in fights.
   past `CultivationMax` up to the overflow cap (`OVERFLOW_CAP` x the bar) without
   moving the realm, so a player who isn't ready (tribulation
   cooldown, not seated, a method that can't go further) keeps progressing. A normal breakthrough carries the
-  excess into the next stage, at most `CARRY_SHARE` of the new bar. The
+  excess into the next stage, at most `CARRY_SHARE` (0.5) of the new bar, which is all
+  of it: AFK and offline hours past the bar are never wasted (user, 2026-10-23). The
   breakthrough requirement is still a full bar.
 - Two speeds: **passive** cultivation is always on (online, offline, faster while
   meditating) so nobody is ever stuck; **active** play (kill beasts / gather qi

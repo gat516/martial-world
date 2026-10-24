@@ -60,7 +60,8 @@ After that, normal rules. In the testbed the lesson doesn't wait for Home.
 ## Balance (Pacing header "AFK, OFFLINE AND SECLUSION")
 A 12 h night is `passive * 43200` cultivation: it fills the overflow cap at every
 stage up to FE5 and 110-142% of the bar at FE6-FE9. So a night is worth about one
-stage, never two: breakthroughs need the player, only `CARRY_SHARE` carries, and a
+stage, never two: breakthroughs need the player, the overflow (at most half a bar)
+all carries but the cap stops a night there, and a
 mostly slept-through stage seals a weak foundation grade. Simulated on the curve
 (active rate while playing, a 12 h night every day): 1 h a day finishes QC on day 2,
 QR on day 7, FE8 on day 15 (3, 10, 27 without nights); 2 h a day 2, 4, 9 (2, 5, 14).

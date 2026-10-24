@@ -55,9 +55,27 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   (default; plants stand) or `diagonal` (the weapons' lie); re-calling with what the
   frame already shows does nothing; the camera refits when the frame resizes. API in
   [herbarium](herbarium.md) "Model display".
-- Names: one fixed size per context, never `TextScaled`: cells Builder Sans Bold 12,
-  two lines then truncated; the hotbar 11, one line then truncated (its 52 px slot
-  can't hold two lines and an icon).
+- Names: cells Builder Sans Bold 12, one fixed size, two lines then truncated.
+- **Hotbar words** (user, 2026-10-23: "it doesn't make sense to fit icon and words
+  in; you can't fit either... words only makes the most sense here"): a hotbar art or
+  item slot shows only its short name (`Hotbar.label`: the def's `short` in
+  `Techniques`, `Items` or `Herbs`, else the name's first two words), one word per
+  line, centred in the box under the key and count row (`NameLabel`, y 0.28-0.92 of
+  the slot, 2 px in from each side, under the cooldown sweep's ZIndex). Oswald Bold
+  (condensed), cream, near-black stroke at 0.6 transparency (a full one filled the
+  letters in at 11 px), `TextScaled` capped 15 px on PC and 11 on touch (`Layout`):
+  measured 15 px at 1920x1080 and 1366x768, 11 at 844x390, 10 at 667x375, the same
+  in every slot. Rule for a new `short`: one or two words, each at most 27 px wide in
+  Oswald Bold 11 (about 7 letters; "Moonflash" is 33, "Bamboo" 27). Chosen by the
+  critic over Builder Sans Bold, which held 10 px at 844 only by running "Heaven",
+  "Phoenix" and "Ginseng" onto the slot's ring and fell to 8 px at 667
+ . The key number stays top-left (keyboards),
+  the count top-right (inset to 0.88, 0.07); while an art cools the words fade to
+  0.85 under the seconds; a dimmed art (weapon not in hand, short of qi) or an item
+  with none left fades them to 0.55. The full name shows in `Hotbar.NameTip`
+  (BuffTip's pill) above the slot while the mouse is over it, or while a finger holds
+  it 0.5 s with the Inventory closed (that release doesn't cast; a quicker tap does).
+  Only a weapon keeps art: the weapon slot and a dragged weapon show the model.
 - The chosen cell and the hotbar's held item wear the same plain ring (`slot_edge`
   tinted cream, 3 px outside). NEW is a small crimson chip (kit `chip.png` tinted).
 
@@ -75,7 +93,9 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
 - Pouch sections, one per kind (spirit herbs, pills, cores, heavenly treasures);
   items on the hotbar are listed too.
 - Cells (72x94): the plain slot (62x62) with its 40 px well centred on it, the name
-  under it (12 px, two lines, PC and touch), the class glyph top-left on arts,
+  under it (12 px, two lines, PC and touch), no weapon badge on arts (user,
+  2026-10-23: "we have plenty of indication what techniques belong where": the class
+  sections say it),
   `Lv n` (cinnabar at a bottleneck) or `xN` bottom-right, the slot number bottom-left
   (keyboards), the cinnabar 佩 seal top-right on the weapon in hand, and a crimson
   NEW chip top-right. The chosen cell wears the plain ring.
@@ -129,7 +149,7 @@ and stack are the same pixel size at 1366x768):
 | Window (`panel_frame`) | 760x500 | 1024, 0.30 (3.3x) | `_h512`, Rect(100,100,412,412), 0.60 (1.7x) |
 | Title plaque, close seal | 320x40, 44 | 1024x128, 128 (3.2x, 2.9x) | `_h80` (2x), `_h96` (2.2x) |
 | NEW chip, seal mark, art disc | 14, 22, 28-48 | 64, 128, 128 (4.5-5.8x) | `_h32`, `_h48`, `_h96` (2-3.4x) |
-| Weapon badge, class glyphs | 22, 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
+| Class glyphs (the weapon badge is gone) | 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
 | Dao bar rim | 16 | 0.17 (6x) | `_h32`, Rect(12,12,116,20), 0.67 (2x) |
 | Grade gems and stone icon | 13-22 | 303-317, 128 | `_h40`, `_h48` |
 
@@ -174,16 +194,15 @@ Moonflash Draw (60 kills) and the boss-pool class arts are Spirit.
 
 ## Class glyphs and colours (`SlotArt.classGlyph`, `SlotArt.classColor`)
 
-One mark per weapon class, white and tinted: the glyph marks arts (cell badge,
-hotbar badge), section headers, rail chips, the detail pane and Dao rows, and stands
-in for a weapon whose model is missing (and for Bare Fists).
+One mark per weapon class, white and tinted: the glyph marks section headers, rail
+chips, the detail pane and Dao rows, and stands in for a weapon whose model is missing
+(and for Bare Fists). Arts carry no badge (removed 2026-10-23, above).
 Fist ivory, Sword azure, Saber red, Greatsword orange, Guandao teal, Spear rose,
 Staff green; universal arts a neutral cream. Glyphs: `art/ui/glyphs/class_*.png`
 (`art/ui/draw_class_glyphs.py`): the kit's white weapon cuts for Fist, Sword, Saber,
 Spear and Staff, padded square; Greatsword and Guandao are white silhouettes of
 their item icons until Codex draws them (codex-sheets "Class glyphs and art icons").
-Every class art on the hotbar now wears its badge (not only while unarmed); the
-slot still dims while the class isn't in hand.
+A class art on the hotbar dims while its class isn't in hand (`SlotArt.weaponMissing`).
 
 ## Weapons: drag, no buttons
 

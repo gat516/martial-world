@@ -33,6 +33,7 @@ export type Category = "Herb" | "Core" | "Treasure" | "Pill"
 export type Item = {
 	id: string,
 	name: string,
+	short: string?, -- the hotbar's words (Hotbar.label): one or two short words
 	category: Category,
 	rarity: string,
 	color: Color3,
@@ -92,6 +93,7 @@ Items.Defs = {
 	LesserSpiritCore = {
 		id = "LesserSpiritCore",
 		name = "Lesser Spirit Core",
+		short = "Lesser Core",
 		category = "Core",
 		rarity = "Uncommon",
 		color = Color3.fromRGB(110, 225, 205),
@@ -103,6 +105,7 @@ Items.Defs = {
 	GreaterSpiritCore = {
 		id = "GreaterSpiritCore",
 		name = "Greater Spirit Core",
+		short = "Greater Core",
 		category = "Core",
 		rarity = "Epic",
 		color = Color3.fromRGB(255, 120, 90),
@@ -114,6 +117,7 @@ Items.Defs = {
 	HeavenlyDew = {
 		id = "HeavenlyDew",
 		name = "Heavenly Dew",
+		short = "Heaven Dew",
 		category = "Treasure",
 		rarity = "Rare",
 		color = Color3.fromRGB(150, 220, 255),
@@ -126,6 +130,7 @@ Items.Defs = {
 	CloudPatternJade = {
 		id = "CloudPatternJade",
 		name = "Cloud-Pattern Jade",
+		short = "Cloud Jade",
 		category = "Treasure",
 		rarity = "Epic",
 		color = Color3.fromRGB(140, 235, 170),
@@ -138,6 +143,7 @@ Items.Defs = {
 	ImmortalPeach = {
 		id = "ImmortalPeach",
 		name = "Immortal Peach",
+		short = "Deity Peach",
 		category = "Treasure",
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 160, 175),
@@ -151,6 +157,7 @@ Items.Defs = {
 	MarrowWashingPill = {
 		id = "MarrowWashingPill",
 		name = "Marrow Washing Pill",
+		short = "Marrow Pill",
 		category = "Pill",
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 215, 120),
@@ -163,6 +170,7 @@ Items.Defs = {
 	RootRebirthPill = {
 		id = "RootRebirthPill",
 		name = "Root Rebirth Pill",
+		short = "Rebirth Pill",
 		category = "Pill",
 		rarity = "Epic",
 		color = Color3.fromRGB(190, 150, 255),
@@ -197,6 +205,7 @@ for _, id in Herbs.Order do
 	Items.Defs[id] = {
 		id = id,
 		name = herb.name,
+		short = herb.short,
 		category = "Herb",
 		rarity = herb.rarity,
 		color = herb.color,

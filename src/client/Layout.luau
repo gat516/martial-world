@@ -36,6 +36,9 @@ local SMALL_HEIGHT_SHARE = 0.31 -- on short screens (Platform.isSmall), phones a
 -- A touch phone (short and touch) keeps less: the user couldn't see the world past the
 -- HUD (2026-10-23). Readability comes from contrast, never from size.
 local TOUCH_SMALL_SHARE = 0.26
+-- the hotbar words' largest size (Oswald Bold): touch 11 px (every short name's words
+-- fit 32 px slots at 667x375 at 11), PC 15 (52 px slots), as authored
+local TOUCH_WORDS_MAX = 11
 -- The top-right tiles' scale on a touch phone: 56 px tiles at 44 px, Roblox's own
 -- top-bar button height (they were 50, 0.9, and read too large next to them).
 local TOUCH_SMALL_TILES = 0.78
@@ -82,16 +85,20 @@ function Layout.apply()
 		dock.Size = stack.Size
 	end
 
-	-- on touch the slots are too small for names: a bigger icon well, centred, instead.
-	-- PC: the well sits centred in the space above the one-line name strip.
+	-- hotbar slots are words (HotbarView), under the key number and count row on every
+	-- device (as authored), at most TOUCH_WORDS_MAX px on touch. The well only shows a
+	-- dragged weapon's model, centred.
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
 	for _, slot in slots:GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
-		if name and slot.Name ~= "SlotTemplate" then
-			name.Visible = not touch
+		if name then
+			name.Visible = true
+			if touch then
+				(name:FindFirstChildOfClass("UITextSizeConstraint") :: UITextSizeConstraint).MaxTextSize = TOUCH_WORDS_MAX
+			end
 			local well = slot:FindFirstChild("Well") :: GuiObject
-			well.Size = if touch then UDim2.fromScale(0.64, 0.64) else UDim2.fromScale(0.54, 0.54)
-			well.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.355)
+			well.Size = UDim2.fromScale(0.64, 0.64)
+			well.Position = UDim2.fromScale(0.5, 0.5)
 		end
 	end
 

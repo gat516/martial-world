@@ -61,6 +61,10 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   titles), pairs naturally with herbs and, later, alchemy. Needs design: what a
   treatment is (a calm minigame on meridian points), what it costs, and safety limits
   so it isn't a paid-power shortcut. Feeds the heart demon (healer vs fighter).
+- **Tempering VFX and animation (user, 2026-10-24):** a special seated look while a
+  foundation is tempered in seclusion or by the heart demon: qi gathering into the body,
+  the old stage's light reforging, a settling pulse when it lands. A `vfx` pass on the
+  seclusion seat plus an `animator` pose (deeper breathing, hands forming a seal).
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation and the heart-demon trial; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from caches,

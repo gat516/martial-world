@@ -110,6 +110,7 @@ function Roots.wash(player: Player): (boolean, string?)
 	end
 	local done, need = RootDefs.washed(data.root)
 	done += 1
+	data.stats.washed += 1 -- the heart-demon trial: chasing a better self
 	if done >= (need or 1) then
 		return Roots.raiseGrade(player)
 	end
@@ -132,6 +133,7 @@ function Roots.reroll(player: Player): (boolean, string?)
 	if not data or why then
 		return false, why
 	end
+	data.stats.rerolls += 1
 	local new = data.root.element
 	for _ = 1, 20 do
 		new = RootDefs.roll(rng)

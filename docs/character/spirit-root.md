@@ -59,7 +59,8 @@ Mortal grade means no root at all, so nobody is told their root is trash.
   takes several: **3 to reach Earth, 5 more for Heaven** (`Pacing.Roots.WASH`).
   Each absorbed pill adds one to the current element's washing progress
   (`root.washed[element]`, `Roots.wash`); reaching the count raises the grade and
-  clears it. The Spirit Root page shows the progress ("Washed 1/3 toward Earth
+  clears it (pills absorbed also count in `data.stats.washed`, Root Rebirth Pills in
+  `rerolls`, for the [heart-demon](../systems/heart-demon.md) trial). The Spirit Root page shows the progress ("Washed 1/3 toward Earth
   grade") on the root row and the pill row.
 - **Extremely rare (user, 2026-10-23: "those pills should be EXTREMELY rare and u
   should need multiple"):** bosses only, never common beasts (Elder Wolf King and

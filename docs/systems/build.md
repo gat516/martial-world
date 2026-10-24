@@ -105,7 +105,9 @@ slots in without code changes.
   `ON_PEAK` 2.5 and +30% growth; at the FE cap +1.0 and +50%.
 - `Peaks.refreshScore` recounts after every successful build action and on
   `applyRealm`, and sets the `PeakScore`, `PeakScoreCap` and `PeakTier` player
-  attributes; the catalog's peak-score gauge shows them.
+  attributes; the catalog's peak-score gauge shows them. It also keeps the highest
+  uncapped score in `data.stats.peakBest`, and each place counts in `data.stats.placed`,
+  for the heart-demon trial's builder or wanderer question ([heart-demon](heart-demon.md)).
 
 ## Themed sets (UI ready, content pending)
 - `BuildItems.Sets` lists the roadmap's six sets (Mortal Courtyard, Jade Pavilion,

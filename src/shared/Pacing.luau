@@ -794,6 +794,16 @@ Pacing.HeartDemon = {
 	SLAIN_MIN = 10, -- kills before the demon names the beasts you slew
 	STILL_MIN_HOURS = 0.5, -- hours seated before stillness is a question
 	SECLUDED_MIN_HOURS = 8, -- hours in seclusion (online and offline) before it's a question
+	SURGE_MIN = 1, -- qi surges (plus old forced breakthroughs) before the surge is a question
+	DANGER_MIN = 3, -- elite kills + apex kills x2 before the danger sought is a question
+	HAUL_LOST_MIN = 2, -- spills + mid-fight logouts before greed is a question
+	HAUL_LOST_WEIGHT = 4, -- greed only while lost x this is at least the Store all count
+	HAUL_STORED_MIN = 5, -- Store all uses, with nothing ever lost, before caution is a question
+	BUILD_MIN = 10, -- build pieces placed before the builder question
+	WANDER_MAX = 2, -- pieces placed at most (with SLAIN_MIN kills) for the wanderer question
+	HERB_MIN = 5, -- herbs in the Herbarium before it's a question
+	ROOT_MIN = 1, -- root pills (washing + rebirth) before chasing a better self is a question
+	WEIGHT_CAP = 4, -- the loudest a record question can weigh (1 at its threshold, +1 per doubling)
 	OFFER_COOLDOWN = 20 * 3600, -- seconds after "Not now" before the seat offers it again
 }
 

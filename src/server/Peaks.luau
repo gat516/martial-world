@@ -141,6 +141,10 @@ function Peaks.refreshScore(player: Player)
 	local tier = Peaks.tierOf(player)
 	local score = scoreOn(peak)
 	scores[player] = math.min(score, tier.scoreCap)
+	local data = PlayerData.get(player)
+	if data and score > data.stats.peakBest then
+		data.stats.peakBest = score -- the heart-demon trial reads it
+	end
 	player:SetAttribute("PeakScore", score)
 	player:SetAttribute("PeakScoreCap", tier.scoreCap)
 	player:SetAttribute("PeakTier", tier.id)

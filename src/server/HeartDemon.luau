@@ -2,9 +2,12 @@
 -- The heart-demon trial (docs/systems/heart-demon.md). At each major's stage 9
 -- (QC9, QR9, and FE9 at the peak) an inner voice asks the player about how they
 -- actually climbed: the path they walked (blade or garden, from kills and
--- harvests), the beasts they slew, their deaths, forced breakthroughs, hours in
--- stillness and in seclusion. Each question has 2-3 answers; the one the player's own record
--- contradicts is a denial. Finishing tempers old foundation grades
+-- harvests), then the few things their record says most loudly (the beasts they
+-- slew, the danger they sought, their deaths, qi surges, the haul they risked or
+-- banked, their peak, the Herbarium, root pills, hours in stillness and seclusion).
+-- Each question has 2-3 answers; the one the player's own record contradicts is a
+-- denial. A new system that says how someone plays adds a counter in data.stats and
+-- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation grades
 -- (Foundation.temper): Pacing.HeartDemon TEMPER_CALM with no denials (the demon is
 -- calmed), one fewer per denial, never fewer than TEMPER_ROUGH, never lowering
 -- anything. Optional and choice-based: no reflexes, it never blocks or costs a
@@ -20,6 +23,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 
@@ -33,6 +37,9 @@ HeartDemon.onChanged = nil :: ((Player) -> ())?
 
 type Answer = { text: string, reply: string, honest: boolean, heart: string? }
 type Question = { id: string, lines: { string }, answers: { Answer } }
+-- A record question and how loudly the record speaks (Candidate.weight, see `weigh`);
+-- `group` keeps two of one kind (stillness and seclusion) from both being asked.
+type Candidate = { q: Question, weight: number, group: string? }
 type Major = { id: string, name: string, peak: number }
 
 -- Every major with a trial, in order, with its stage 9's ladder index.
@@ -73,6 +80,12 @@ end
 
 local function times(n: number): string
 	return if n == 1 then "once" elseif n == 2 then "twice" else `{n} times`
+end
+
+-- How loudly a counter speaks: 1 at its threshold, +1 each doubling past it, up to
+-- Config.WEIGHT_CAP, so 300 kills don't drown out 3 surges.
+local function weigh(value: number, min: number): number
+	return math.min(Config.WEIGHT_CAP, 1 + math.log(math.max(value, min) / math.max(min, 1e-6), 2))
 end
 
 -- The lowest major whose stage 9 the player has reached without facing its demon.
@@ -138,7 +151,7 @@ local function pathQuestion(data: PlayerData.Data): Question
 end
 
 -- The beasts slain: the most-slain one by name, and any boss besides.
-local function slainQuestion(data: PlayerData.Data): Question?
+local function slainQuestion(data: PlayerData.Data): Candidate?
 	local kills = data.stats.kills
 	if kills < Config.SLAIN_MIN then
 		return nil
@@ -170,7 +183,7 @@ local function slainQuestion(data: PlayerData.Data): Question?
 		table.insert(lines, "Even great beasts fell to you.")
 	end
 	table.insert(lines, "What do you feel for them?")
-	return {
+	return { weight = weigh(kills, Config.SLAIN_MIN), q = {
 		id = "slain",
 		lines = lines,
 		answers = {
@@ -178,14 +191,39 @@ local function slainQuestion(data: PlayerData.Data): Question?
 			{ text = "Resolve. I carry them.", reply = "Resolve. Mind it doesn't turn to stone.", honest = true, heart = "carried the fallen with resolve" },
 			{ text = "Nothing. Only beasts.", reply = "Only beasts? Then why am I here?", honest = false, heart = "would not look at the fallen" },
 		},
-	}
+	} }
 end
 
--- Deaths: fear. Never fallen: pride.
-local function fearQuestion(data: PlayerData.Data): Question
+-- Danger sought: elite and apex beasts (realm variants) slain.
+local function dangerQuestion(data: PlayerData.Data): Candidate?
+	local elites, apexes = data.stats.elites, data.stats.apexes
+	local score = elites + apexes * 2
+	if score < Config.DANGER_MIN then
+		return nil
+	end
+	local parts = {}
+	if elites > 0 then
+		table.insert(parts, `{elites} {if elites == 1 then "elite" else "elites"}`)
+	end
+	if apexes > 0 then
+		table.insert(parts, `{apexes} apex {if apexes == 1 then "beast" else "beasts"}`)
+	end
+	return { weight = weigh(score, Config.DANGER_MIN) + 0.5, q = {
+		id = "danger",
+		lines = { `You went looking for the strongest: {table.concat(parts, " and ")}.`, "What were you hoping to find?" },
+		answers = {
+			{ text = "Something stronger than me.", reply = "You found it. Again and again.", honest = true, heart = "sought out the strongest beasts" },
+			{ text = "Proof that I'm ready.", reply = "Proof is a hungry thing. Feed it carefully.", honest = true, heart = "hunted danger for proof" },
+			{ text = "I keep to easy prey.", reply = "Easy? The dark ones remember you.", honest = false, heart = "hid the danger you chased" },
+		},
+	} }
+end
+
+-- Deaths: fear. Never fallen: pride (a quieter record, so it weighs least).
+local function fearQuestion(data: PlayerData.Data): Candidate
 	local deaths = data.stats.deaths
 	if deaths > 0 then
-		return {
+		return { weight = weigh(deaths, 1), q = {
 			id = "fear",
 			lines = { `You have fallen {times(deaths)}. Each time, you rose.`, "Are you afraid to fall again?" },
 			answers = {
@@ -193,9 +231,9 @@ local function fearQuestion(data: PlayerData.Data): Question
 				{ text = "Falling made me careful.", reply = "A hard teacher. A good one.", honest = true, heart = "learned from every fall" },
 				{ text = "I'm never afraid.", reply = "Never? I was there every time.", honest = false, heart = "hid your fear" },
 			},
-		}
+		} }
 	end
-	return {
+	return { weight = 1, q = {
 		id = "pride",
 		lines = { "Not once have you fallen.", "Do you think you can't?" },
 		answers = {
@@ -203,32 +241,152 @@ local function fearQuestion(data: PlayerData.Data): Question
 			{ text = "I've been lucky.", reply = "Luck runs out. Be ready when it does.", honest = true, heart = "thanked your luck" },
 			{ text = "Nothing can touch me.", reply = "Pride is a crack you can't see.", honest = false, heart = "thought nothing could touch you" },
 		},
-	}
+	} }
 end
 
-local function forcedQuestion(data: PlayerData.Data): Question?
-	local n = data.stats.forced
-	if n < 1 then
+-- The qi surge (QiSurge.luau): burning raw qi to fight a stage up when nearly beaten.
+-- Old forced breakthroughs (the surge replaced them) count as surges.
+local function surgeQuestion(data: PlayerData.Data): Candidate?
+	local n = data.stats.surges + data.stats.forced
+	if n < Config.SURGE_MIN then
 		return nil
 	end
-	return {
-		id = "forced",
-		lines = { `You tore through a wall mid-fight, hurt and hurried, {times(n)}.`, "Was it worth the debt?" },
+	return { weight = weigh(n, Config.SURGE_MIN) + 0.5, q = {
+		id = "surge",
+		lines = { `You burned your qi to survive {times(n)}, beaten and bleeding.`, "Was it worth what it cost?" },
 		answers = {
-			{ text = "I had to. I'd do it again.", reply = "Desperation is honest, at least.", honest = true, heart = "broke walls when you had to" },
-			{ text = "I rushed, and I paid.", reply = "Then you learned something.", honest = true, heart = "learned not to rush" },
-			{ text = "I've never rushed.", reply = "Never? Your meridians remember.", honest = false, heart = "forgot your haste" },
+			{ text = "I'd have fallen without it.", reply = "Then it bought you this moment.", honest = true, heart = "burned your qi to stay standing" },
+			{ text = "I lean on it too much.", reply = "Then learn to stand without it.", honest = true, heart = "leaned on the surge, and knew it" },
+			{ text = "I've never needed it.", reply = "Never? Your dantian remembers the fire.", honest = false, heart = "forgot the fire that saved you" },
 		},
-	}
+	} }
 end
 
-local function stillQuestion(data: PlayerData.Data): Question?
+-- The haul (Haul.luau): greed (spills, fleeing mid-fight) or caution (Store all,
+-- the spirit ring). Neither when there's too little of either.
+local function haulQuestion(data: PlayerData.Data): Candidate?
+	local st = data.stats
+	local lost = st.spills + st.fled
+	if lost >= Config.HAUL_LOST_MIN and lost * Config.HAUL_LOST_WEIGHT >= st.stored then
+		local lines = { `Your haul spilled on the ground {times(lost)}.` }
+		if st.reclaimed > 0 then
+			table.insert(lines, `You went back for it {times(st.reclaimed)}.`)
+		end
+		table.insert(lines, "Why carry so much, so far from home?")
+		return { weight = weigh(lost, Config.HAUL_LOST_MIN) + 0.5, q = {
+			id = "greed",
+			lines = lines,
+			answers = {
+				{ text = "I wanted more. Always more.", reply = "Greed is honest. It is also heavy.", honest = true, heart = "carried more than you could keep" },
+				{ text = "I'll bank sooner now.", reply = "Then the wilds will keep less of you.", honest = true, heart = "learned to bring it home" },
+				{ text = "I always bring it home.", reply = "Always? The ground still glows where you fell.", honest = false, heart = "denied what the wilds kept" },
+			},
+		} }
+	end
+	if st.stored >= Config.HAUL_STORED_MIN and lost == 0 then
+		local lines = { `You came home {times(st.stored)} and stored every grain. The wilds kept nothing.` }
+		if st.ringed > 0 then
+			table.insert(lines, "Even your ring held what you couldn't bear to lose.")
+		end
+		table.insert(lines, "Is caution all you have?")
+		return { weight = weigh(st.stored, Config.HAUL_STORED_MIN), q = {
+			id = "caution",
+			lines = lines,
+			answers = {
+				{ text = "Nothing earned is wasted.", reply = "A careful hand. A slow one too.", honest = true, heart = "brought every grain home" },
+				{ text = "I'm afraid to lose it.", reply = "Then you know what it's worth.", honest = true, heart = "guarded what you earned, and feared for it" },
+				{ text = "I gamble it all.", reply = "Gamble? You never once lost a grain.", honest = false, heart = "hid your caution" },
+			},
+		} }
+	end
+	return nil
+end
+
+-- Peak building (Build, Peaks): a builder, or a wanderer whose peak stands bare.
+local function peakQuestion(data: PlayerData.Data): Candidate?
+	local placed = data.stats.placed
+	if placed >= Config.BUILD_MIN then
+		return { weight = weigh(placed, Config.BUILD_MIN), q = {
+			id = "builder",
+			lines = { `{placed} pieces set on your peak, one by one. Its score rose to {math.floor(data.stats.peakBest)}.`, "Are you building a home, or a wall?" },
+			answers = {
+				{ text = "A home to come back to.", reply = "Then return to it. Often.", honest = true, heart = "built a home to return to" },
+				{ text = "A wall against the world.", reply = "Walls keep out the cold. And the warmth.", honest = true, heart = "built your walls high" },
+				{ text = "I don't care for my peak.", reply = "No? Then who set every stone?", honest = false, heart = "disowned the home you built" },
+			},
+		} }
+	end
+	if placed <= Config.WANDER_MAX and data.stats.kills >= Config.SLAIN_MIN then
+		return { weight = 1, q = {
+			id = "wanderer",
+			lines = { "Your peak stands bare. You are always somewhere else.", "Is anywhere home to you?" },
+			answers = {
+				{ text = "The road is my home.", reply = "A wide home. A cold one at night.", honest = true, heart = "made the road your home" },
+				{ text = "I haven't had the time.", reply = "Make time. A peak remembers its keeper.", honest = true, heart = "left your peak waiting" },
+				{ text = "My peak is my pride.", reply = "Your pride? It hardly knows your face.", honest = false, heart = "boasted of a peak you never tended" },
+			},
+		} }
+	end
+	return nil
+end
+
+-- The Herbarium (Herbarium.luau): herbs discovered and tier pages completed.
+local function herbariumQuestion(data: PlayerData.Data): Candidate?
+	local found = 0
+	for _ in data.herbarium.herbs do
+		found += 1
+	end
+	if found < Config.HERB_MIN then
+		return nil
+	end
+	local pages = 0
+	for _ in data.herbarium.tiers do
+		pages += 1
+	end
+	local lines = { `{found} of {#Herbs.Order} herbs written in your book.` }
+	if pages > 0 then
+		table.insert(lines, `{if pages == 1 then "One page" else `{pages} pages`} full, every name in place.`)
+	end
+	table.insert(lines, "What were you looking for?")
+	return { weight = weigh(found, Config.HERB_MIN) + pages * 0.5, q = {
+		id = "herbarium",
+		lines = lines,
+		answers = {
+			{ text = "Everything, all named.", reply = "Then keep looking. The world is wide.", honest = true, heart = "named every herb you found" },
+			{ text = "Something that might heal.", reply = "A gentle reason. Hold on to it.", honest = true, heart = "searched the green for healing" },
+			{ text = "I never stopped to look.", reply = "Never? Your book says otherwise.", honest = false, heart = "forgot the herbs you named" },
+		},
+	} }
+end
+
+-- Root pills (Roots.luau): marrow washing and root rebirth, chasing a better self.
+local function rootQuestion(data: PlayerData.Data): Candidate?
+	local washed, rerolls = data.stats.washed, data.stats.rerolls
+	if washed + rerolls < Config.ROOT_MIN then
+		return nil
+	end
+	local line = if washed > 0 and rerolls > 0
+		then `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}, and remade your root {times(rerolls)}.`
+		elseif washed > 0 then `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}.`
+		else `You dissolved your root and remade it {times(rerolls)}.`
+	return { weight = weigh(washed + rerolls * 2, Config.ROOT_MIN) + 0.5, q = {
+		id = "root",
+		lines = { line, "Were you not enough as you were?" },
+		answers = {
+			{ text = "I want to be more.", reply = "Want is a fire. Mind what it burns.", honest = true, heart = "chased a better self" },
+			{ text = "I'm still finding myself.", reply = "Then keep looking. Gently.", honest = true, heart = "searched for who you are" },
+			{ text = "I'm content as I am.", reply = "Content? Then why the pills?", honest = false, heart = "hid your hunger to change" },
+		},
+	} }
+end
+
+local function stillQuestion(data: PlayerData.Data): Candidate?
 	local hours = data.stats.seated / 3600
 	if hours < Config.STILL_MIN_HOURS then
 		return nil
 	end
 	local shown = if hours < 1.5 then "An hour" else `{math.floor(hours + 0.5)} hours`
-	return {
+	return { group = "sit", weight = weigh(hours, Config.STILL_MIN_HOURS) - 1, q = {
 		id = "stillness",
 		lines = { `{shown} seated in stillness.`, "Were you searching, or only waiting?" },
 		answers = {
@@ -236,16 +394,17 @@ local function stillQuestion(data: PlayerData.Data): Question?
 			{ text = "Waiting, and that's fine.", reply = "It is. Waiting is not nothing.", honest = true, heart = "knew how to wait" },
 			{ text = "I hardly ever sit.", reply = "Hardly ever? I counted every breath.", honest = false, heart = "would not admit your stillness" },
 		},
-	}
+	} }
 end
 
--- Seclusion (Seclusion.luau): long hours shut away, online and offline.
-local function seclusionQuestion(data: PlayerData.Data): Question?
+-- Seclusion (Seclusion.luau): long hours shut away, online and offline. Shares the
+-- "sit" group with stillness: only the louder of the two is asked.
+local function seclusionQuestion(data: PlayerData.Data): Candidate?
 	local hours = data.stats.secluded / 3600
 	if hours < Config.SECLUDED_MIN_HOURS then
 		return nil
 	end
-	return {
+	return { group = "sit", weight = weigh(hours, Config.SECLUDED_MIN_HOURS), q = {
 		id = "seclusion",
 		lines = { `You sat in seclusion for {math.floor(hours + 0.5)} hours.`, "Were you hiding?" },
 		answers = {
@@ -253,7 +412,7 @@ local function seclusionQuestion(data: PlayerData.Data): Question?
 			{ text = "Yes. The world is loud.", reply = "It is. But it waits for you.", honest = true, heart = "hid from the world, and said so" },
 			{ text = "I never shut myself away.", reply = "Never? The door was closed a long time.", honest = false, heart = "would not admit your seclusion" },
 		},
-	}
+	} }
 end
 
 -- Always there: why climb at all (every answer is honest).
@@ -269,14 +428,45 @@ local function climbQuestion(): Question
 	}
 end
 
--- The questions for this player: the path first, then what the record holds most,
--- with "why climb" filling in; up to Config.QUESTIONS, answers shuffled.
+-- The questions for this player: the path first, then the record questions that
+-- speak loudest (highest weight; ties keep the order below), one per group, with
+-- "why climb" filling in up to Config.QUESTIONS. Answers shuffled.
 function HeartDemon.questions(data: PlayerData.Data): { Question }
 	local list = { pathQuestion(data) }
-	for _, q in { slainQuestion(data), fearQuestion(data), forcedQuestion(data), seclusionQuestion(data), stillQuestion(data), climbQuestion() } do
-		if q and #list < Config.QUESTIONS then
-			table.insert(list, q)
+	local built = {
+		slainQuestion(data), dangerQuestion(data), fearQuestion(data), surgeQuestion(data),
+		haulQuestion(data), peakQuestion(data), herbariumQuestion(data), rootQuestion(data),
+		seclusionQuestion(data), stillQuestion(data),
+	}
+	local candidates: { Candidate } = {}
+	local order: { [Candidate]: number } = {}
+	for i = 1, 10 do -- `built` has holes where a question had nothing to ask
+		local c = built[i]
+		if c then
+			table.insert(candidates, c)
+			order[c] = i
 		end
+	end
+	table.sort(candidates, function(a, b)
+		if a.weight ~= b.weight then
+			return a.weight > b.weight
+		end
+		return order[a] < order[b]
+	end)
+	local groups: { [string]: boolean } = {}
+	for _, c in candidates do
+		if #list >= Config.QUESTIONS then
+			break
+		end
+		if not (c.group and groups[c.group]) then
+			table.insert(list, c.q)
+			if c.group then
+				groups[c.group] = true
+			end
+		end
+	end
+	if #list < Config.QUESTIONS then
+		table.insert(list, climbQuestion())
 	end
 	for _, q in list do
 		for i = #q.answers, 2, -1 do

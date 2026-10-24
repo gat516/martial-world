@@ -82,7 +82,7 @@ export type Data = {
 	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
 	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
 	-- slain: kills by enemy id; harvests: plants harvested; deaths; seated: seconds
-	-- meditating; forced: forced breakthroughs (the heart-demon trial reads them)
+	-- meditating; the rest below. The heart-demon trial reads them all.
 	stats: {
 		breakthroughs: number,
 		circulationRuns: number,
@@ -92,8 +92,20 @@ export type Data = {
 		harvests: number,
 		deaths: number,
 		seated: number,
-		forced: number,
+		forced: number, -- forced breakthroughs, removed (the qi surge replaced it); old profiles keep theirs
 		secluded: number, -- seconds in seclusion, online and offline (server Seclusion)
+		surges: number, -- qi surges fired (QiSurge)
+		spills: number, -- deaths that spilled a haul (Haul.died)
+		reclaimed: number, -- spills walked back to and gathered
+		fled: number, -- logouts mid-fight that cost a haul share (Haul.leaving)
+		stored: number, -- Store all uses that banked something (Haul.storeAll)
+		ringed: number, -- stacks put in the spirit ring (Haul.setRing)
+		placed: number, -- build pieces placed on the peak (Build "place")
+		peakBest: number, -- the highest peak score reached (Peaks.refreshScore, uncapped)
+		elites: number, -- elite-tier beasts slain (realm variants, Progression.onKill)
+		apexes: number, -- apex-tier beasts slain
+		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
+		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
 	},
 	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
 	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
@@ -193,7 +205,8 @@ local function default(): Data
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
-		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0 },
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0 },
 		heartDemon = { trials = {}, declined = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},

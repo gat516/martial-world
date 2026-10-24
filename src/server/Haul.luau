@@ -149,6 +149,7 @@ function Haul.setRing(player: Player, id: any, inRing: any): (boolean, string?)
 		return false, `Your spirit ring holds {Haul.ringSlots(data)} stacks. Take one out first.`
 	end
 	table.insert(ring, id)
+	data.stats.ringed += 1
 	return true, `{Items.Defs[id].name} is in your spirit ring: safe even in the wilds.`
 end
 
@@ -318,6 +319,10 @@ function Haul.storeAll(player: Player): (boolean, string?)
 	if isEmpty(gained) then
 		return false, "Nothing to store: your haul is already safe."
 	end
+	local data = PlayerData.get(player)
+	if data then
+		data.stats.stored += 1
+	end
 	local line = `Stored: {describe(gained)}`
 	effectRemote:FireClient(player, "banked", line)
 	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })
@@ -386,6 +391,10 @@ function Haul.died(player: Player, character: Model)
 		effectRemote:FireClient(player, "spillGone", false) -- the older spill is lost
 	end
 	s.spill = { at = at, expires = workspace:GetServerTimeNow() + Tuning.SPILL_SECONDS, contents = taken }
+	local data = PlayerData.get(player)
+	if data then
+		data.stats.spills += 1 -- the heart-demon trial reads greed and caution
+	end
 	sendSpill(player, s.spill :: Spill)
 	Cultivation.pushState(player)
 end
@@ -401,6 +410,7 @@ function Haul.leaving(player: Player)
 		if player:GetAttribute("InCombat") == true then
 			local taken = takeShare(player)
 			if not isEmpty(taken) then
+				data.stats.fled += 1
 				print(`Haul: {player.Name} left in combat and lost {describe(taken)}`)
 			end
 		end
@@ -415,6 +425,7 @@ local function reclaim(player: Player, s: State, data: PlayerData.Data)
 	local spill = s.spill :: Spill
 	s.spill = nil
 	local c = spill.contents
+	data.stats.reclaimed += 1
 	local dantian = Cultivation.stage(data).dantian
 	data.rawQi = math.min(math.max(dantian, data.rawQi), data.rawQi + c.rawQi)
 	data.stones += c.stones

@@ -313,6 +313,9 @@ function Build.handle(player: Player, action: any, args: any): (boolean, string?
 	end
 	if action == "place" then
 		ok, message = place(player, data, peak, args)
+		if ok then
+			data.stats.placed += 1 -- the heart-demon trial: builder or wanderer
+		end
 	elseif action == "store" then
 		ok, message = store(player, data, peak, args)
 	elseif action == "move" then

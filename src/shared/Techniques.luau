@@ -400,7 +400,9 @@ function Techniques.comprehendDao(def: Def, level: number): number?
 	if not gate then
 		return nil
 	end
-	return math.min(Weapons.MAX_LEVEL, Techniques.learnDao(def) + gate.step * Comprehension.DAO_PER_BOTTLENECK)
+	local learn = Techniques.learnDao(def)
+	local per = if learn >= Comprehension.HIGH_FROM then Comprehension.DAO_PER_BOTTLENECK_HIGH else Comprehension.DAO_PER_BOTTLENECK
+	return math.min(Weapons.MAX_LEVEL, learn + gate.step * per)
 end
 
 -- The Dao level that counts for a technique: its class's, or the highest class's

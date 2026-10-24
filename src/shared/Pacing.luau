@@ -477,7 +477,7 @@ Pacing.Quests = {
 -- DAO GATES (Techniques.learnDao, Techniques.comprehendDao). Learning a technique
 -- needs its class's Dao at its `learnDao` (the def's `dao`, nil = 0); any-weapon
 -- arts check the player's highest class Dao. Bottleneck `step` k (1, 2, 3) needs
--- Dao >= min(10, learnDao + k * DAO_PER_BOTTLENECK). A manual found too early is
+-- Dao >= min(10, learnDao + k * DAO_PER_BOTTLENECK), or k * DAO_PER_BOTTLENECK_HIGH from HIGH_FROM up. A manual found too early is
 -- kept and learned the moment that Dao is reached.
 Pacing.Comprehension = {
 	-- the Dao rungs of a class's skills (each def picks one as its `dao`); starter arts
@@ -485,6 +485,8 @@ Pacing.Comprehension = {
 	-- the showpieces: Peak for the most spectacular (Tiger, Heaven-Splitter, Great Sage)
 	SKILL_DAO = { Plain = 2, Adept = 5, Peak = 8 },
 	DAO_PER_BOTTLENECK = 2,
+	DAO_PER_BOTTLENECK_HIGH = 1, -- the step for skills learned at HIGH_FROM or above (Dao 5: 6, 7, 8; Dao 8: 9, 10, 10)
+	HIGH_FROM = 5,
 	GATES = { -- by the level the bottleneck sits at
 		[3] = { stones = 60, step = 1 }, -- into tier II
 		[6] = { stones = 250, step = 2 }, -- into tier III

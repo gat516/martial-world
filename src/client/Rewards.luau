@@ -35,10 +35,12 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local CultivationGui = require(script.Parent.CultivationGui)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 local Ribbon = require(script.Parent.Ribbon)
+local SeclusionView = require(script.Parent.SeclusionView)
 local SelfCard = require(script.Parent.SelfCard)
 local SlotArt = require(script.Parent.SlotArt)
 local UiScale = require(script.Parent.UiScale)
@@ -53,6 +55,7 @@ local ART = {
 	emblem_peak = "rbxassetid://102118062177874",
 	emblem_lotus = "rbxassetid://113579784709637",
 	glyph_stone = "rbxassetid://76651936131955",
+	glyph_plant = "rbxassetid://136552828056796",
 	glyph_qi = "rbxassetid://106989489487468",
 }
 local TILES = {
@@ -167,6 +170,18 @@ local KINDS: { [string]: Kind } = {
 		bodyTop = 0.395,
 		bodyBottom = 0.95,
 	},
+	seclusion = { -- seclusion's result (Seclusion.luau): the milestone card, plus spec.streak's day pips
+		art = ART.card_quest,
+		ratio = 1024 / 652,
+		rays = ART.rays_milestone,
+		raysAt = Vector3.new(0.5, 0.12, 1.1),
+		ribbon = "gold_curl",
+		crest = ART.emblem_lotus,
+		ribbonY = 0.315,
+		ribbonH = 0.15,
+		bodyTop = 0.395,
+		bodyBottom = 0.95,
+	},
 	milestone = {
 		art = ART.card_quest,
 		ratio = 1024 / 652,
@@ -184,6 +199,7 @@ local KINDS: { [string]: Kind } = {
 local GOLD = Color3.fromRGB(214, 172, 92)
 local STONE_COLOR = Color3.fromRGB(200, 235, 255)
 local QI_COLOR = Color3.fromRGB(120, 235, 180)
+local GARDEN_COLOR = Color3.fromRGB(130, 230, 185)
 local CREAM = Color3.fromRGB(250, 236, 195)
 
 local ENTRY_LIFE = 3.5 -- seconds a feed row stays after its last gain
@@ -191,7 +207,9 @@ local ENTRY_STEP = 38 -- feed row height plus padding, for the visible cap
 local DISC_DARK = 0.2 -- how far a feed row's disc tint leans to black
 local CARD_COLLECT = 1.5 -- seconds after a boss card that rewards join it
 local CARD_MIN = 1.0 -- seconds before a click can close a card
-local CARD_LIFE = 7 -- a card closes by itself after this
+local CARD_LIFE = 7
+local NAME_ONE_LINE = 14 -- letters that fit under a card tile on one line
+local NAME_LINE = 13 -- a second line's height -- a card closes by itself after this
 local RAY_SPEED = 10 -- degrees per second
 local RAYS_ALPHA = 0.2
 local BANNER_HOLD = 2.6
@@ -232,7 +250,7 @@ export type Spec = {
 	tagColor: Color3?,
 	hold: number?,
 	-- card
-	kind: string?, -- "boss" | "quest" | "milestone" | "rank"
+	kind: string?, -- "boss" | "quest" | "milestone" | "rank" | "seclusion"
 	items: { Item }?,
 	stats: { Stat }?,
 	unlock: string?,
@@ -240,6 +258,8 @@ export type Spec = {
 	crest: (string | CrestSpec)?, -- image id for the crest slot, or a rank crest with an
 	-- emblem centred on its hole (SectRank.rankUp)
 	life: number?,
+	-- seclusion: the streak row (Cultivation Templates.SeclusionStreak, day pips)
+	streak: { days: number, text: string }?,
 }
 
 type Look = {
@@ -250,6 +270,7 @@ type Look = {
 	tint: Color3?, -- for white kit glyphs
 	coin: boolean?, -- currency: drawn in the coin frame
 	tier: string?, -- tile edge for items
+	plain: boolean?, -- no count (a state, not an amount)
 }
 type Entry = { frame: GuiObject, count: number, last: number }
 
@@ -301,12 +322,16 @@ local function lookOf(key: string): Look?
 				color = SlotArt.weaponColor(id),
 				tier = TIER_OF[def.grade] or "neutral",
 			}
+	elseif key == "garden" then -- seclusion: the garden tended
+		return { name = "Garden tended", icon = ART.glyph_plant, tint = GARDEN_COLOR, color = GARDEN_COLOR, tier = "jade", plain = true }
+	elseif key == "mutation" then -- seclusion: plants that took a mutation
+		return { name = "Mutations", icon = ART.glyph_plant, tint = GARDEN_COLOR, color = GARDEN_COLOR, tier = "gold" }
 	elseif key:sub(1, 5) == "seed:" then
 		-- a seed (seclusion's finds): the herb's own look, named as its seed
 		local herb = Items.Defs[key:sub(6)]
 		return herb
 			and {
-				name = `{herb.name} Seed`,
+				name = herb.name, -- " Seed" doesn't fit under a card tile (78 px); the seed's look is the herb's
 				icon = herb.icon,
 				glyph = herb.glyph,
 				color = Items.rarityColor(herb),
@@ -380,7 +405,7 @@ local function paint(frame: GuiObject, look: Look, count: number)
 	glyph.Visible = look.icon == nil
 	local name = frame:FindFirstChild("NameLabel", true) :: TextLabel
 	name.Text = look.name;
-	(frame:FindFirstChild("CountLabel", true) :: TextLabel).Text = `x{count}`
+	(frame:FindFirstChild("CountLabel", true) :: TextLabel).Text = if look.plain then "" else `x{count}`
 end
 
 local function pop(frame: GuiObject)
@@ -618,6 +643,17 @@ local function addTile(key: string, amount: number)
 	order += 1
 	frame.LayoutOrder = order
 	paint(frame, look, amount)
+	-- a name too long for one line under the tile (78 px at 12 px: about 14 letters,
+	-- "Cloud-Pattern Jade", most tier III-IV herbs) wraps to a second line at the same
+	-- size; the tile and the row grow by that line
+	if #look.name > NAME_ONE_LINE then
+		local name = frame:FindFirstChild("NameLabel", true) :: TextLabel
+		name.TextWrapped = true
+		name.TextTruncate = Enum.TextTruncate.None
+		name.Size = UDim2.new(name.Size.X, UDim.new(0, name.Size.Y.Offset + NAME_LINE))
+		frame.Size = UDim2.new(frame.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset + NAME_LINE))
+		list.Size = UDim2.new(list.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset + NAME_LINE))
+	end
 	frame.Visible = true
 	frame.Parent = list
 	pop(frame)
@@ -677,6 +713,7 @@ local function openCard(spec: Spec)
 		t.frame:Destroy()
 	end
 	table.clear(tiles)
+	list.Size = UDim2.new(list.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset))
 
 	cardArt.Image = kind.art;
 	(cardArt:FindFirstChildOfClass("UIAspectRatioConstraint") :: UIAspectRatioConstraint).AspectRatio = kind.ratio
@@ -737,6 +774,16 @@ local function openCard(spec: Spec)
 	line("Stats", if spec.stats and #spec.stats > 0 then statsText(spec.stats) else nil)
 	line("Unlock", spec.unlock)
 	line("Flavour", spec.flavour)
+	local oldStreak = body:FindFirstChild("SeclusionStreak")
+	if oldStreak then
+		oldStreak:Destroy()
+	end
+	if spec.streak then
+		local row = CultivationGui.template("SeclusionStreak")
+		row.LayoutOrder = 4 -- in Unlock's place (a seclusion card has no unlock)
+		SeclusionView.paintStreak(row:FindFirstChild("Streak", true) :: Instance, math.min(spec.streak.days, 7), false, spec.streak.text)
+		row.Parent = body
+	end
 	list.Visible = false
 	for _, item in spec.items or {} do
 		addTile(item.key, item.amount)
@@ -851,6 +898,21 @@ function Rewards.preview(tier: string?, kind: string?)
 				subtitle = "The Herbalist's Errand",
 				items = { { key = "stones", amount = 60 }, { key = "contribution", amount = 40 } },
 				flavour = "The Herbalist nods: \"You may yet be useful.\"",
+			})
+		elseif k == "seclusion" then
+			Rewards.show({
+				tier = "card",
+				kind = "seclusion",
+				title = "Seclusion Ends",
+				subtitle = "9 hours in seclusion",
+				items = {
+					{ key = "stones", amount = 270 },
+					{ key = "HeavenlyDew", amount = 1 },
+					{ key = "seed:CloudMint", amount = 2 },
+					{ key = "mutation", amount = 3 },
+				},
+				stats = { { name = "Cultivation", from = 1200, to = 4800 } },
+				streak = { days = 3, text = "Day 3  ·  +54 streak stones" },
 			})
 		else
 			Rewards.show({

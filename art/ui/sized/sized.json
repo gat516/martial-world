@@ -1515,5 +1515,29 @@
   "margins": {
    "48": 5
   }
+ },
+ "codex/cut/ornament_emblem_lotus.png": {
+  "heights": [
+   64
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_spirit_stone.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_chest.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_plant.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
  }
 }

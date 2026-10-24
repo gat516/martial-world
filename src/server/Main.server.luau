@@ -290,6 +290,7 @@ Titles.onChanged = Cultivation.pushState
 SafeZone.start()
 Party.start()
 Shelter.start() -- the party shelter's ShelteredBy attribute (Shelter.luau)
+table.insert(Shelter.onCredit, Sect.onShelter) -- a patron's sect contribution per sheltered kill
 EnemyService.partyOf = Party.members -- nearby members share kills and the group bonus
 table.insert(EnemyService.onKill, Progression.onKill)
 table.insert(EnemyService.onKill, Inventory.onKill)

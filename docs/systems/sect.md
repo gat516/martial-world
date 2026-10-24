@@ -51,6 +51,10 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
   Stones = `DAILY_STONES` by major (40 QC, 110 QR, 300 FE) x the share. Daily
   contribution stops at `WEEK_CAP` (700 a week, from Monday 00:00 UTC; the board's
   status row shows "x / 700 this week"); the stones still pay.
+- **Sheltering** ([party](party.md) shelter): a patron earns `Pacing.Shelter.CONTRIBUTION`
+  (2) per kill a sheltered party member is credited with, once the sect is open to
+  them, counted in the same `WEEK_CAP` (a feed tile, no toast; Analytics economy
+  source `Contribution`, sku `Shelter`). `Sect.onShelter` on `Shelter.onCredit`.
 - **The chain, "Ash Past the Gorge"** (Ruined Borderlands, giver Elder Qingyun), one
   step at a time, each pinned (quest scroll) once its stage is reached; taking it
   starts it, claiming it sends the Quest Complete card (contribution and stones tiles,
@@ -107,7 +111,8 @@ the lone wolf (at most `LONE_MAX` 1, the board read).
   `Rank:<rank>`) for analytics and traits.
 
 ## Key files
-- `src/server/Sect.luau`: everything above; `Sect.onKill` on `EnemyService.onKill`.
+- `src/server/Sect.luau`: everything above; `Sect.onKill` on `EnemyService.onKill`,
+  `Sect.onShelter` on `Shelter.onCredit`.
 - `src/shared/Pacing.luau` `Sect` (all tuning), `HeartDemon` `DUTY_MIN`, `LONE_MAX`.
 - `src/client/SectView.luau`: wires `Sect/SectBoard`, `Sect/QuestLog`, `Sect/SectRank`
   ([sect board](../ui/sect-board.md)) and the interim Pavilion list.

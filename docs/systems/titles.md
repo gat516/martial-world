@@ -23,7 +23,7 @@ grind for power: titles give no stats.
   rec 1): the path answer picks it, a denial picks the road the record shows, so
   there's nothing to fail. Calming a demon (no denials) is its own title.
 
-## The titles (40)
+## The titles (43)
 | Category | Title | How it's earned | Rarity |
 |---|---|---|---|
 | Realm | Qi Refiner | Reach Qi Refining 1 | Uncommon |
@@ -59,6 +59,9 @@ grind for power: titles give no stats.
 | Path | Heavenly Root | A spirit root at Heaven grade | Legendary |
 | Path | Burning Meridians | 3 qi surges (`stats.surges`) | Rare |
 | Path | Fellow Traveler | 1 h in a party with a member nearby (`stats.partied`) | Uncommon |
+| Path | Guiding Elder | 10 kills by juniors you sheltered ([party](party.md) shelter, `stats.sheltered`) | Uncommon |
+| Path | Pillar of Juniors | 100 sheltered kills | Epic |
+| Path | Sheltered Junior | 10 kills while sheltered by a senior (`stats.leaned`) | Common |
 | Weapon Dao | Fist / Sword / Saber / Greatsword / Guandao / Spear / Staff Master | That class at Dao 10 (the max) | Epic |
 
 ## How it works
@@ -94,7 +97,7 @@ grind for power: titles give no stats.
 ## UI contract (for ui-designer: the picker)
 Lives on the Self card ([character window](../character/character-window.md)):
 - **Title row** on the Self card: "Title", the worn title's name in its colour (or
-  "None" muted), and the count earned ("12 / 40"). Tapping it opens the list.
+  "None" muted), and the count earned ("12 / 43"). Tapping it opens the list.
 - **The list** (a ListWindow-style scroll, mobile first), grouped by
   `Titles.Categories`, each group in `Titles.Order`:
   - **Earned:** the name in `Titles.color(id)`, the `how` line under it, small; the

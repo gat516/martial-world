@@ -78,6 +78,19 @@ The new sect is built **beside the old one** (a clear offset, away from the wild
 the old sect's ring), so the live game keeps working; it is swapped in, the
 constraint coordinates and Config updated, only when it's done.
 
+## What to build with (user, 2026-10-24)
+The map-builder's rule ("What to build with" in `.claude/agents/map-builder.md`),
+confirmed for the redo. One rule for every area: go-backs are expensive.
+- **Floor:** smooth terrain (lawns, plaza fill, ledges, valley floors), built by script.
+- **Structures:** parts (halls, gates, stairs, railings, bridges); curved roofs and
+  trims may be meshes.
+- **Greenery:** the existing library assets and meshes (`ServerStorage.AssetLibrary`,
+  place-only), or made in Blender when nothing fits.
+- **Landforms** (the pillars, cliff faces, valley walls): Blender meshes by the
+  current rule, a reusable pillar and cliff kit sunk into the terrain floor.
+  **Open:** the user wants this settled once before step 1 (Blender kit or smooth
+  terrain); whichever is chosen applies everywhere.
+
 ## Step 1: the macro block-out
 Gray masses only, no detail: the cloud sea's height; the sect's pillars (gate crag,
 stair cliff, plaza pillar, inner terrace, summit) with their top heights and the
@@ -111,3 +124,15 @@ and lanterns). NPCs make it lived in.
   gets its own character (a waterfall peak, bamboo, pine cliffs, plum blossom, a lotus
   pond, a crystal vein...): its own rock silhouette, signature tree and edge dressing,
   with open lawn left for building.
+
+## Handoff: where we are (2026-10-24)
+- Done: the reference sheet, its read-out above, the agreed shape, the build rules.
+- **Next:** settle the landform question with the user, then step 1 (the macro
+  block-out), then capture the five view spots for review.
+- Studio: the user's sandbox is `mw-sandbox-martial-world-test.rbxl` (find its id
+  with `list_roblox_studios`; ids change per session). It's built from
+  `test.project.json`, so it has no old `Workspace.Map` and may lack the place-only
+  `AssetLibrary`: check before dressing (the user's real place, "Martial World", has
+  it). The vfx library plugin and Blender are up for vfx and mesh work.
+- Export what's built to `assets/` as it's approved (the `studio-export` skill), so
+  the new sect is in git, unlike the old map.

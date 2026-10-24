@@ -846,7 +846,7 @@ Pacing.Variants = {
 -- FOUNDATION (server Foundation; docs/systems/cultivation.md "Foundation grade").
 -- Experiences earned while at a stage are weighed against the stage's TARGET at the
 -- breakthrough out of it, as a percent: 100% is a full foundation, more experiences
--- go past it up to MAX_PERCENT. Each graded stage adds percent x BONUS_PER_PERCENT
+-- go past it up to MAX_PERCENT (at OVER_COST times the price). Each graded stage adds BONUS_TO_FULL by 100% and BONUS_PAST_FULL more by MAX_PERCENT
 -- to max health and power (always positive: 80% is a good breakthrough, just a bit
 -- less), summed over all stages as its own multiplier on top of Pacing.Curve (about
 -- +92% at most by FE9, 23 graded stages QC4-FE8, below a major jump). Players only ever see
@@ -878,11 +878,20 @@ Pacing.Foundation = {
 	-- experiences per stage for 100%; a stage missing here gets DEFAULT_TARGET
 	FROM = "QC4", -- the first stage with a foundation; the hook (QC1-3) has none
 	TARGET = {
-		QC4 = 4, QC5 = 5, QC6 = 5, QC7 = 5, QC8 = 5, QC9 = 6,
+		QC4 = 2, QC5 = 3, QC6 = 3, QC7 = 3, QC8 = 3, QC9 = 3,
 	} :: { [string]: number },
-	DEFAULT_TARGET = 5, -- Qi Refining and Foundation Establishment
+	DEFAULT_TARGET = 3, -- Qi Refining and Foundation Establishment
 	MAX_PERCENT = 200, -- experiences past the target count up to here
-	BONUS_PER_PERCENT = 0.0002, -- share of max health and power per percent: 100% +2%, 200% +4%
+	-- 100% is meant to be easy (user, 2026-10-24: "break through at 100 percent should be
+	-- easy to reach... players should have to grind crazy hard so they get the real, extra
+	-- bonuses"): past the target each percent costs OVER_COST times as many experiences
+	-- (200% takes target x (1 + OVER_COST)), and most of the bonus lives past 100%.
+	OVER_COST = 2,
+	-- past this percent the open experiences stop being listed: the rest are found, not
+	-- read (user, 2026-10-24: "the tasks u do past 110 or 120 percent are hidden")
+	HIDDEN_FROM = 110,
+	BONUS_TO_FULL = 0.01, -- share of max health and power at 100% (linear from 0)
+	BONUS_PAST_FULL = 0.03, -- added from 100% to MAX_PERCENT (linear): 200% is +4% a stage
 	-- below this percent the stage is unsteady: the once-a-stage toast when the bar
 	-- fills, and a heaven-defier's tribulation strikes UNSTEADY_TRIBULATION harder
 	UNSTEADY_BELOW = 50,

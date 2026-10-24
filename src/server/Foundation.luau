@@ -2,7 +2,7 @@
 -- Foundation (docs/systems/cultivation.md "Foundation grade"). What a player
 -- experiences while at a stage builds the foundation of the breakthrough out of it,
 -- as a percent of the stage's target (Pacing.Foundation): 100% is full, more goes
--- past it up to MAX_PERCENT, and every graded stage adds percent x BONUS_PER_PERCENT
+-- past it up to MAX_PERCENT (each percent past 100 costs OVER_COST times more), and every graded stage adds BONUS_TO_FULL by 100% and BONUS_PAST_FULL more by MAX_PERCENT
 -- to max health and power. Players see only the percent ("Foundation 86%"; owner,
 -- 2026-10-24): no grade words, no count or target.
 --
@@ -110,7 +110,11 @@ end
 
 -- The percent `count` experiences make against `target`, 0..MAX_PERCENT.
 function Foundation.percentFor(count: number, target: number): number
-	local share = if target > 0 then count / target else 1
+	if target <= 0 then
+		return 100
+	end
+	-- up to the target: 100%; past it each percent costs OVER_COST times as much
+	local share = math.min(count, target) / target + math.max(0, count - target) / (target * Config.OVER_COST)
 	return math.clamp(math.floor(share * 100 + 0.5), 0, Config.MAX_PERCENT)
 end
 
@@ -168,7 +172,9 @@ end
 function Foundation.multiplier(data: PlayerData.Data): number
 	local total = 0
 	for _, value in data.foundation.grades do
-		total += percentOf(value) * Config.BONUS_PER_PERCENT
+		local p = percentOf(value)
+		total += Config.BONUS_TO_FULL * math.min(p, 100) / 100
+			+ Config.BONUS_PAST_FULL * math.max(0, p - 100) / (Config.MAX_PERCENT - 100)
 	end
 	return 1 + total
 end
@@ -559,7 +565,10 @@ function Foundation.state(data: PlayerData.Data): { [string]: any }
 		max = Config.MAX_PERCENT,
 		percents = percents,
 		bonus = Foundation.multiplier(data) - 1,
-		hints = Foundation.hints(data),
+		-- past HIDDEN_FROM the hints go quiet; the Self card reads `veiled` as
+		-- "Beyond this, the Dao hides its lessons."
+		hints = if Foundation.percent(data) >= Config.HIDDEN_FROM then {} else Foundation.hints(data),
+		veiled = Foundation.percent(data) >= Config.HIDDEN_FROM,
 	}
 end
 

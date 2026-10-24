@@ -203,7 +203,7 @@ local GARDEN_COLOR = Color3.fromRGB(130, 230, 185)
 local CREAM = Color3.fromRGB(250, 236, 195)
 
 local ENTRY_LIFE = 3.5 -- seconds a feed row stays after its last gain
-local ENTRY_STEP = 38 -- feed row height plus padding, for the visible cap
+local ENTRY_STEP = 34 -- feed row height plus padding, for the visible cap
 local DISC_DARK = 0.2 -- how far a feed row's disc tint leans to black
 local CARD_COLLECT = 1.5 -- seconds after a boss card that rewards join it
 local CARD_MIN = 1.0 -- seconds before a click can close a card
@@ -684,12 +684,20 @@ local function cardGain(key: string, amount: number)
 	end
 end
 
-local function statsText(stats: { Stat }): string
-	local parts = {}
+-- Two stats a line (four on one line ran past the card's sides), and the line count.
+local function statsText(stats: { Stat }): (string, number)
+	local lines, pair = {}, {}
 	for _, s in stats do
-		table.insert(parts, `{s.name}  {s.from} <font color="#fff1c8">→</font> {s.to}`)
+		table.insert(pair, `{s.name}  {s.from} <font color="#fff1c8">→</font> {s.to}`)
+		if #pair == 2 then
+			table.insert(lines, table.concat(pair, "      "))
+			pair = {}
+		end
 	end
-	return table.concat(parts, "     ")
+	if #pair > 0 then
+		table.insert(lines, pair[1])
+	end
+	return table.concat(lines, "\n"), #lines
 end
 
 local function closeCard()
@@ -763,7 +771,14 @@ local function openCard(spec: Spec)
 	})
 	local body = cardArt:FindFirstChild("Body") :: Frame
 	body.Position = UDim2.fromScale(0.5, kind.bodyTop)
-	body.Size = UDim2.fromScale(0.84, kind.bodyBottom - kind.bodyTop)
+	body.Size = UDim2.fromScale(0.84, kind.bodyBottom - kind.bodyTop);
+	-- a milestone (a breakthrough, no tiles) centres its few lines instead of leaving
+	-- the lower half bare; boss tiles can join an open card, so the rest stay on top
+	(body:FindFirstChildOfClass("UIListLayout") :: UIListLayout).VerticalAlignment = if spec.kind == "milestone"
+		then Enum.VerticalAlignment.Center
+		else Enum.VerticalAlignment.Top;
+	-- the kit panel's ink clouds (Frame/Panel) along the card's floor
+	(cardArt:FindFirstChild("Inkwash") :: ImageLabel).Position = UDim2.fromScale(0.5, kind.bodyBottom)
 
 	local function line(name: string, value: string?)
 		local label = body:FindFirstChild(name) :: TextLabel
@@ -771,7 +786,14 @@ local function openCard(spec: Spec)
 		label.Visible = value ~= nil and value ~= ""
 	end
 	line("Subtitle", spec.subtitle)
-	line("Stats", if spec.stats and #spec.stats > 0 then statsText(spec.stats) else nil)
+	local stats = body:FindFirstChild("Stats") :: TextLabel
+	if spec.stats and #spec.stats > 0 then
+		local text, count = statsText(spec.stats)
+		line("Stats", text)
+		stats.Size = UDim2.new(1, 0, 0, 20 * count + 2 * (count - 1))
+	else
+		line("Stats", nil)
+	end
 	line("Unlock", spec.unlock)
 	line("Flavour", spec.flavour)
 	local oldStreak = body:FindFirstChild("SeclusionStreak")

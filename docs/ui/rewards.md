@@ -88,12 +88,13 @@ stats, unlock and flavour (empty lines hide). Quests and bloodlines don't send i
 
 The ScreenGui holds one `Canvas` with the authored `UiScale` (fitted by `UiScale.fit`:
 desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
-- `Feed` (bottom-right anchor at 58 % height, 264 wide, rows 256x34, 6 px apart; user,
-  2026-10-23: "too bundled together and the icons dont fit"). Row (`EntryTemplate`):
-  the toast's plaque, 9-sliced (SliceScale 34/96); `Disc` (`art_disc`, 24 px, tinted
+- `Feed` (bottom-right anchor at 58 % height, 212 wide, rows 204x28, 6 px apart; user,
+  2026-10-23: "too bundled together and the icons dont fit"; 2026-10-24: 256x34 rows
+  were "invasive", so 0.8x). Row (`EntryTemplate`):
+  the toast's plaque, 9-sliced (SliceScale 28/96); `Disc` (`art_disc`, 23 px, tinted
   the look's colour leaned 20 % to black) with its `Icon` (cropped to its drawn area,
-  `SlotArt.setIcon`, 62 % of the disc) or `Glyph`; `NameLabel` (Builder Sans Bold 15,
-  8 px after the disc, truncated); `CountLabel` (Fredoka One 16, gold). The disc's left
+  `SlotArt.setIcon`, 62 % of the disc) or `Glyph`; `NameLabel` (Builder Sans Bold 13,
+  5 px after the disc, truncated); `CountLabel` (Fredoka One 14, gold). The disc's left
   edge and the count's right edge both sit 4 px inside the plaque's points.
 - `Floats.FloatTemplate`.
 - `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (56 tall, `Art`
@@ -102,8 +103,13 @@ desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
 - `Card` (62 % x 84 %, aspect 1.57, at most 600x382, 10 px above centre): `Rays`,
   `Art` (its aspect set per job: 1.718 boss, 1.571 quest), with `Crest` (and its hidden
   `Emblem`), `Ribbon`,
+  `Inkwash` (the kit's `Frame/Panel` ink clouds, `inkwash_b` at 80 % transparency, 86 %
+  of the card wide, its bottom on the job's `bodyBottom`),
   `Body` (a centred list: `Subtitle`, `List` of `RewardTemplate` tiles 64x82 with 14 px
-  gaps, `Stats`, `Unlock`, `Flavour`) and `Hint` under the card.
+  gaps, `Stats`, `Unlock`, `Flavour`; a milestone's list is centred vertically, the rest
+  top-aligned since boss tiles can join an open card) and `Hint` under the card.
+  `Stats` sets two deltas a line (four on one line ran past the card, user 2026-10-24),
+  20 px a line.
 The card's title plaque fits its title ([ribbons](ribbons.md)): the plain middle is the
 title plus even padding, at least 36 % of the card wide, at most 84 %; the text is 0.47 of
 the plaque's height (28 on PC), shrinks to 85 % and then truncates.
@@ -169,7 +175,8 @@ x 490 (centred, dx 0.0), y 11 in the bar, window top 134. 667x375 with the Inven
 open: one line, y 4 in the 44 px bar, slid 7.5 px right of centre to clear Roblox's
 buttons, window top 50; never overlapping. Feed rows (PC, scale 0.726): icon centre on
 disc centre, disc, name and count on the row's centre line, all 0.00 px; 6 px between
-rows; 17 px from each end to the disc and the count.
+rows; 17 px from each end to the disc and the count (measured at the old 256x34 rows; the
+0.8x pass hasn't been re-measured).
 
 ## Art
 

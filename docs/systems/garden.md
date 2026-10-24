@@ -30,7 +30,13 @@ consumables: spirit cores from beasts and heavenly treasures.
   aura's cap (**decorate your abode**, below). The peak tier also raises how many Herb
   Beds fit (16 / 20 / 24, `Config.Build.TIERS` `limits`).
 - Herb tiers I-V by region (I Common, II Spirit, III Rare, IV Treasure, V Heavenly;
-  [progression](../progression.md)). A qi herb (`eat.qi = true`) gives a fixed share
+  [progression](../progression.md)). **A herb's tier matches how grand its name is**
+  (owner, 2026-10-24): weeds and mints are tier I, a Thousand-Year Ginseng or a Nine-Leaf
+  Lingzhi is a Foundation treasure. **Tier V is deferred**: herbs whose names promise
+  more than Foundation Establishment (Tribulation Thunder Grass, Ninefold Heaven Lotus,
+  Dao Origin Fruit) keep their defs and models (`deferred = true`, `Herbs.Deferred`) but
+  are out of `Herbs.Order`, every seed pool and every mutation chain until the realms
+  past FE exist. A qi herb (`eat.qi = true`) gives a fixed share
   of the eater's current stage dantian by tier (`Pacing.Herbs.EAT_SHARE`: 6, 9, 12,
   16, 20%), so a herb matters at every stage but never replaces hunting. Each tier
   has a floor (`EAT_FLOOR`: 60, 150, 900, 3000, 8000 raw qi) so early herbs stay worth
@@ -53,50 +59,50 @@ consumables: spirit cores from beasts and heavenly treasures.
 - **The Herbalist** (Spirit Market) sells seeds by tier with a daily stock per herb
   and player (`Pacing.Herbs.STOCK`: 30 / 12 / 3 / 2 a UTC day for tiers I-IV, saved as
   `data.herbalist`): tier I-II from the start, the Epic tier III seeds (Seven-Star
-  Grass 400, Emberheart Fruit 600) from QR6 and Starfall Bamboo (tier IV, 1200) from FE4
-  (`soldFrom`, the band's first stage). The window lists only what's sold at your realm,
+  Grass 400, Emberheart Fruit 600) from QR6 and Dragonblood Vine (tier IV Epic, 1200) from
+  FE4 (`soldFrom`, the band's first stage). The window lists only what's sold at your realm,
   with "N left today". Legendary herbs are never sold.
-- **The herbs by tier** (22; `Herbs.Order` is this order, which is also the
+- **The herbs by tier** (19 in the game; `Herbs.Order` is this order, which is also the
   Herbarium's pages). Region is where its seeds drop (below); "shop" is sold by the
-  Herbalist, "mut" comes from a lower herb's harvest (`mutatesTo`).
+  Herbalist, "mut" comes from a lower herb's harvest (`mutatesTo`); "sells" is the
+  Herbalist's price a herb.
 
-  | Tier | Herb | Soil | Rarity | Grow | Region | Seeds from | Eat (on top of the tier's qi share) |
-  |---|---|---|---|---|---|---|---|
-  | I | Spirit Grass | bed | Common | 2 min | Inner Wilds | shop, beasts | buff only: +10% cultivation 3 min |
-  | I | Cloud Mint | bed | Uncommon | 5 min | Inner Wilds | shop, beasts, mut | buff only: +6 speed, +5% 2 min |
-  | I | Jade Lotus | pond | Uncommon | 8 min | Inner Wilds | shop, beasts | +15% 3 min |
-  | I | Ghostlamp Lily | pond | Uncommon | 12 min | Ruined Borderlands | beasts | +10% 3 min |
-  | I | Purple Bamboo | grove | Uncommon | 10 min (regrows 4) | Inner Wilds | shop, beasts | buff only: +4 speed 3 min |
-  | II | Blood Ginseng | bed | Rare | 15 min | Outer Wastes | shop, beasts, mut | qi only |
-  | II | Moonpetal Orchid | bed | Epic | 30 min | Outer Wastes | mut | buff only: +25% 10 min |
-  | II | Violet Cloud Fungus | bed | Epic | 20 min | Outer Wastes | wild (Auspicious Mist) | +15% 5 min |
-  | II | Duskwind Thistle | bed | Rare | 25 min | Outer Wastes | beasts | +5 speed 3 min |
-  | II | Spirit Peach | grove | Rare | 40 min (regrows 10) | Outer Wastes | shop, beasts | +15% 5 min |
-  | III | Seven-Star Grass | bed | Epic | 1.5 h | Deep Wilds | shop (QR6+), beasts, mut | +25% 10 min |
-  | III | Nine-Leaf Lingzhi | bed | Legendary | 2 h | Deep Wilds | mut, Deep Wilds bosses | +30% 15 min |
-  | III | Thousand-Year Ginseng | bed | Legendary | 4 h | Deep Wilds | world event | a full dantian (PRIZE), +30% 20 min |
-  | III | Rift Lotus | pond | Legendary | 1 h | Deep Wilds | wild (Heaven Split), mut | half a dantian (PRIZE), +30% 15 min |
-  | III | Emberheart Fruit | grove | Epic | 2 h (regrows 45 min) | Deep Wilds | shop (QR6+), beasts, mut | +20% 10 min |
-  | IV | Dragonblood Vine | bed | Legendary | 4 h | Far Reaches | beasts, mut | +40% 20 min |
-  | IV | Phoenix Plume Orchid | bed | Legendary | 6 h | Far Reaches | beasts | +45% 20 min |
-  | IV | Snowpeak Lotus | pond | Legendary | 3 h | Far Reaches | beasts, mut | +35% 15 min |
-  | IV | Starfall Bamboo | grove | Epic | 4 h (regrows 1 h) | Far Reaches | shop (FE4+), beasts, mut | +8 speed 5 min |
-  | V | Tribulation Thunder Grass | bed | Legendary | 8 h | Far Reaches | Far Reaches bosses, mut | +50% 20 min |
-  | V | Ninefold Heaven Lotus | pond | Legendary | 12 h | Far Reaches | Far Reaches bosses, mut | +50% 30 min |
-  | V | Dao Origin Fruit | grove | Legendary | 24 h (regrows 6 h) | Far Reaches | Far Reaches bosses, mut | +50% 30 min |
+  | Tier | Herb | Soil | Rarity | Grow | Region | Seeds from | Eat (on top of the tier's qi share) | Sells |
+  |---|---|---|---|---|---|---|---|---|
+  | I | Spirit Grass | bed | Common | 2 min | Inner Wilds | shop, beasts | buff only: +10% cultivation 3 min | 3 |
+  | I | Cloud Mint | bed | Uncommon | 5 min | Inner Wilds | shop, beasts, mut | buff only: +6 speed, +5% 2 min | 9 |
+  | I | Jade Lotus | pond | Uncommon | 8 min | Inner Wilds | shop, beasts | +15% 3 min | 14 |
+  | I | Ghostlamp Lily | pond | Uncommon | 12 min | Ruined Borderlands | beasts | +10% 3 min | 18 |
+  | I | Purple Bamboo | grove | Uncommon | 10 min (regrows 4) | Inner Wilds | shop, beasts | buff only: +4 speed 3 min | 8 |
+  | II | Blood Ginseng | bed | Rare | 15 min | Outer Wastes | shop, beasts, mut | qi only | 40 |
+  | II | Moonpetal Orchid | bed | Epic | 30 min | Outer Wastes | mut | buff only: +25% 10 min | 45 |
+  | II | Violet Cloud Fungus | bed | Epic | 20 min | Outer Wastes | wild (Auspicious Mist) | +15% 5 min | 55 |
+  | II | Duskwind Thistle | bed | Rare | 25 min | Outer Wastes | beasts | +5 speed 3 min | 55 |
+  | II | Spirit Peach | grove | Rare | 40 min (regrows 10) | Outer Wastes | shop, beasts | +15% 5 min | 45 |
+  | III | Seven-Star Grass | bed | Epic | 1.5 h | Deep Wilds | shop (QR6+), beasts, mut, seclusion | +25% 10 min | 50 |
+  | III | Rift Lotus | pond | Legendary | 1 h | Deep Wilds | wild (Heaven Split), Deep Wilds bosses, mut | half a dantian (PRIZE), +30% 15 min | 80 |
+  | III | Snowpeak Lotus | pond | Epic | 1.5 h | Deep Wilds | beasts, mut, seclusion | +25% 10 min | 50 |
+  | III | Emberheart Fruit | grove | Epic | 2 h (regrows 45 min) | Deep Wilds | shop (QR6+), beasts, mut, seclusion | +20% 10 min | 45 |
+  | III | Starfall Bamboo | grove | Epic | 2 h (regrows 45 min) | Deep Wilds | beasts, mut, seclusion | +8 speed 5 min | 45 |
+  | IV | Dragonblood Vine | bed | Epic | 3 h | Far Reaches | shop (FE4+), beasts, seclusion | +35% 15 min | 70 |
+  | IV | Nine-Leaf Lingzhi | bed | Legendary | 4 h | Far Reaches | mut, Far Reaches bosses, seclusion | +40% 20 min | 110 |
+  | IV | Phoenix Plume Orchid | bed | Legendary | 6 h | Far Reaches | beasts, Far Reaches bosses, mut, seclusion | +45% 20 min | 140 |
+  | IV | Thousand-Year Ginseng | bed | Legendary | 6 h | Far Reaches | world event | a full dantian (PRIZE), +45% 30 min | 300 |
+  | V | Tribulation Thunder Grass, Ninefold Heaven Lotus, Dao Origin Fruit | | Legendary | | | deferred (no source) | | |
 
-  Mutation chains: Spirit Grass > Cloud Mint > Blood Ginseng > Moonpetal Orchid >
-  Nine-Leaf Lingzhi > Dragonblood Vine > Tribulation Thunder Grass; Duskwind Thistle >
-  Seven-Star Grass > Nine-Leaf Lingzhi; Jade Lotus > Rift Lotus > Snowpeak Lotus >
-  Ninefold Heaven Lotus; Purple Bamboo > Spirit Peach > Emberheart Fruit > Starfall
-  Bamboo > Dao Origin Fruit.
+  Mutation chains (each ends at the highest kept herb of its soil): Spirit Grass 15% >
+  Cloud Mint 10% > Blood Ginseng 8% > Moonpetal Orchid 5% > Seven-Star Grass 1% >
+  Nine-Leaf Lingzhi; Duskwind Thistle 4% > Seven-Star Grass; Jade Lotus 2% > Snowpeak
+  Lotus 3% > Rift Lotus; Purple Bamboo 4% > Spirit Peach 3% > Emberheart Fruit 2% >
+  Starfall Bamboo; Dragonblood Vine 2% > Phoenix Plume Orchid (the Legendary tier IV's
+  slow pity).
 - **Seeds come from the region** (`Herbs.Regions`, [progression](../progression.md)).
   Each damager of a kill rolls `BEAST_SEED_CHANCE` (bosses always drop `BOSS_SEEDS`)
   from the pool of the region the beast died in (`Regions.at` on its model; bosses add
   the region's `bossSeeds`). Off the seed regions, and always in the testbed, the
   beast's `realm` picks it on the ladder: Inner Wilds QC1, Ruined Borderlands QC5
-  (tier I), Outer Wastes QR1 (II), Deep Wilds QR6 (III), Far Reaches FE4 (IV, with tier V
-  only from its bosses). Deep Wilds and the Far Reaches have no map region yet, so
+  (tier I), Outer Wastes QR1 (II), Deep Wilds QR6 (III, its bosses add Rift Lotus), Far
+  Reaches FE4 (IV, its bosses add Nine-Leaf Lingzhi and Phoenix Plume Orchid). Deep Wilds and the Far Reaches have no map region yet, so
   today only their realm reaches them.
 - One prompt key (F) for beds and ripe plants; G buys "Grow now" (see
   [monetization](monetization.md)).
@@ -106,7 +112,7 @@ The air of your spirit abode (rebalance 2026-10-24; owner: "a legendary plant in
 garden should noticeably speed you up", and "I want players to be incentivized to
 decorate their spirit abodes").
 - **Every planted herb counts** (`Cultivation.aura`): its aura is `Pacing.Aura.BY_TIER`
-  (I 0.02, II 0.05, III 0.15, IV 0.3, V 0.6) x `RARITY` (Common 1, Uncommon 1.1, Rare
+  (I 0.02, II 0.05, III 0.15, IV 0.3; V 0.6 is parked with the deferred herbs) x `RARITY` (Common 1, Uncommon 1.1, Rare
   1.25, Epic 1.5, Legendary 2) x its size x its mutations (`Herbs.aura`,
   `Herbs.multiplier`), `GROWING` (half) of that while it grows and all of it once
   mature. Summed over every plant in every plot, so a fuller, rarer garden is always
@@ -118,7 +124,7 @@ decorate their spirit abodes").
   the tier's score cap (`Peaks.decorShare` = score / scoreCap, passed in the spot):
   QC 0.3 -> 0.375, QR 0.6 -> 0.75, FE 1.0 -> 1.25. Building also adds the score's own
   meditation (`Pacing.PeakScore.MEDITATION` 0.0024 a point) and growth.
-- Examples: one mature Legendary tier III herb (Nine-Leaf Lingzhi) is +0.3, the whole QC
+- Examples: one mature Legendary tier III herb (Rift Lotus) is +0.3, the whole QC
   cap; a Legendary tier IV (Phoenix Plume Orchid) +0.6, the whole QR cap; a bed of tier
   III-IV herbs fills the FE cap. A Huge or Thunderstruck plant is several plants' worth.
 - The model's sizes: a regular's garden sits at about 0.13 (QC), 0.4-0.6 (QR) and
@@ -202,13 +208,14 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 ## Known gaps
 - Grow now product ids are placeholders (0) until the products are created.
 - The 11 herbs added 2026-10-23 (Ghostlamp Lily to Dao Origin Fruit) have only
-  light-pass part models (below) and glyphs, no icons.
+  light-pass part models (below) and glyphs, no icons. The three deferred tier V herbs
+  keep theirs, unused.
 - Deep Wilds and the Far Reaches aren't map regions yet; their seeds drop only by
   realm (an elite or apex beast anywhere off the seed regions, or the testbed).
-- Tier IV-V numbers (grow times, sell prices) are first guesses. Tier III-V sell
-  prices (260-9000 a herb) flood stones once a garden of them stands; stones buy no
-  speed past the score and plot caps, so it's flagged, not fixed
-  ([progression rules](progression-rules.md)).
+- Tier III-IV numbers (grow times) are first guesses. Sell prices were cut 2026-10-24
+  (tier III 260-3000 to 45-80, IV to 70-300, the tier II Epics to 45-55) so a garden of
+  them no longer floods stones: a garden road earns about 37,000 stones in FE (was
+  250,000), most of it from tier I-II volume ([progression rules](progression-rules.md)).
 - Foundation's Home hint suggests the next herb tier to harvest even when that tier
   belongs to a far later realm.
 
@@ -236,9 +243,9 @@ name (it wins over the extra one) or replace the one in `HerbModelsExtra`.
 | EmberheartFruit | Emberheart Fruit | III | grove | SpiritPeach | small charcoal-barked tree, leaves red at the tips, crackled ember-orange fruit that glow from inside |
 | DragonbloodVine | Dragonblood Vine | IV | bed | BloodGinseng | thick dark-crimson vine coiling up on itself in a spiral, scale-like leaves, beads of glowing red sap |
 | PhoenixPlumeOrchid | Phoenix Plume Orchid | IV | bed | MoonpetalOrchid | tall orchid whose petals are long curling plumes, gold at the base to scarlet at the tips, like a phoenix tail |
-| SnowpeakLotus | Snowpeak Lotus | IV | pond | JadeLotus | pure white many-layered lotus with ice-blue petal tips, frosted pads, a faint cold mist |
-| StarfallBamboo | Starfall Bamboo | IV | grove | PurpleBamboo | midnight-blue culms with silver nodes, leaves speckled like a night sky, slow falling motes of light |
-| TribulationThunderGrass | Tribulation Thunder Grass | V | bed | NineLeafLingzhi | jagged silver-violet blades forking like lightning from a ring of scorched black soil, bright crackling tips |
-| NinefoldHeavenLotus | Ninefold Heaven Lotus | V | pond | RiftLotus | a golden-white lotus of nine rings of petals, each smaller, hovering just above its pad under a thin halo |
-| DaoOriginFruit | Dao Origin Fruit | V | grove | SpiritPeach | gnarled pale-jade tree with few leaves, roots spread in a taiji swirl, one fruit glowing half black, half white |
+| SnowpeakLotus | Snowpeak Lotus | III | pond | JadeLotus | pure white many-layered lotus with ice-blue petal tips, frosted pads, a faint cold mist |
+| StarfallBamboo | Starfall Bamboo | III | grove | PurpleBamboo | midnight-blue culms with silver nodes, leaves speckled like a night sky, slow falling motes of light |
+| TribulationThunderGrass | Tribulation Thunder Grass | V (deferred) | bed | NineLeafLingzhi | jagged silver-violet blades forking like lightning from a ring of scorched black soil, bright crackling tips |
+| NinefoldHeavenLotus | Ninefold Heaven Lotus | V (deferred) | pond | RiftLotus | a golden-white lotus of nine rings of petals, each smaller, hovering just above its pad under a thin halo |
+| DaoOriginFruit | Dao Origin Fruit | V (deferred) | grove | SpiritPeach | gnarled pale-jade tree with few leaves, roots spread in a taiji swirl, one fruit glowing half black, half white |
 - Item qi (cores, treasures) is per item, set in `Items.luau`.

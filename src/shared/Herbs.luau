@@ -20,7 +20,8 @@
 --   yield       herbs per harvest at size 1, before mutations (min, max)
 --   (aura)      no field: a plant's aura is Pacing.Aura BY_TIER x RARITY (Herbs.aura)
 --   tier        I-V (1-5): the region it belongs to (I Common, II Spirit, III Rare,
---               IV Treasure, V Heavenly; docs/progression.md)
+--               IV Treasure, V Heavenly, deferred; docs/progression.md), set by
+--               how grand its name is
 --   eat         qi = true: raw energy added at once, the tier's share of the
 --               eater's current dantian with a floor (Pacing.Herbs EAT_SHARE,
 --               EAT_FLOOR; event herbs a PRIZE share; Herbs.eatQi); buffs are timed
@@ -39,6 +40,7 @@
 --   model       its template in ReplicatedStorage.HerbModels (default: the id)
 --   standIn     an existing template of the same soil drawn, tinted to `color`,
 --               until `model` is built (docs/systems/garden.md "Models to build")
+--   deferred    parked until the realms past Foundation exist (Herbs.Deferred)
 --
 -- Seeds come from the Herbalist (seedCost), harvests (seeds back, mutatesTo), wild
 -- sprouts, world events and beasts: a beast drops its region's seeds
@@ -69,6 +71,7 @@ export type Herb = {
 	region: string,
 	model: string?,
 	standIn: string?,
+	deferred: boolean?,
 }
 -- A region's beast seed pools (Herbs.Regions).
 export type SeedRegion = {
@@ -98,7 +101,10 @@ Herbs.Soils = {
 	grove = { name = "Spirit Grove", hint = "Bamboo and tree seeds grow in a Spirit Grove." },
 } :: { [Soil]: { name: string, hint: string } }
 
--- By tier, then soil: the Herbarium's pages, the Herbalist and the seed picker.
+-- The herbs in the game, by tier, then soil: the Herbarium's pages, the Herbalist,
+-- the seed picker and the item defs. A herb's tier matches how grand its name is
+-- (owner, 2026-10-24): "Spirit Grass" is a weed of the Inner Wilds, "Thousand-Year
+-- Ginseng" a Foundation treasure.
 Herbs.Order = {
 	-- I Common
 	"SpiritGrass",
@@ -114,16 +120,24 @@ Herbs.Order = {
 	"SpiritPeach",
 	-- III Rare
 	"SevenStarGrass",
-	"NineLeafLingzhi",
-	"ThousandYearGinseng",
 	"RiftLotus",
+	"SnowpeakLotus",
 	"EmberheartFruit",
+	"StarfallBamboo",
 	-- IV Treasure
 	"DragonbloodVine",
+	"NineLeafLingzhi",
 	"PhoenixPlumeOrchid",
-	"SnowpeakLotus",
-	"StarfallBamboo",
-	-- V Heavenly
+	"ThousandYearGinseng",
+}
+
+-- DEFERRED (owner, 2026-10-24): herbs whose names promise more than Foundation
+-- Establishment (the cap for now). Their defs and models stay, marked `deferred`,
+-- but they are out of the game: not in Herbs.Order (so no Herbarium page, shop,
+-- seed picker, Pavilion packet, seclusion find or item def), in no seed pool and no
+-- herb mutates into them. They return with the realms past FE: put them back in
+-- Order, a region pool and a mutation chain (docs/systems/progression-rules.md).
+Herbs.Deferred = {
 	"TribulationThunderGrass",
 	"NinefoldHeavenLotus",
 	"DaoOriginFruit",
@@ -206,27 +220,25 @@ Herbs.Defs = {
 		blurb = "+25% cultivation speed for 10 min",
 		scale = 1.1,
 		spacing = 2.5,
-		sellPrice = 110,
-		mutatesTo = "NineLeafLingzhi",
+		sellPrice = 45,
+		mutatesTo = "SevenStarGrass",
 		mutateChance = 0.05,
 	},
 	NineLeafLingzhi = {
 		name = "Nine-Leaf Lingzhi",
 		short = "Lingzhi",
 		rarity = "Legendary",
-		tier = 3,
-		region = "DeepWilds",
+		tier = 4,
+		region = "FarReaches",
 		color = Color3.fromRGB(255, 175, 60),
 		soil = "bed",
-		growSeconds = 7200,
+		growSeconds = 14400,
 		yield = { 1, 1 },
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 900 } } },
-		blurb = "+30% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.4, seconds = 1200 } } },
+		blurb = "+40% cultivation for 20 min",
 		scale = 1.2,
 		spacing = 3,
-		sellPrice = 600,
-		mutatesTo = "DragonbloodVine",
-		mutateChance = 0.03,
+		sellPrice = 110,
 	},
 	VioletCloudFungus = {
 		name = "Violet Cloud Fungus",
@@ -242,24 +254,24 @@ Herbs.Defs = {
 		blurb = "+15% cultivation for 5 min",
 		scale = 1,
 		spacing = 2.5,
-		sellPrice = 150,
+		sellPrice = 55,
 		wild = "AuspiciousMist",
 	},
 	ThousandYearGinseng = {
 		name = "Thousand-Year Ginseng",
 		short = "Elder Ginseng",
 		rarity = "Legendary",
-		tier = 3,
-		region = "DeepWilds",
+		tier = 4,
+		region = "FarReaches",
 		color = Color3.fromRGB(240, 120, 80),
 		soil = "bed",
-		growSeconds = 14400,
+		growSeconds = 21600,
 		yield = { 1, 1 },
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 1200 } } },
-		blurb = "+30% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.45, seconds = 1800 } } },
+		blurb = "+45% cultivation for 30 min",
 		scale = 1.6,
 		spacing = 4,
-		sellPrice = 3000,
+		sellPrice = 300,
 	},
 	JadeLotus = {
 		name = "Jade Lotus",
@@ -277,7 +289,7 @@ Herbs.Defs = {
 		spacing = 3,
 		seedCost = 60,
 		sellPrice = 14,
-		mutatesTo = "RiftLotus",
+		mutatesTo = "SnowpeakLotus",
 		mutateChance = 0.02,
 	},
 	RiftLotus = {
@@ -294,10 +306,8 @@ Herbs.Defs = {
 		blurb = "+30% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3.5,
-		sellPrice = 700,
+		sellPrice = 80,
 		wild = "HeavenSplit",
-		mutatesTo = "SnowpeakLotus",
-		mutateChance = 0.03,
 	},
 	PurpleBamboo = {
 		name = "Purple Bamboo",
@@ -379,7 +389,7 @@ Herbs.Defs = {
 		model = "DuskwindThistle",
 		standIn = "CloudMint",
 	},
-	-- III Rare: the Deep Wilds
+	-- III Rare: the Deep Wilds (Rift Lotus, Snowpeak Lotus and Starfall Bamboo too)
 	SevenStarGrass = {
 		name = "Seven-Star Grass",
 		short = "Star Grass",
@@ -396,9 +406,9 @@ Herbs.Defs = {
 		spacing = 2.5,
 		seedCost = 400,
 		soldFrom = "QR6",
-		sellPrice = 320,
+		sellPrice = 50,
 		mutatesTo = "NineLeafLingzhi",
-		mutateChance = 0.05,
+		mutateChance = 0.01,
 		model = "SevenStarGrass",
 		standIn = "SpiritGrass",
 	},
@@ -419,30 +429,32 @@ Herbs.Defs = {
 		spacing = 5,
 		seedCost = 600,
 		soldFrom = "QR6",
-		sellPrice = 260,
+		sellPrice = 45,
 		mutatesTo = "StarfallBamboo",
 		mutateChance = 0.02,
 		model = "EmberheartFruit",
 		standIn = "SpiritPeach",
 	},
-	-- IV Treasure: the Far Reaches
+	-- IV Treasure: the Far Reaches (Nine-Leaf Lingzhi and Thousand-Year Ginseng too)
 	DragonbloodVine = {
 		name = "Dragonblood Vine",
 		short = "Dragon Vine",
-		rarity = "Legendary",
+		rarity = "Epic",
 		tier = 4,
 		region = "FarReaches",
 		color = Color3.fromRGB(200, 30, 50),
 		soil = "bed",
-		growSeconds = 14400,
+		growSeconds = 10800,
 		yield = { 1, 1 },
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.4, seconds = 1200 } } },
-		blurb = "+40% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.35, seconds = 900 } } },
+		blurb = "+35% cultivation for 15 min",
 		scale = 1.3,
 		spacing = 3.5,
-		sellPrice = 1400,
-		mutatesTo = "TribulationThunderGrass",
-		mutateChance = 0.01,
+		seedCost = 1200,
+		soldFrom = "FE4",
+		sellPrice = 70,
+		mutatesTo = "PhoenixPlumeOrchid",
+		mutateChance = 0.02,
 		model = "DragonbloodVine",
 		standIn = "BloodGinseng",
 	},
@@ -460,27 +472,27 @@ Herbs.Defs = {
 		blurb = "+45% cultivation for 20 min",
 		scale = 1.3,
 		spacing = 3.5,
-		sellPrice = 2000,
+		sellPrice = 140,
 		model = "PhoenixPlumeOrchid",
 		standIn = "MoonpetalOrchid",
 	},
 	SnowpeakLotus = {
 		name = "Snowpeak Lotus",
 		short = "Snow Lotus",
-		rarity = "Legendary",
-		tier = 4,
-		region = "FarReaches",
+		rarity = "Epic",
+		tier = 3,
+		region = "DeepWilds",
 		color = Color3.fromRGB(225, 245, 255),
 		soil = "pond",
-		growSeconds = 10800,
+		growSeconds = 5400,
 		yield = { 1, 1 },
-		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.35, seconds = 900 } } },
-		blurb = "+35% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.25, seconds = 600 } } },
+		blurb = "+25% cultivation for 10 min",
 		scale = 1.2,
 		spacing = 3.5,
-		sellPrice = 1200,
-		mutatesTo = "NinefoldHeavenLotus",
-		mutateChance = 0.01,
+		sellPrice = 50,
+		mutatesTo = "RiftLotus",
+		mutateChance = 0.03,
 		model = "SnowpeakLotus",
 		standIn = "JadeLotus",
 	},
@@ -488,31 +500,28 @@ Herbs.Defs = {
 		name = "Starfall Bamboo",
 		short = "Starfall",
 		rarity = "Epic",
-		tier = 4,
-		region = "FarReaches",
+		tier = 3,
+		region = "DeepWilds",
 		color = Color3.fromRGB(90, 110, 220),
 		soil = "grove",
-		growSeconds = 14400,
-		regrowSeconds = 3600,
+		growSeconds = 7200,
+		regrowSeconds = 2700,
 		yield = { 2, 3 },
 		eat = { qi = true, buffs = { { kind = "WalkSpeed", amount = 8, seconds = 300 } } },
 		blurb = "a falling-star stride: +8 speed for 5 min",
 		scale = 1.2,
 		spacing = 3.5,
-		seedCost = 1200,
-		soldFrom = "FE4",
-		sellPrice = 500,
-		mutatesTo = "DaoOriginFruit",
-		mutateChance = 0.005,
+		sellPrice = 45,
 		model = "StarfallBamboo",
 		standIn = "PurpleBamboo",
 	},
-	-- V Heavenly: seeds only from the Far Reaches' bosses and from mutation
+	-- V Heavenly: deferred (Herbs.Deferred); past Foundation Establishment
 	TribulationThunderGrass = {
 		name = "Tribulation Thunder Grass",
 		short = "Storm Grass",
 		rarity = "Legendary",
 		tier = 5,
+		deferred = true,
 		region = "FarReaches",
 		color = Color3.fromRGB(200, 170, 255),
 		soil = "bed",
@@ -531,6 +540,7 @@ Herbs.Defs = {
 		short = "Heaven Lotus",
 		rarity = "Legendary",
 		tier = 5,
+		deferred = true,
 		region = "FarReaches",
 		color = Color3.fromRGB(255, 235, 160),
 		soil = "pond",
@@ -549,6 +559,7 @@ Herbs.Defs = {
 		short = "Dao Fruit",
 		rarity = "Legendary",
 		tier = 5,
+		deferred = true,
 		region = "FarReaches",
 		color = Color3.fromRGB(200, 255, 230),
 		soil = "grove",
@@ -571,7 +582,7 @@ Herbs.TierNumerals = { "I", "II", "III", "IV", "V" }
 -- A beast killed inside one of these Regions.luau regions drops from its pool; a
 -- beast outside them (the testbed, or a region the map doesn't have yet) uses the
 -- last region whose `from` stage is at or below the beast's realm. Bosses add
--- `bossSeeds`. Tier V seeds come only from the Far Reaches' bosses and mutation.
+-- `bossSeeds`. Deferred herbs (Herbs.Deferred) are in no pool.
 Herbs.Regions = {
 	{
 		id = "InnerWilds",
@@ -599,16 +610,16 @@ Herbs.Regions = {
 		name = "Deep Wilds",
 		tier = 3,
 		from = { "QiRefining", 6 },
-		seeds = { SevenStarGrass = 40, EmberheartFruit = 30, DuskwindThistle = 20, SpiritPeach = 10 },
-		bossSeeds = { NineLeafLingzhi = 15 },
+		seeds = { SevenStarGrass = 30, EmberheartFruit = 25, SnowpeakLotus = 15, StarfallBamboo = 15, DuskwindThistle = 15 },
+		bossSeeds = { RiftLotus = 10 },
 	},
 	{
 		id = "FarReaches",
 		name = "The Far Reaches",
 		tier = 4,
 		from = { "Foundation", 4 },
-		seeds = { StarfallBamboo = 35, SnowpeakLotus = 25, DragonbloodVine = 25, PhoenixPlumeOrchid = 15 },
-		bossSeeds = { TribulationThunderGrass = 6, NinefoldHeavenLotus = 4, DaoOriginFruit = 2 },
+		seeds = { DragonbloodVine = 40, StarfallBamboo = 25, SnowpeakLotus = 25, PhoenixPlumeOrchid = 10 },
+		bossSeeds = { NineLeafLingzhi = 15, PhoenixPlumeOrchid = 5 },
 	},
 } :: { SeedRegion }
 

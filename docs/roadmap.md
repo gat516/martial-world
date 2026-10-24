@@ -49,7 +49,8 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **PvP-adjacent competition** (section 3f).
 - **The Grow now dev product** rework ([garden review](design-reviews/garden-and-herbarium.md) rec 1).
 - **The junior disciple NPC escort** (section 3e).
-- **Legendary herb pity**, and **herbs beyond FE (tier V)**.
+- **Legendary herb pity**, and **herbs beyond FE (tier V)**: Tribulation Thunder Grass,
+  Ninefold Heaven Lotus and Dao Origin Fruit are parked (`deferred = true`, `Herbs.Deferred`).
 - **A physical heart-demon scene:** a mirror copy of the player with red eyes
   ([heart-demon](systems/heart-demon.md), "Later").
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
@@ -180,7 +181,7 @@ Herb tiers, region seeds and the Herbarium are built ([garden](systems/garden.md
   once a day; they need the map.
 - **Gifting:** walk through a friend's peak and gift a herb.
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- More herbs as regions get their maps; past tier V is deferred.
+- More herbs as regions get their maps; tier V is deferred.
 
 ## 6. Building and assets
 Peak tiers, room and the peak score are built ([build](systems/build.md)). Next:

@@ -143,6 +143,8 @@ def load_game() -> dict:
                 depth -= 1
             j += 1
         body = defs_txt[start:j]
+        if re.search(r"\bdeferred\s*=\s*true", body):
+            continue  # Herbs.Deferred: parked past Foundation, out of the game
         y = re.search(r"yield\s*=\s*\{\s*([\d.]+)\s*,\s*([\d.]+)", body)
         eat_txt = body[body.index("eat ="):] if "eat =" in body else ""
         eat_txt = eat_txt[: eat_txt.find("blurb")] if "blurb" in eat_txt else eat_txt
@@ -932,7 +934,7 @@ class Model:
                         credit("treasures", peach)
                         add(peach)
                         acq["pills"] += claims * (1 / 103 + 0.1)
-                        while acq["mut"] >= 1 and self.gs["unlocked"] < 5:
+                        while acq["mut"] >= 1 and self.gs["unlocked"] < max(h["tier"] for h in self.g["herbs"].values()):
                             acq["mut"] -= 1
                             self.gs["unlocked"] += 1
                             acq["unlocked_at"][self.gs["unlocked"]] = (key_now(), day)

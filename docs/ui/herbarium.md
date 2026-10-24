@@ -22,11 +22,14 @@ follows the record, so a harvest or reward shows at once.
   the plant's size and mutations), wild sprouts and the guarded-herb event (size 1).
   It goes to the client in the PlayerState push as `herbarium`.
 - **Discovered** = harvested or gathered once. Each discovery pays
-  `Pacing.Herbarium.DISCOVER` Spirit Stones by tier (15, 40, 120, 300, 800).
+  `Pacing.Herbarium.DISCOVER` Spirit Stones by tier (15, 40, 120, 300; tier V's 800 is parked).
 - **A tier is a page.** The player's book gives each tier its own page (blank entries
-  pad it; every tier has 3-5 herbs, so one page each, three spreads). Discovering every
+  pad it; tiers I-III have 5 herbs and IV has 4, so one page each, two spreads). Tier V
+  is deferred (owner, 2026-10-24: names past Foundation Establishment wait for those
+  realms): its herbs aren't in `Herbs.Order`, so the book has no tier V page until they
+  return. Discovering every
   herb of a tier completes the page once (`data.herbarium.tiers["<n>"]`):
-  `Pacing.Herbarium.TIER` stones (150, 400, 1200, 3000, 8000) and the Home foundation
+  `Pacing.Herbarium.TIER` stones (150, 400, 1200, 3000; 8000 parked) and the Home foundation
   experience `home:book:<tier>` ([cultivation](../systems/cultivation.md) "Foundation
   grade"). Both are toasted; the footer lists completed pages ("Complete: I II").
   First guess for the roadmap's open question (small stones plus a foundation
@@ -168,7 +171,7 @@ art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 
 ## Known gaps
 - No peak lectern opens the book yet (the review's other home for it).
-- Tier IV-V herbs have no slot icons yet (glyphs show where a herb has neither model
+- The herbs added 2026-10-23 have no slot icons yet (glyphs show where a herb has neither model
   nor icon); icons for the new herbs go on the next Codex sheet.
 - Thin herbs (Duskwind Thistle, Starfall Bamboo, Seven-Star Grass) fill little of
   the art window's width on a phone; fitted by height (critic polish note).

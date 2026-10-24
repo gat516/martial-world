@@ -135,19 +135,21 @@ Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
 ## Home, herbs and the loop (the missing link)
 The garden dies at QC6 because herb qi is flat. Fix:
 - **Herb tiers, by region.** I Common (QC), II Spirit (QR1-5), III Rare (QR6-FE3),
-  IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
+  IV Treasure (FE4-9), V Heavenly (past FE: **deferred**, owner 2026-10-24). A herb's
+  tier matches how grand its name is (Spirit Grass humble, Thousand-Year Ginseng a
+  treasure). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
   matters but never replaces hunting, with a floor per tier so early herbs stay worth
   eating (60, 150, 900, 3000, 8000 raw qi; `EAT_FLOOR`), only the floor once you're
   past the herb's band (2026-10-24: low-tier herbs stop scaling), and event herbs keep
   a bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
-  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; 22 herbs over
-  tiers I-V ([garden](systems/garden.md) has the table).
+  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; 19 herbs over
+  tiers I-IV in the game, 3 tier V herbs parked (`Herbs.Deferred`) ([garden](systems/garden.md)
+  has the table).
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out
   feeds the garden; the garden saves trips. Sect errands ask for herbs (home
   turns into quests). Built: `Herbs.Regions` pools for the Inner Wilds and Ruined
-  Borderlands (I), Outer Wastes (II), Deep Wilds (III) and Far Reaches (IV, tier V from
-  its bosses); a kill outside a seed region (and the testbed) uses the beast's realm.
+  Borderlands (I), Outer Wastes (II), Deep Wilds (III) and Far Reaches (IV); a kill outside a seed region (and the testbed) uses the beast's realm.
 - **Peak and garden tiers** gate plots and soil. The peak levels with contribution
   and realm, not stones alone.
 - **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or

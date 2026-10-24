@@ -18,6 +18,11 @@ cursor, settings and the admin panel.
   window that would reach under Roblox's top-left buttons opens with its top 62 px
   down instead, shorter if it must be (`Menus`, phone sweep 2026-10-23). The HUD steps aside while it's open, so
   the bottom has nothing to stay near.
+- Phones (user, 2026-10-24): dense interactive screens (Inventory, shops, crafting)
+  get a phone layout of their own, not the desktop one squeezed, and the whole
+  screen; buttons on touch are icons with no caption or key letter. Measure phone
+  layouts with the touch values applied: Studio's Edit view runs the PC layout (the
+  stack at `SMALL_HEIGHT_SHARE`, larger than a touch phone's `TOUCH_SMALL_SHARE`).
 - A ScrollingFrame whose rows size themselves (`AutomaticSize` Y) gets its
   `CanvasSize` from its `UIListLayout.AbsoluteContentSize` in script;
   `AutomaticCanvasSize` doesn't count those rows and leaves the list unscrollable.

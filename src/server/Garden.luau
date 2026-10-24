@@ -28,6 +28,7 @@ local Roots = require(ReplicatedStorage.Shared.Roots)
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
 local Inventory = require(script.Parent.Inventory)
@@ -209,6 +210,7 @@ function Garden.harvest(player: Player, plotId: any, plantId: any): (boolean, st
 	end
 	local base = rng:NextInteger(herb.yield[1], herb.yield[2])
 	local count = math.max(1, math.floor(base * plant.s * Herbs.multiplier(plant.m) + 0.5))
+	Foundation.harvest(player, herb, plant.m) -- a new herb tier or rare mutation (before regrowth clears it)
 	local extras = {}
 	if herb.regrowSeconds then
 		-- it stays and fruits again; weather mutations were spent on this harvest

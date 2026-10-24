@@ -18,6 +18,7 @@ local Cultivation = require(script.Parent.Cultivation)
 local CombatQi = require(script.Parent.CombatQi)
 local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Movement = require(script.Parent.Movement)
 local PlayerStun = require(script.Parent.PlayerStun)
 local Guard = require(script.Parent.Guard)
@@ -171,7 +172,8 @@ end
 
 function Combat.power(player: Player): number
 	local data = PlayerData.get(player)
-	return if data then Cultivation.stage(data).power else 1
+	-- the realm's power, then the graded foundations' bonus as its own multiplier (Foundation)
+	return if data then Cultivation.stage(data).power * Foundation.multiplier(data) else 1
 end
 
 -- The player's spirit root perk of `kind` (Roots.perk) plus their race, variant

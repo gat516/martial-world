@@ -1,8 +1,7 @@
 --!strict
 -- Technique manuals and comprehension: what kills earn beyond raw qi.
---   - the first kill of each enemy type and every boss kill are tracked (hooks for
---     Phase A's foundation experiences; they grant nothing now); the first boss
---     kill drops a manual
+--   - the first kill of each beast type and of each boss are foundation
+--     experiences (Foundation.kill: Hunt, Boss); the first boss kill drops a manual
 --   - total-kill milestones: a manual, once each
 --   - boss drop pools (Enemies `bossDrops`): a manual or weapon not owned yet,
 --     guaranteed on the first kill of that boss, then by chance
@@ -22,6 +21,7 @@ local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Weapons = require(script.Parent.Weapons)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
@@ -149,7 +149,7 @@ function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	if def.bossDrops and (firstKill or math.random() < def.bossDrops.chance) then
 		rollPool(player, data, def.bossDrops)
 	end
-	-- first kills and boss kills grant nothing yet: Phase A's foundation experiences hook here
+	Foundation.kill(player, def) -- first kills and bosses: foundation experiences (pushed below)
 	if not data.firstKills[def.id] then
 		data.firstKills[def.id] = true
 	end
@@ -171,7 +171,8 @@ function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	Cultivation.pushState(player)
 end
 
-table.insert(Weapons.onLevelUp, function(player: Player)
+table.insert(Weapons.onLevelUp, function(player: Player, class: string)
+	Foundation.dao(player, class) -- each Dao level reached is a foundation experience
 	Progression.learnReady(player)
 end)
 

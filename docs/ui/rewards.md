@@ -27,8 +27,10 @@ Card jobs (`spec.kind`):
   goes in `flavour`.
 - `milestone`: the quest card with the gold plaque, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
-  "Major Breakthrough", the stage, health/power/combat qi/passive deltas from the
-  stage before, "The <array> array is open" when the stage opens a travel array);
+  "Major Breakthrough", the subtitle "<stage>  ·  <grade> foundation" with the grade
+  the stage left earned (Cracked, Steady, Solid, Deep; [cultivation](../systems/cultivation.md#foundation-grade)),
+  health/power/combat qi/passive deltas from the stage before (the curve's, without
+  the foundation bonus), "The <array> array is open" when the stage opens a travel array);
   bloodlines and firsts later.
 
 Rules: one card at a time, queued; a card waits while another window or minigame is

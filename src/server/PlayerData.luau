@@ -57,6 +57,10 @@ export type Data = {
 	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
+	-- foundation grades (server Foundation): experience keys earned (once ever), the
+	-- weighted count this stage, each stage's grade by stage key, and whether this
+	-- stage's "unsteady" toast was shown
+	foundation: { seen: { [string]: boolean }, count: number, grades: { [string]: string }, warned: boolean },
 	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
 	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons), plus markers: RootPillUsed, Loop (the elder named the loop)
 	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
@@ -134,6 +138,7 @@ local function default(): Data
 		hotbar = Hotbar.empty({ "LightningTalisman" }),
 		firstKills = {},
 		milestones = {},
+		foundation = { seen = {}, count = 0, grades = {}, warned = false },
 		beats = {},
 		lessons = {},
 		quests = {},
@@ -290,7 +295,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

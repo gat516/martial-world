@@ -83,6 +83,14 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   `GuiService.TopbarInset`), so its top-left never crowds Roblox's menu and chat
   buttons and the bar's row stays free for toasts; the title plaque (which rides on
   the window's top edge and would reach back into the bar) is hidden there.
+  Phone fix (user's device-emulator playtest, 2026-10-23: tabs, search and sort
+  crammed, the section header cut off, the grid 30 px tall): the bar's depth counts
+  at most 58 px (the emulator reported about 130, which pushed the window's top to
+  136 px), the window runs down to 12 px above the hotbar's real top (it kept a
+  fixed 70 px, 40 px more than the hotbar needs) and is the screen less 8 px a side,
+  and without the plaque the tab and search row, the rail and sort row and the grid
+  sit 22 px higher (the grid 22 px taller). At 844x390 the window is about 734x244
+  from y 64 and the grid about 124 px: a section header and a full row of cells.
 - Measured 2026-10-23 in a sandbox preview at 1920x1080, 1366x768 (PC) and 844x390,
   667x375 (touch, 44 px top bar): window 760x500 at 580,290 / 303,134; 760x270 and
   626x255 at y 50 (6 px under the bar). Content 22 px from the window on both sides

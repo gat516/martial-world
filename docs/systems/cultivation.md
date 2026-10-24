@@ -231,7 +231,7 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
 - **Pacing.Foundation**: experience weights, per-stage targets, grade shares,
   grade bonuses, the tribulation damage per grade, the rare-mutation line, the
   world-event radius and the hint count and range.
-- **Pacing.Comprehension**: the weapon Dao to learn a technique (`CLASS_SKILL_DAO`) and
+- **Pacing.Comprehension**: the weapon Dao to learn a class skill (`SKILL_DAO` rungs 2/5/8) and
   to break each bottleneck (`DAO_PER_BOTTLENECK`), and the stones each bottleneck costs.
 - **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,
   kill and node qi), how far each method reaches, the root-match bonus, and the

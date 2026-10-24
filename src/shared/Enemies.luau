@@ -480,8 +480,8 @@ Enemies.Defs = {
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.05 },
-			{ item = "RootRebirthPill", chance = 0.08 },
+			{ item = "MarrowWashingPill", chance = 0.02 },
+			{ item = "RootRebirthPill", chance = 0.03 },
 		},
 		bossDrops = {
 			manuals = { "RampagingTiger", "HeavenSplitter", "CrescentSweep", "GreatSageAwakening" },
@@ -811,8 +811,8 @@ if NEW_THUNDER_APE then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.08 },
-			{ item = "RootRebirthPill", chance = 0.12 },
+			{ item = "MarrowWashingPill", chance = 0.04 },
+			{ item = "RootRebirthPill", chance = 0.05 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
@@ -947,8 +947,8 @@ if NEW_JIAO then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.06 },
-			{ item = "RootRebirthPill", chance = 0.10 },
+			{ item = "MarrowWashingPill", chance = 0.02 },
+			{ item = "RootRebirthPill", chance = 0.03 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
@@ -1059,8 +1059,8 @@ if NEW_NINE_TAIL_FOX then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.08 },
-			{ item = "RootRebirthPill", chance = 0.12 },
+			{ item = "MarrowWashingPill", chance = 0.04 },
+			{ item = "RootRebirthPill", chance = 0.05 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,

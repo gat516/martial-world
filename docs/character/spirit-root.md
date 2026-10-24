@@ -55,26 +55,42 @@ gets the sky burst. A short glow on the stone when `first` is false.
 Mortal grade means no root at all, so nobody is told their root is trash.
 - Spirit -> Earth -> Heaven raises passive and refining speed (roughly x1.0,
   x1.1, x1.25) and strengthens the element perk.
-- Raised by the **Marrow Washing Pill** (built: Legendary, `Items.luau`; 5% from
-  the Elder Wolf King, and a rare heavenly treasure). Later also alchemy and the
+- Raised by the **Marrow Washing Pill** (built: Legendary, `Items.luau`), and it
+  takes several: **3 to reach Earth, 5 more for Heaven** (`Pacing.Roots.WASH`).
+  Each absorbed pill adds one to the current element's washing progress
+  (`root.washed[element]`, `Roots.wash`); reaching the count raises the grade and
+  clears it. The Spirit Root page shows the progress ("Washed 1/3 toward Earth
+  grade") on the root row and the pill row.
+- **Extremely rare (user, 2026-10-23: "those pills should be EXTREMELY rare and u
+  should need multiple"):** bosses only, never common beasts (Elder Wolf King and
+  Jade Jiao 2%, Thunder Ape and Nine-Tailed Fox 4%), and the rarest heavenly
+  treasure (weight 1 of 103, about 1%). Earth is a long hunt; nothing in Qi
+  Condensation realistically reaches Heaven. Later also alchemy and the
   Auspicious Clouds relic. It is a long-term goal, not a gate.
+- **Never in the hook:** everyone starts at Spirit, and the first session never
+  hands out or teaches root pills. The test kit skips them
+  (`Config.TestKit.SKIP_ITEMS`); the RootPill lesson waits for QC5 and a pill
+  actually held ([onboarding](../systems/onboarding.md)). Admin "raise grade"
+  (F2) still jumps a whole grade at once (`Roots.raiseGrade`).
 
 **Rerolls (built, decided 2026-10-21): earned, never sold.** The **Root Rebirth
-Pill** (Epic; 8% from the Elder Wolf King, and a rare heavenly treasure)
+Pill** (Epic; bosses only, 3% from the Elder Wolf King and Jade Jiao, 5% from
+the Thunder Ape and Nine-Tailed Fox, and a rare heavenly treasure, weight 2)
 reforms the root as a different element (`Roots.reroll`, rolled with the usual
 odds). The new element waits in `data.root.pending` and the player chooses:
 keep it, or return to the old one (`Roots.choose`, `CultivationAction("root",
 keepNew)`). **Each element keeps its own grade** (decided 2026-10-21): one
 you've never held starts at Spirit, and one you held before comes back at the
 grade it reached (`Roots.switch` saves the old element's grade in
-`root.grades`; `Roots.gradeOf`). Marrow Washing raises only the current element.
+`root.grades`; `Roots.gradeOf`). Marrow Washing washes only the current element,
+and each element keeps its own washing progress.
 The pending row shows the new element's own grade. So a reroll trades grade for
 element; returning costs nothing, so it can never leave you worse off
 (principle 5), and it isn't gacha: no Robux, and you can always say no.
 Both pills are absorbed seated in meditation (`Inventory.use`, item uses
 `rootGrade` / `rootReroll`), from the meditation menu's Spirit Root page.
 
-**Data:** `data.root = { element: string, grade: string, pending: string, grades: { [element]: grade } }` (schema v6; `pending` and `grades` filled by default); `""`
+**Data:** `data.root = { element: string, grade: string, pending: string, grades: { [element]: grade }, washed: { [element]: pills } }` (schema v6; `pending`, `grades` and `washed` filled by default); `""`
 element = not yet tested; `grade` is the current element's, `grades` the others'
 (saves from before 2026-10-21 have none recorded, so earlier elements read as Spirit). Tuning in `Pacing.Roots`. Pushed in `PlayerState`
 (`root`); published as player attributes `Root` and `RootGrade` for others'

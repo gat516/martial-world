@@ -586,6 +586,12 @@ Pacing.Roots = {
 		Ice = 0.06, -- share cut from damage taken
 	} :: { [string]: number },
 	MATCH = 0.15, -- share added to techniques of your root's element
+	-- Marrow Washing Pills absorbed to reach each grade from the one below (kept
+	-- per element in root.washed). Pills are boss and treasure drops at a few
+	-- percent (Enemies drops, Items treasureWeight), so Earth is a long hunt and
+	-- Heaven (3 + 5 = 8 pills) is a Foundation-and-beyond goal (user, 2026-10-23:
+	-- "should be hard to get one")
+	WASH = { Earth = 3, Heaven = 5 } :: { [string]: number },
 }
 
 -- BEAST DANGER (client EnemyBars; docs/systems/enemies.md). A regular demon

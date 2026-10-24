@@ -136,7 +136,7 @@ Items.Defs = {
 		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 1.0, seconds = 600 } } },
 		treasureWeight = 10,
 	},
-	-- spirit root pills: rare drops (the Elder Wolf King) and treasures
+	-- spirit root pills: rare boss drops (2-5%) and rare treasures, never common beasts
 	MarrowWashingPill = {
 		id = "MarrowWashingPill",
 		name = "Marrow Washing Pill",
@@ -144,10 +144,10 @@ Items.Defs = {
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 215, 120),
 		glyph = "髓",
-		blurb = "Absorb it while meditating: your spirit root grows one grade purer",
-		lore = "It burns the impurities from bone and marrow. Few roots stay the same after one.",
+		blurb = "Absorb it while meditating to wash your spirit root. Enough of them raise it a grade",
+		lore = "It burns the impurities from bone and marrow. One is a rare fortune; a root changes only after several.",
 		use = { rootGrade = true },
-		treasureWeight = 4,
+		treasureWeight = 1,
 	},
 	RootRebirthPill = {
 		id = "RootRebirthPill",
@@ -159,7 +159,7 @@ Items.Defs = {
 		blurb = "Absorb it while meditating: your root reforms as another element. Keep either",
 		lore = "For a moment your root dissolves, and heaven decides again.",
 		use = { rootReroll = true },
-		treasureWeight = 5,
+		treasureWeight = 2,
 	},
 } :: { [string]: Item }
 

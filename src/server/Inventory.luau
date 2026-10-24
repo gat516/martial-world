@@ -169,7 +169,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 		Weapons.addXp(player, Weapons.class(player), use.daoXp)
 	end
 	if use.rootGrade then
-		Roots.raiseGrade(player)
+		Roots.wash(player) -- several pills per grade (Pacing.Roots.WASH)
 	end
 	if use.rootReroll then
 		Roots.reroll(player)

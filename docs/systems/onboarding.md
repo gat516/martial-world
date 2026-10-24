@@ -150,11 +150,13 @@ master, the Halls, seclusion, rifts, the heart demon) and FE (refinement, treasu
   your root"), each with the pointer and callout, the objective reading
   "Meditate, open Spirit Root and absorb the pill". It ends for good once a pill
   is absorbed (the held count drops: `data.lessons.RootPillUsed`). It waits for
-  free play, never stepping in during the beats (user, 2026-10-24: a pill
-  absorbed mid-tutorial purified the root the Testing Stone had just revealed,
-  which made no sense). Root pills are rare (the Elder Wolf King, treasures), and
-  the Studio test kit leaves them out (`Config.TestKit.SKIP_ITEMS`); admins give
-  them from the F2 panel.
+  free play **and QC5** with a pill actually held, never stepping in during the
+  hook (user, 2026-10-23: "pill eating made no sense during onboarding. do not
+  give me a heaven grade spirit root at the start"). Root pills are extremely
+  rare boss and treasure drops and a grade takes several
+  ([spirit root](../character/spirit-root.md)), so most players meet this long
+  after the hook; the Studio test kit leaves them out
+  (`Config.TestKit.SKIP_ITEMS`); admins give them from the F2 panel.
 - **Guides** (`QuestState.guide`), computed per tick from where the player is
   and what they're doing: e.g. Circulate spotlights Cultivate (dim), then the
   seated Circulate tile; Root spotlights Travel -> Main Peak, then walks to the

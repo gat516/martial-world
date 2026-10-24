@@ -11,8 +11,15 @@ local Pacing = require(script.Parent.Pacing).Roots
 -- element "" = not tested yet; grade = that element's; pending = a rerolled
 -- element waiting for the player to keep it or return to `element` ("" = none);
 -- grades = the grade each other element held reached while it was the root
--- (one never held starts at STARTING_GRADE)
-export type Root = { element: string, grade: string, pending: string, grades: { [string]: string } }
+-- (one never held starts at STARTING_GRADE); washed = Marrow Washing Pills each
+-- element has absorbed toward its next grade (Pacing.Roots.WASH; reset when it rises)
+export type Root = {
+	element: string,
+	grade: string,
+	pending: string,
+	grades: { [string]: string },
+	washed: { [string]: number }?,
+}
 
 -- What an element's perk changes (amounts in Pacing.Roots.PERKS):
 --   technique  share added to technique damage
@@ -57,7 +64,7 @@ Roots.Order = { "Fire", "Water", "Wood", "Metal", "Earth", "Lightning", "Wind", 
 Roots.GradeOrder = { "Spirit", "Earth", "Heaven" }
 
 function Roots.new(): Root
-	return { element = "", grade = Pacing.STARTING_GRADE, pending = "", grades = {} }
+	return { element = "", grade = Pacing.STARTING_GRADE, pending = "", grades = {}, washed = {} }
 end
 
 -- The grade `element` has (or would come back at) for this player.
@@ -122,6 +129,14 @@ function Roots.roll(rng: Random): string
 		end
 	end
 	return Roots.Order[1]
+end
+
+-- Marrow Washing Pills the current element has absorbed toward its next grade,
+-- and how many that grade needs (nil at the top).
+function Roots.washed(root: Root): (number, number?)
+	local nextGrade = Roots.nextGrade(root.grade)
+	local done = if root.washed then root.washed[root.element] or 0 else 0
+	return done, if nextGrade then Pacing.WASH[nextGrade] else nil
 end
 
 -- The grade above `name`, or nil at the top.

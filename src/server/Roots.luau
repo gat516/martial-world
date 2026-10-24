@@ -80,7 +80,8 @@ function Roots.cantReroll(data: PlayerData.Data): string?
 	return nil
 end
 
--- Raise a tested root one grade (Marrow Washing Pill, admin). Returns false at the top.
+-- Raise a tested root one grade at once (admin; Marrow Washing Pills go through
+-- Roots.wash). Clears that element's washing progress. Returns false at the top.
 function Roots.raiseGrade(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
 	local why = if data then Roots.cantRaise(data) else "Still loading"
@@ -89,10 +90,35 @@ function Roots.raiseGrade(player: Player): (boolean, string?)
 	end
 	local nextGrade = RootDefs.nextGrade(data.root.grade) :: string
 	data.root.grade = nextGrade
+	local washed = data.root.washed or {}
+	data.root.washed = washed
+	washed[data.root.element] = nil
 	publish(player, data)
 	Cultivation.applyStats(player, data)
 	Cultivation.pushState(player)
 	Cultivation.notify(player, `Your spirit root grows purer: {nextGrade}-grade {data.root.element}!`)
+	return true, nil
+end
+
+-- One Marrow Washing Pill absorbed: the root's washing progress goes up, and
+-- once it reaches Pacing.Roots.WASH for the next grade the root rises a grade.
+function Roots.wash(player: Player): (boolean, string?)
+	local data = PlayerData.get(player)
+	local why = if data then Roots.cantRaise(data) else "Still loading"
+	if not data or why then
+		return false, why
+	end
+	local done, need = RootDefs.washed(data.root)
+	done += 1
+	if done >= (need or 1) then
+		return Roots.raiseGrade(player)
+	end
+	local washed = data.root.washed or {}
+	data.root.washed = washed
+	washed[data.root.element] = done
+	Cultivation.pushState(player)
+	local nextGrade = RootDefs.nextGrade(data.root.grade) :: string
+	Cultivation.notify(player, `The pill burns through your marrow. Your root is washing toward {nextGrade} grade ({done}/{need}).`)
 	return true, nil
 end
 

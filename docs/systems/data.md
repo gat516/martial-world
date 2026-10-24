@@ -83,7 +83,7 @@ cheap.
 - **Progression**: path "Realm", see [cultivation](cultivation.md).
 - **Economy** (currency, source/sink, SKU): `SpiritStones` sources Kill, QiNode,
   Quest (beat and lesson rewards), SectDaily, SectChain, SectRank,
-  HerbariumNew, HerbariumTier, Seclusion (the whole tally at its end),
+  HerbariumNew, HerbariumTier,
   HerbSell, AuspiciousRelic, SpillReclaimed; sinks Herbalist (seeds), Decor
   (build shop), Comprehend, DeathSpill, Fled. `RawQi` sources Kill, QiNode,
   Quest, DailyQi, HerbEaten, ItemUsed, SpillReclaimed; sinks Refine
@@ -97,7 +97,8 @@ cheap.
   the last one; realm), `TribulationResult` (1/0), `Death` (what killed them),
   `OfflineQiClaimed`, `SessionLength`, `QuestClaimed` (quest id),
   `MethodGained`, `RootTested` (element), `SeclusionEntered` (first/again),
-  `SeclusionEnded` (minutes counted), `SectTask` (taken/claimed; daily kind or
+  `SeclusionEnded` (minutes counted), `FoundationTempered` (stages mended in seclusion;
+  item id), `SectTask` (taken/claimed; daily kind or
   chain), `PartyFormed` (size; new/joined, logged for the leader), `StoreAll`
   (stones banked), `SpillReclaimed` (seconds left on the spill),
   `HeartDemonFaced` (denials; major; calm/whispers), `SurgeFired` (raw qi spent;

@@ -1,5 +1,7 @@
 # Review: the heart-demon trial
 
+**Owner's decision (2026-10-24):** keep the honesty scoring (denials still reduce tempering) and the judging lines. Rec 3 applied: a bigger, visible payoff (50 points a stage, mending to 100%; a calmed trial deepens one stage past it; a milestone card shows each stage before -> after), plus the Clear Heart Pill ([heart-demon](../systems/heart-demon.md#outcome)).
+
 **Verdict: keep with changes.** The writing is the best in the game: short, evocative, built from the player's own record ("312 Spirit Wolves. Do their howls follow you?"). But the "honesty" test is a reading check whose answer is printed in the question. Its reward is about +1.5% power. A few honest answers shame the gardener and the solo kid. Reviewed 2026-10-23 from heart-demon.md and `HeartDemon.luau`; nothing played.
 
 ## Why it exists / who it's for

@@ -75,10 +75,12 @@ path, fear/pride and one more.
 8. **The Herbarium** (herbs discovered >= `HERB_MIN` = 5, read from `data.herbarium`):
    "14 of 30 herbs written in your book. One page full. What were you looking for?"
    (denial: "I never stopped to look.").
-9. **Root pills** (washing + rebirth pills >= `ROOT_MIN` = 1,
-   [spirit root](../character/spirit-root.md)): "You burned your marrow with 3 pills, and
-   remade your root once. Were you not enough as you were?" (denial: "I'm content as I
-   am.").
+9. **Root pills and tempering** (washing + rebirth pills >= `ROOT_MIN` = 1,
+   [spirit root](../character/spirit-root.md), or stages mended in seclusion,
+   `stats.tempered` >= `TEMPERED_MIN` = 3): "You burned your marrow with 3 pills, and
+   remade your root once." and/or "In seclusion you mended 4 old foundations with herbs
+   and pills." then "Were you not enough as you were?" (denial: "I'm content as I
+   am."). Weight: the louder of the two counts.
 10. **Seclusion** (from `SECLUDED_MIN_HOURS` = 8 h in [seclusion](seclusion.md), online
     and offline): "You sat in seclusion for 40 hours. Were you hiding?" (gathering or
     "the world is loud", honest; denial: "I never shut myself away.").
@@ -106,13 +108,34 @@ Heart notes are verb phrases ("remembered every beast you slew") so any second q
 joins the path's line.
 
 ## Outcome
-`HeartDemon.answer` counts denials. Steps = `max(TEMPER_ROUGH, TEMPER_CALM - denials)`
-(3 with none, 2 with one, else 1). `Foundation.temper` raises that many old stages
-25 points of foundation percent each, lowest first (ties: the earliest stage), never past 150%, never lowering any;
-`applyStats` refreshes the Foundation bonus. No denials: "The demon was calmed." The
-closing lines name what was tempered ("Qi Condensation 5 is now 125%, ...", the percent
-only) or say there was nothing to temper ("You have no old foundations yet." /
-"Your old foundations are all 150% or more.").
+`HeartDemon.answer` counts denials (a Clear Heart Pill taken before forgives one).
+Steps = `max(TEMPER_ROUGH, TEMPER_CALM - denials)` (3 with none, 2 with one, else 1).
+`Foundation.temper` raises that many old stages **50 points** each (`TEMPER_POINTS`),
+lowest first (ties: the earliest stage), **never past 100%** (tempering mends; past
+100% is earned only, [cultivation](cultivation.md#foundation-grade)), never lowering any.
+A **calmed** trial (no denials) also **deepens** one old stage past 100%:
+`Foundation.deepen(data, DEEPEN_CALM 20, "heartDemon")`, the lowest stage already at 100%+,
+up to `DEEPEN_MAX` (130): the reward for honesty. `applyStats` refreshes the Foundation
+bonus. No denials: "The demon was calmed." The closing lines name what was tempered
+("Qi Condensation 5 is now 100%, ...") and deepened ("Your honesty runs deep: Qi
+Refining 2 deepens to 125%."), or say there was nothing to temper ("You have no old
+foundations yet." / "Your old foundations are all whole. Past 100%, only living
+teaches.").
+
+**The payoff, visible** (owner, 2026-10-24; design review rec 3): when the dialogue
+closes a milestone card (Effect "reward", Rewards kind `milestone`, its rays as the
+burst) shows "Heart Demon Calmed" (or "Faced"), the major, a row per stage raised
+before -> after ("QC5  50% -> 100%"), "+N% health and power from your foundations" and
+the Dao heart. The honesty scoring and the judging lines stay (owner).
+
+**The Clear Heart Pill** (Epic, `ClearHeartPill`; absorbed while meditating,
+`HeartDemon.cantClear` / `clear`). With a trial open (unfaced), it sets
+`data.heartDemon.clear`: the next trial forgives one denial, so an honest-but-imperfect
+run tempers more (and can still calm, and deepen). With none open, it reopens the latest
+uncalmed trial once (`data.heartDemon.retake`; the seat offers it again): the retake
+tempers only the steps the better result adds, deepens if it's newly calmed, and keeps
+the better record (`retaken = true`). Refused when it would do nothing. Sources: bosses
+3% (`CLEAR_BOSS_CHANCE`), the Pavilion one a week (250 contribution); never for Robux.
 
 **Dao heart** ([titles](titles.md); design review rec 1): each path answer carries a
 `title`, and the one chosen picks the trial's Dao-heart title (hunter: Heart of the
@@ -122,7 +145,8 @@ road: Heart of Stillness). A denial picks the road the record shows, so the titl
 never a penalty. The closing lines end "Your Dao heart: <name>.", and the trial's
 state push grants it. A calmed trial also grants Calm Heart.
 
-Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at, title }`.
+Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at, title, retaken }`
+(`tempered` counts stages tempered and deepened).
 `note` is the heart line the player keeps, from the first two answers: "You walked the
 blade's road, and remembered every beast you slew. The demon was calmed." Sent in
 `PlayerState.heartDemon.trials`; the Self card's Heart demon section shows the latest
@@ -144,11 +168,12 @@ note and every trial's in its detail ([character window](../character/character-
     `Peaks.refreshScore`).
   - `elites`, `apexes` (variant tier of the kill, `Progression.onKill`).
   - `washed` (`Roots.wash`, Marrow Washing Pills), `rerolls` (`Roots.reroll`, Root
-    Rebirth Pills).
+    Rebirth Pills), `tempered` (stages mended in seclusion, Seclusion.luau).
   - The Herbarium needs no counter: discovered herbs and full pages are
     `data.herbarium.herbs` / `.tiers`.
   `secluded` (seconds in seclusion, online and offline, Seclusion.luau) and `partied`
-- `data.heartDemon = { trials = {}, declined = {} }`.
+- `data.heartDemon = { trials = {}, declined = {}, clear = false, retake = "" }` (the
+  Clear Heart Pill's forgiveness and reopened trial).
 - Remotes: `CultivationAction` "heartDemon" (start, seated only: `{ major, name,
   questions = { { lines, answers = { { text, reply } } } } }`, honesty stays on the
   server), "heartDemonAnswer" (one answer index per question -> `{ calm, lines, note,
@@ -156,18 +181,21 @@ note and every trial's in its detail ([character window](../character/character-
   snoozed, trials }`.
 
 ## Files
-`src/server/HeartDemon.luau` (questions, outcome, state), `src/server/Foundation.luau`
-(`temper`, `rank`), `src/client/HeartDemon.luau` (offers, the dialogue run), hooks in
+`src/server/HeartDemon.luau` (questions, outcome, payoff card, the Clear Heart Pill,
+state), `src/server/Foundation.luau` (`temper`, `deepen`, `temperStats`), `Inventory.luau`
+(the pill's use, boss drops), `Sect.luau` (the Pavilion's pill), `src/client/HeartDemon.luau` (offers, the dialogue run), hooks in
 Cultivation (seat check, refresh, `seated`), Circulation (actions), Meditation
 (client: on seated, Break Through), Progression (slain, tiers), Garden, Main, QiSurge, Titles (the Dao heart),
 Haul, Build, Peaks, Roots, Seclusion. Admin: F2 panel Player
 chips "Realm QC9", "Realm QR9" and "Reset heart demons" (`heartReset`).
 
 ## Tuning
-`Pacing.HeartDemon`: `QUESTIONS`, `TEMPER_CALM`, `TEMPER_ROUGH`, `HARVEST_WEIGHT`,
+`Pacing.HeartDemon`: `QUESTIONS`, `TEMPER_CALM`, `TEMPER_ROUGH`, `CLEAR_BOSS_CHANCE`,
+`DEEPEN_CALM`, `TEMPERED_MIN`, `HARVEST_WEIGHT`,
 `HUNTER_SHARE`, `GARDENER_SHARE`, `LEAN_MIN`, `SLAIN_MIN`, `STILL_MIN_HOURS`, `SECLUDED_MIN_HOURS`,
 `SURGE_MIN`, `DANGER_MIN`, `HAUL_LOST_MIN`, `HAUL_LOST_WEIGHT`, `HAUL_STORED_MIN`, `BUILD_MIN`,
-`WANDER_MAX`, `HERB_MIN`, `ROOT_MIN`, `WEIGHT_CAP`, `OFFER_COOLDOWN`. Lines and answers are in `HeartDemon.luau`.
+`WANDER_MAX`, `HERB_MIN`, `ROOT_MIN`, `WEIGHT_CAP`, `OFFER_COOLDOWN`; `Pacing.Foundation`
+`TEMPER_POINTS` (50), `TEMPER_MAX` (100), `DEEPEN_MAX` (130). Lines and answers are in `HeartDemon.luau`.
 
 ## Keeping it current
 The trial is only as good as what it remembers (user, 2026-10-23: "when we add new
@@ -177,8 +205,8 @@ system that says something about how a player plays adds, in the same commit:
 2. a question, or answers on an existing one, built from it in `HeartDemon.luau`,
    with one answer the record contradicts;
 3. a line in "The questions" above, and a weight so the picker can rank it.
-Open now: nothing (brought current 2026-10-23: surge, haul, peak, Herbarium, tiers, root
-pills, seclusion, the sect's dailies).
+Open now: nothing (brought current 2026-10-24: surge, haul, peak, Herbarium, tiers, root
+pills, seclusion and its tempering, the sect's dailies).
 
 ## Known gaps
 - **Later (user, 2026-10-23): a real heart-demon sequence.** Not only dialogue: a

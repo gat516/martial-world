@@ -483,6 +483,15 @@ function I.RootRebirthPill(m)
 	end
 end
 
+-- Recoloured pills (2026-10-24, code-only; not yet built or exported, see docs/systems/item-models.md)
+function I.TemperingPill(m)
+	pill(m, 0.4, C(205, 170, 120), C(120, 90, 55), C(235, 205, 150))
+end
+
+function I.ClearHeartPill(m)
+	pill(m, 0.4, C(150, 210, 235), C(240, 250, 255), C(190, 235, 255))
+end
+
 function I.LesserSpiritCore(m)
 	core(m, 0.6, C(110, 225, 205), C(200, 255, 245))
 end
@@ -532,12 +541,14 @@ function I.ImmortalPeach(m)
 	end
 
 local ITEM_ORDER = {
-	"MarrowWashingPill", "RootRebirthPill", "LesserSpiritCore", "GreaterSpiritCore",
+	"MarrowWashingPill", "RootRebirthPill", "TemperingPill", "ClearHeartPill", "LesserSpiritCore", "GreaterSpiritCore",
 	"HeavenlyDew", "CloudPatternJade", "ImmortalPeach",
 }
 local ITEM_REASON = {
 	MarrowWashingPill = "light pass: parts; needs a moulded pill with a spiral pattern and a glow vfx",
 	RootRebirthPill = "light pass: parts; needs a moulded pill with a taiji pattern and a glow vfx",
+	TemperingPill = "light pass: the Marrow pill recoloured earth-brown; needs a moulded pill with a carved base-stone (基) pattern and a warm glow vfx",
+	ClearHeartPill = "light pass: the Marrow pill recoloured pale water-blue; needs a moulded translucent pill with a ripple pattern and a cool glow vfx",
 	LesserSpiritCore = "light pass: parts; needs a cut-gem mesh and an inner pulse vfx",
 	GreaterSpiritCore = "light pass: parts; needs a cut-gem mesh and an inner pulse vfx",
 	HeavenlyDew = "light pass: parts; needs a droplet mesh and a shimmer vfx",

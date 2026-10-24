@@ -54,20 +54,23 @@ sheet). Built by `tools/seclusion_ui_build.luau` (sandbox; then export the Scree
   plaque sliced taller (`toast_plaque`, Rect(48, 47, 464, 49), SliceScale 0.62, 58 px,
   sized to its content) just under the toast (84 baseline px down on PC, 72 on a phone;
   user, 2026-10-24: it sat too low at 18.5 %), centred: the lotus, the elapsed time
-  (Fredoka 32, the hero), a gold rule, then what has gathered, dimmer: stones (always),
-  finds and the garden ("Tended", or the number of plants that mutated) only once there
-  are any. Under it, on a soft dark backing (`fx_glow` tinted near black), the streak's
-  seven day pips (`gem_jade` lit, `gem_grey` at 0.35; today's pip half-lit at 0.55 until
-  `STREAK_MIN_HOURS` is sat, labelled "Day 3 · 18m left") and "Rise to leave". Shown
+  (Fredoka 32, the hero), a gold rule, then what has gathered, dimmer: finds and the
+  garden ("Tended", or the number of plants that mutated) once there are any. Under it,
+  on a soft dark backing (`fx_glow` tinted near black), the tempering line in the old
+  streak row's label ("Tempering Qi Condensation 5 · 2:41", "2 old foundations mended",
+  or "Absorb a herb or pill to temper"; the stones chip and the seven pips are hidden in
+  code since the streak and trickle were cut, 2026-10-24) and "Rise to leave". Shown
   while `Secluded`, hidden while any window is open or the calm view is on; it fades
-  (`Motion.setShown`). Reads the `Seclusion*` player attributes the server publishes.
+  (`Motion.setShown`). Reads the `Seclusion*` player attributes the server publishes
+  ([seclusion](../systems/seclusion.md#ui) has the state shape). **Next:** the
+  ui-designer slims the plaque to that state (no stones chip, no pips).
   Icons are margined display-sized copies (`art/ui/sized/*_h48/_h64`, edge-margin lint).
   Phone (`Device` 0.62): 248x32 px at 844x390, 17 px under the top buttons; time 17.6 px,
   the smallest text 11.0 px. Chosen over a frameless dark-shade column (twice the
   height on a phone) by two critics, 2026-10-23.
-- **Seclusion card**: Rewards kind `seclusion` ([reward banners](rewards.md)), with
-  `Templates.SeclusionStreak` (the pips and a line, 22 px) in its body. The first
-  seclusion shows empty pips and "An hour a day builds a streak".
+- **Seclusion card**: Rewards kind `seclusion` ([reward banners](rewards.md)): finds,
+  seeds and the garden as tiles, a stats row per stage mended, Cultivation, a flavour
+  line. No streak row any more (`Templates.SeclusionStreak` is unused on the card).
 - **Row icon**: the meditation panel's Seclusion row uses the kit's `emblem_peak`
   (your own peak), untinted; the lotus stays the calm toggle's and the card's crest.
 

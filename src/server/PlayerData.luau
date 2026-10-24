@@ -47,9 +47,13 @@ export type HerbRecord = { n: number, l: number, m: { string } } -- one Herbariu
 -- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
 -- the heart line the player keeps (the Self card), and os.time()
 -- and the Dao-heart title its path answer picked (Shared.Titles id; nil before titles)
-export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string? }
-export type SeclusionTally = { stones: number, frac: number, cultivation: number, items: { [string]: number }, seeds: { [string]: number }, mutations: number, growth: number }
-export type Seclusion = { since: number, counted: number, online: number, start: number, rolled: number, tally: SeclusionTally, streak: number, streakDay: number, first: boolean }
+-- retaken: faced again once through a Clear Heart Pill (only the better result counts)
+export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string?, retaken: boolean? }
+export type SeclusionTally = { cultivation: number, items: { [string]: number }, seeds: { [string]: number }, mutations: number, growth: number, tempered: { { key: string, fromPercent: number, toPercent: number } }? }
+export type Seclusion = {
+	since: number, counted: number, online: number, start: number, rolled: number, tally: SeclusionTally, first: boolean,
+	temper: string, temperAt: number, temperDay: number, temperDayN: number, temperWeek: number, temperWeekN: number,
+}
 
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
@@ -98,6 +102,7 @@ export type Data = {
 		grades: { [string]: any },
 		warned: boolean,
 		deeds: { kills: { [string]: number }, herbs: { [string]: boolean }, done: { [string]: boolean } },
+		deepened: { [string]: number }, -- old stages deepened past 100%, by source (Foundation.deepen)
 	},
 	-- the Herbarium (server Herbarium): per herb id, n harvested in all, l the largest
 	-- size seen, m the mutation ids seen; tiers: herb tiers whose page is complete
@@ -143,6 +148,7 @@ export type Data = {
 		elites: number, -- elite-tier beasts slain (realm variants, Progression.onKill)
 		apexes: number, -- apex-tier beasts slain
 		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
+		tempered: number, -- old stages tempered in seclusion (Seclusion; the heart demon's not counted)
 		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
 		partied: number, -- seconds in a party with a member nearby (server Party)
 		sheltered: number, -- kills party members earned under this player's shelter (Shelter.credit)
@@ -155,14 +161,18 @@ export type Data = {
 	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
 	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
 	-- seconds of it spent online; start = cultivation when it began; rolled = hourly
-	-- rare rolls made; tally = what this one has earned so far (stones and the
-	-- fractional stone, cultivation, finds by id, seeds by id, mutations, plants tended);
-	-- streak days and the day (os.time() // 86400) last counted; first = the
-	-- onboarding's first seclusion is done
+	-- find rolls made (one each Pacing.Seclusion FIND_SECONDS); tally = what this one has
+	-- earned so far (cultivation, finds by id, seeds by id, mutations, plants tended,
+	-- stages tempered); first = the onboarding's first seclusion is done; temper = the
+	-- tempering item absorbed and settling ("" none) and temperAt = the `counted` second
+	-- it settles; temperDay/temperDayN and temperWeek/temperWeekN = items absorbed that
+	-- UTC day / week (Pacing.Tempering PER_DAY, PER_WEEK)
 	seclusion: Seclusion,
 	-- heart-demon trials (server HeartDemon), by major id: the result, and when a
-	-- seat offer was last declined
-	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number } },
+	-- seat offer was last declined; clear = a Clear Heart Pill absorbed (forgives one
+	-- denial in the next trial); retake = the major whose faced trial may be faced again
+	-- ("" none)
+	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number }, clear: boolean, retake: string },
 	-- the sect (server Sect, docs/systems/sect.md): rank; contribution to spend and
 	-- earned all time; week = earned from dailies in week `weekId`; today's dailies
 	-- (day = os.time() // 86400 they were rolled, offered kinds, taken by kind:
@@ -236,7 +246,7 @@ local function startingDao(): { [string]: Dao }
 end
 
 local function newTally(): SeclusionTally
-	return { stones = 0, frac = 0, cultivation = 0, items = {}, seeds = {}, mutations = 0, growth = 0 }
+	return { cultivation = 0, items = {}, seeds = {}, mutations = 0, growth = 0, tempered = {} }
 end
 
 local function default(): Data
@@ -253,7 +263,7 @@ local function default(): Data
 		hotbar = Hotbar.empty(),
 		firstKills = {},
 		milestones = {},
-		foundation = { seen = {}, count = 0, grades = {}, warned = false, deeds = { kills = {}, herbs = {}, done = {} } },
+		foundation = { seen = {}, count = 0, grades = {}, warned = false, deepened = {}, deeds = { kills = {}, herbs = {}, done = {} } },
 		herbarium = { herbs = {}, tiers = {} },
 		beats = {},
 		lessons = {},
@@ -269,11 +279,12 @@ local function default(): Data
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
-			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0, escorts = 0,
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, tempered = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0, escorts = 0,
 			contribution = 0, dailies = 0, gathered = 0 },
-		heartDemon = { trials = {}, declined = {} },
+		heartDemon = { trials = {}, declined = {}, clear = false, retake = "" },
 		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {}, bonus = nil, bonusDay = {} },
-		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
+		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), first = false,
+			temper = "", temperAt = 0, temperDay = 0, temperDayN = 0, temperWeek = 0, temperWeekN = 0 },
 		titles = { owned = {}, equipped = "" },
 		herbs = {},
 		items = {},

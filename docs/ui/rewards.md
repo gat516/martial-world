@@ -38,10 +38,12 @@ Card jobs (`spec.kind`):
   Seclusion's card has the same kind of gate (`Pacing.Seclusion.CARD_MIN_MINUTES`).
 - `seclusion`: the milestone card (lotus crest, `rays_milestone`) for seclusion's result
   ("Seclusion Ends", or "First Seclusion" for the onboarding one): the time spent as the
-  subtitle, the stone, find, seed and garden tiles, "Cultivation from -> to", and
-  `spec.streak = { days, text }`: the Cultivation GUI's `Templates.SeclusionStreak` (seven
-  kit gems as day pips and a jade line, painted by `SeclusionView.paintStreak`) cloned
-  into the body in Unlock's place ([cultivation UI](cultivation.md#seclusion)).
+  subtitle, the find, seed and garden tiles, a stats row per foundation stage mended
+  ("QC5  60% -> 80%") and "Cultivation from -> to", and a flavour line. The server no
+  longer sends `spec.streak` (the streak was cut, 2026-10-24); its row code
+  (`Templates.SeclusionStreak`, `SeclusionView.paintStreak`) is left for the plaque
+  slimming pass to remove ([cultivation UI](cultivation.md#seclusion)). The heart demon's
+  payoff uses `milestone` with a row per stage raised.
 
 Rules: one card at a time, queued; a card waits while another window or minigame is
 open and opens when it closes. It is a `Menus` window (the HUD steps aside, shift lock

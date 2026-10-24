@@ -84,10 +84,10 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   warned opt-in; open whether they get a real perk or a smaller tax
   ([pacing review](design-reviews/pacing-and-realms.md) rec 3).
 - **The new verb per major** is not built (QR's abode is; FE's waits on refinement).
-- **Foundation:** a second catch-up road besides the heart-demon trial (seclusion
-  tempering or a band revisit; [seclusion](systems/seclusion.md) says seclusion
-  doesn't temper today, so decide), the Cultivate-window line, and QR/FE hunts once
-  variants ship to the main map (section 8).
+- **Foundation:** the second catch-up road is built (seclusion tempering with herbs and
+  pills, to 100%; [seclusion](systems/seclusion.md#tempering)). Open: the next deepening
+  sources (heaven-and-earth treasures, feats above your realm; `Foundation.deepen`), the
+  Cultivate-window line, and QR/FE hunts once variants ship to the main map (section 8).
 - **The haul:** a dedicated spirit-light for the spill (vfx), and materials joining the
   haul once they exist ([haul](systems/haul.md)).
 
@@ -284,8 +284,9 @@ Recommendations the owner hasn't built or declined yet ([design reviews](design-
 - **Qi surge** (the 90% gate stays): teach it once, scripted; its own PC key.
 - **Seclusion and AFK:** logging out on your peak counts as seclusion; show AFK on the
   calm view; mutations roll offline too, and Wood's growth perk offline.
-- **Heart demon:** curious, not accusing, judging lines; visible tempering on the
-  closing screen; "may add a question" and a pool cap of about 8.
+- **Heart demon:** curious, not accusing; "may add a question" and a pool cap of about
+  8. (Visible tempering is built: the milestone payoff card; the owner keeps the judging
+  lines and honesty scoring.)
 - **Pacing:** a post-FE9 loop before FE ships; the QR5 aura objective line; a toast the
   first time a hit is suppressed.
 - **Combat and techniques:** arts as seals in the touch cluster (and seal art for the

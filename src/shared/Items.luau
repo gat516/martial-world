@@ -16,6 +16,12 @@
 --   rootGrade         raise the spirit root one grade (absorbed while meditating)
 --   rootReroll        reform the root as another element; the player then keeps
 --                     the new one or returns to the old (Roots.reroll / choose)
+--   temper            absorbed in seclusion: mends the lowest old foundation
+--                     (points in Pacing.Tempering.POINTS, which also lists the herbs
+--                     that temper when eaten in seclusion; server Seclusion)
+--   heartClear        absorbed while meditating: forgives one denial in the next
+--                     heart-demon trial, or lets the latest uncalmed one be retaken
+--                     (Pacing.HeartDemon; server HeartDemon)
 -- Herbs are stored in data.herbs (the garden fills it); everything else in data.items.
 
 local Herbs = require(script.Parent.Herbs)
@@ -31,6 +37,8 @@ export type Use = {
 	buffs: { Herbs.Buff }?,
 	rootGrade: boolean?,
 	rootReroll: boolean?,
+	temper: boolean?,
+	heartClear: boolean?,
 }
 export type Category = "Herb" | "Core" | "Treasure" | "Pill"
 export type Item = {
@@ -183,6 +191,32 @@ Items.Defs = {
 		use = { rootReroll = true },
 		treasureWeight = 2,
 	},
+	-- foundation and heart pills (docs/systems/seclusion.md "Tempering", heart-demon.md):
+	-- realm-neutral (they pay percent points, not qi), so every band's bosses drop them
+	TemperingPill = {
+		id = "TemperingPill",
+		name = "Foundation Tempering Pill",
+		short = "Temper Pill",
+		category = "Pill",
+		rarity = "Rare",
+		color = Color3.fromRGB(205, 170, 120),
+		glyph = "基",
+		blurb = "Absorb it in seclusion: in a few minutes it mends your weakest old foundation, up to 100%",
+		lore = "Ground earth-marrow and spirit clay. It fills the cracks a hurried breakthrough left.",
+		use = { temper = true },
+	},
+	ClearHeartPill = {
+		id = "ClearHeartPill",
+		name = "Clear Heart Pill",
+		short = "Heart Pill",
+		category = "Pill",
+		rarity = "Epic",
+		color = Color3.fromRGB(150, 210, 235),
+		glyph = "心",
+		blurb = "Absorb it while meditating: your heart demon forgives one lie, or lets you face it again",
+		lore = "Cool as mountain water. For a while, the voice inside is easier to hear truly.",
+		use = { heartClear = true },
+	},
 } :: { [string]: Item }
 
 -- Slot images, by item id (art/ui/icons/icon_<id>.png)
@@ -224,7 +258,7 @@ for id, icon in ICONS do
 end
 
 Items.Order = table.clone(Herbs.Order)
-for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach", "MarrowWashingPill", "RootRebirthPill" } do
+for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach", "MarrowWashingPill", "RootRebirthPill", "TemperingPill", "ClearHeartPill" } do
 	table.insert(Items.Order, id)
 end
 

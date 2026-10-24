@@ -43,7 +43,7 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
 | hunt (combat) | Thin the beasts: beasts at most `HUNT_BELOW` (2) stages under your realm (realm variants count by their spawn's realm) | 8 / 10 / 12 | 40 | 1 |
 | herbs | Herbs for the alchemy hall: bring tier `HERB_TIER` herbs (I at QC, II at QR, III at FE), handed over on claim, cheapest first | 6 | 40 | 1 |
 | gather | Draw from the qi veins: qi node gathers (`stats.gathered`) | 3 / 4 / 4 | 30 | 0.75 |
-| seclusion | Close the door: an hour in seclusion (`stats.secluded`) | 60 min | 40 | 0.75 |
+| seclusion | Close the door: 15 minutes in seclusion (`stats.secluded`; never an hour's leash) | 15 min | 40 | 0.75 |
 | store | Bring it home: one Store all that banks something | 1 | 25 | 0.5 |
 | harvest | Tend the spirit beds: plants harvested | 4 / 6 / 8 | 30 | 0.75 |
 | cache | A rumour of a cache: a world manual cache found (only offered while one is unclaimed) | 1 | 60 | 1.5 |

@@ -111,7 +111,7 @@ felt in fights.
   weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
   break a technique's bottleneck). First kills and boss kills feed `Foundation.kill`.
 - `src/server/Foundation.luau`: foundation experiences, percents, the stat bonus,
-  tempering, the per-band pools, deeds and the open-experience hints (see "Foundation grade").
+  tempering and deepening, the per-band pools, deeds and the open-experience hints (see "Foundation grade").
 - `src/server/HeartDemon.luau` + `src/client/HeartDemon.luau`: the heart-demon trial
   ([heart-demon](heart-demon.md)).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
@@ -282,11 +282,27 @@ not the foundation.
   testbed), a world event (else a treasure) not yet met in the band, more deeds and
   beasts, and a boss in range as "The fast road: defeat the <boss>" (always shown when
   one is open, replacing the last line).
-- **Tempering:** `Foundation.temper(data, steps)` raises up to `steps` old stages
-  `TEMPER_POINTS` (25) each, the lowest percent first, never past `TEMPER_MAX` (150),
-  never lowering; the [heart-demon trial](heart-demon.md) at each major's stage 9 tempers
-  up to 3 (1 to 3 by how honestly it's answered). Each change is `{ key, fromPercent,
-  toPercent }`; the trial's closing line reads "Qi Condensation 5 is now 125%".
+- **Tempering mends to 100%; past 100% is earned only** (owner, 2026-10-24: tempering
+  must not remove "the incentives to work hard and maximize your foundation"). The rules:
+  1. **Tempering** (`Foundation.temper(data, steps, points?)`) raises up to `steps` old
+     stages `points` each (default `TEMPER_POINTS` 50), the lowest percent first (ties:
+     the earliest stage), never past `TEMPER_MAX` (100), never lowering. Sources: the
+     [heart-demon trial](heart-demon.md) at each major's stage 9 (1 to 3 stages by how
+     honestly it's answered; a Clear Heart Pill forgives one denial or reopens a trial),
+     and herbs and pills absorbed in [seclusion](seclusion.md#tempering) (one stage each,
+     +10/+20, `Pacing.Tempering`, at most 2 a day and 5 a week). Each change is `{ key,
+     fromPercent, toPercent }`; `Foundation.nextTemper` names the next stage it would
+     raise and `temperStats` turns changes into card rows ("QC5  60% -> 100%").
+  2. **Deepening** (`Foundation.deepen(data, points, reason)`) is the only lift past 100%
+     that isn't lived: one old stage, the lowest already at 100% or more, rises `points`
+     up to `DEEPEN_MAX` (130). Counted by `reason` in `data.foundation.deepened`. Only
+     cultivation-themed effort deepens: a fully calmed heart demon today (`DEEPEN_CALM`
+     +20); heaven-and-earth treasures and feats above your realm are the next sources.
+  3. **Only living through a stage reaches 150%** (`MAX_PERCENT`): the experiences and
+     deeds earned while at it. A player who maximised a stage keeps a lead no temperer
+     can catch: 23 stages mended to 100% are +23% health and power, deepened to 130%
+     +51%, earned to 150% +69%.
+  4. **Never for Robux**: no tempering, deepening or pill is sold for Robux.
 - **Tribulation:** a heaven-defier's strikes deal `UNSTEADY_TRIBULATION` (1.2) x more
   while the pending percent is below `UNSTEADY_BELOW` (50).
 - **Gaps:** with `Config.Wilds.VARIANTS` off (the main map today) beasts only spawn at
@@ -294,8 +310,7 @@ not the foundation.
   done there; the rest reaches about 100% a stage. Deep Wilds and the Far Reaches aren't
   on the map, so their caches don't exist and their beasts are the bosses only. The
   Ruined Borderlands' own beasts (Stone Tortoise and the rest) aren't in an ambient
-  pack, so their elite tiers aren't hinted. Not built: tempering by seclusion, the
-  Cultivate-window line. Numbers
+  pack, so their elite tiers aren't hinted. Not built: the Cultivate-window line. Numbers
   are first guesses.
 - **Sect keys** (once ever): `world:sect:rank:<rank>` (a promotion) and
   `world:sect:chain:Borderlands` (the chain finished; [sect](sect.md)).
@@ -336,9 +351,13 @@ not the foundation.
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
 - **Pacing.Surge**: the qi surge's length, heal share, raw-qi cost share and
   once-per-engagement switch.
-- **Pacing.HeartDemon**: questions, tempering steps, path shares, offer cooldown
+- **Pacing.HeartDemon**: questions, tempering steps, the calmed trial's deepening, the
+  Clear Heart Pill's boss chance, path shares, offer cooldown
   ([heart-demon](heart-demon.md#tuning)).
-- **Pacing.Foundation**: experience weights, per-stage targets, grade shares,
+- **Pacing.Tempering**: seclusion's tempering items and points, the settle time, the
+  daily and weekly caps, the Tempering Pill's boss chance.
+- **Pacing.Foundation**: tempering (`TEMPER_POINTS`, `TEMPER_MAX` 100) and deepening
+  (`DEEPEN_MAX`), experience weights, per-stage targets, grade shares,
   grade bonuses, the tribulation damage per grade, the rare-mutation line, the
   world-event radius and the hint count and range.
 - **Pacing.Comprehension**: the weapon Dao to learn a class skill (`SKILL_DAO` rungs 2/5/8) and

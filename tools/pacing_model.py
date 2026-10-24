@@ -272,7 +272,6 @@ def load_game() -> dict:
         "PARTY_BONUS_PER_MEMBER": _num(party, "BONUS_PER_MEMBER"),
         "PARTY_BONUS_CAP": _num(party, "BONUS_CAP"),
         "DAILY_STONES": _map(sect, "DAILY_STONES"),
-        "SECLUSION_STONES": _map(secl, "STONES_PER_HOUR"),
         "SEEDS_BACK": _list(garden, "SEEDS_BACK"),
         "herbs": herbs,
         "mean_size": mean_size,
@@ -872,8 +871,7 @@ class Model:
                         credit("offline", got)
                         add(got)
                     if k == 0 and self.p["seclusion"] and self.on("seclusion"):
-                        streak = 1 + min(day - 1, 6) * 0.1
-                        earn("seclusion", hours * self.g["SECLUSION_STONES"][r["st"]["major"]] * streak)
+                        # no stone trickle or streak since the 2026-10-24 seclusion rework
                         rare = self.g["RARE"]
                         tot = sum(rare.values())
                         rolls = hours * self.g["RARE_CHANCE"]
@@ -1071,7 +1069,38 @@ def load_foundation(game_src: str | None = None) -> dict:
     return {"TARGET": tgt, "DEFAULT_TARGET": _num(f, "DEFAULT_TARGET"), "MAX_PERCENT": _num(f, "MAX_PERCENT"),
             "OVER_COST": _num(f, "OVER_COST", 1), "FIT_BELOW": _num(f, "FIT_BELOW"),
             "HUNTER": (10, 4, 2), "GARDENER": 3, "HAUL": 0.75, "DARING": 2,
-            "CARRY": 1}  # Foundation.seal: experiences past MAX_PERCENT's need carry into the next stage
+            "CARRY": 1,  # Foundation.seal: experiences past MAX_PERCENT's need carry into the next stage
+            "BONUS_TO_FULL": _num(f, "BONUS_TO_FULL"), "BONUS_PAST_FULL": _num(f, "BONUS_PAST_FULL"),
+            "TEMPER_POINTS": _num(f, "TEMPER_POINTS"), "TEMPER_MAX": _num(f, "TEMPER_MAX"), "DEEPEN_MAX": _num(f, "DEEPEN_MAX")}
+
+
+def load_tempering() -> dict:
+    """Seclusion's tempering items (Pacing.Tempering), the heart demon's steps, the
+    Pavilion's pills and seclusion's finds."""
+    pacing = _read("Pacing.luau")
+    t = _block(pacing, "Pacing.Tempering =")
+    hd = _block(pacing, "Pacing.HeartDemon =")
+    secl = _block(pacing, "Pacing.Seclusion =")
+    sect = _block(pacing, "Pacing.Sect =")
+    pills = _block(sect, "PILLS =")
+    return {"SETTLE_SECONDS": _num(t, "SETTLE_SECONDS"), "CEILING": _num(_block(pacing, "Pacing.Foundation ="), "TEMPER_MAX"),
+            "PER_DAY": _num(t, "PER_DAY"), "PER_WEEK": _num(t, "PER_WEEK"),
+            "POINTS": _map(t, "POINTS"), "BOSS_CHANCE": _num(t, "BOSS_CHANCE"),
+            "TEMPER_CALM": _num(hd, "TEMPER_CALM"), "TEMPER_ROUGH": _num(hd, "TEMPER_ROUGH"),
+            "CLEAR_BOSS_CHANCE": _num(hd, "CLEAR_BOSS_CHANCE"), "DEEPEN_CALM": _num(hd, "DEEPEN_CALM"),
+            "RARE_CHANCE": _num(secl, "RARE_CHANCE"), "RARE": _map(secl, "RARE"),
+            "FIRST_PILLS": _map(secl, "FIRST_ITEMS").get("TemperingPill", 0),
+            "PAVILION_WEEK": _num(_block(pills, "TemperingPill ="), "week")}
+
+
+# How each profile tempers (assumptions): Pavilion pills bought a week (from QC5),
+# Snowpeak Lotus / Nine-Leaf Lingzhi eaten in seclusion a week (once grown: QR6 / FE4),
+# denials in a heart-demon trial, and whether a Clear Heart Pill is used (forgives one).
+TEMPER_HABITS = {
+    "casual": {"pavilion": 0.5, "snowpeak": 0.5, "lingzhi": 0.0, "denials": 1, "clear": 0.3},
+    "regular": {"pavilion": 1.0, "snowpeak": 1.5, "lingzhi": 0.3, "denials": 0, "clear": 0.6},
+    "heavy": {"pavilion": 1.0, "snowpeak": 3.0, "lingzhi": 1.0, "denials": 0, "clear": 1.0},
+}
 
 
 def percent_for(count, target, cfg):
@@ -1228,7 +1257,110 @@ def foundation_table(game, profiles, cfg, label=""):
         pcts = [v[1] for v in per[n].values()]
         med = sorted(pcts)[len(pcts) // 2]
         print(f"  {n:8} median {med:.0f}%, mean {sum(pcts) / len(pcts):.0f}%, stages under 100%: {sum(1 for x in pcts if x < 100)}, at 130%+: {sum(1 for x in pcts if x >= 130)}")
+    if cfg.get("TEMPER_POINTS") and not label.startswith(" on the proposed"):
+        temper_table(game, profiles, tables, cfg, load_tempering())
     return tables
+
+
+def stage_bonus(pct, cfg):
+    return cfg["BONUS_TO_FULL"] * min(pct, 100) / 100 + cfg["BONUS_PAST_FULL"] * max(0, pct - 100) / (cfg["MAX_PERCENT"] - 100)
+
+
+def tempered_percents(model: "Model", result: dict, sealed: dict, name: str, cfg: dict, tcfg: dict) -> dict:
+    """Sealed percents after the heart demon (QC9, QR9, FE9: steps x TEMPER_POINTS to
+    TEMPER_MAX) and seclusion's tempering items (POINTS each to CEILING, PER_DAY /
+    PER_WEEK), applied stage by stage to the stages sealed so far, lowest first."""
+    p = model.p
+    h = TEMPER_HABITS[name]
+    reached = result["reached"]
+    grades = {}
+    used = {"items": 0.0, "points": 0.0, "wasted": 0.0, "hd": 0.0, "deep": 0.0, "capped": 0.0}
+    rare = tcfg["RARE"]
+    find_share = rare.get("TemperingPill", 0) / sum(rare.values())
+
+    def temper(points, ceiling, steps=1.0):
+        """Raise the lowest open stage(s); fractional steps credit a share."""
+        got = 0.0
+        while steps > 1e-9:
+            open_ = sorted((v, k) for k, v in grades.items() if v < ceiling)
+            if not open_:
+                break
+            v, k = open_[0]
+            share = min(1.0, steps)
+            grades[k] = min(ceiling, v + points * share)
+            got += grades[k] - v
+            steps -= share
+        return got
+
+    keys = STAGES
+    for i in range(idx("QC4"), idx("FE9") + 1):
+        key = keys[i]
+        if i > idx("QC4"):
+            prev = keys[i - 1]
+            grades[prev] = sealed[prev][1]
+        nxt = keys[i + 1] if i + 1 < len(keys) else "FE9 full"
+        day_in = reached.get(key, (0, 1))[1]
+        day_out = reached.get(nxt, (0, day_in))[1]
+        days = max(0.5, day_out - day_in + 0.5)
+        weeks = days / 7
+        # the heart demon at each major's stage 9 (the trial tempers what's sealed so far)
+        if key in ("QC9", "QR9", "FE9"):
+            denials = max(0, h["denials"] - h["clear"])
+            steps = max(tcfg["TEMPER_ROUGH"], tcfg["TEMPER_CALM"] - denials)
+            used["hd"] += temper(cfg["TEMPER_POINTS"], cfg["TEMPER_MAX"], steps)
+            # a calmed trial deepens one stage at 100%+ (the lowest) past 100%, to DEEPEN_MAX
+            calm = 1.0 if h["denials"] == 0 else (h["clear"] if h["denials"] == 1 else 0.0)
+            deep = sorted((v, k) for k, v in grades.items() if 100 <= v < cfg["DEEPEN_MAX"])
+            if deep and calm > 0:
+                v, k = deep[0]
+                grades[k] = min(cfg["DEEPEN_MAX"], v + tcfg["DEEPEN_CALM"] * calm)
+                used["deep"] += grades[k] - v
+        # seclusion's items this stage
+        fight_h = result["stage_min"].get(i, 0) * p["fight_share"] / 60
+        pills = fight_h * p["boss_per_hour"] * tcfg["BOSS_CHANCE"]
+        if idx(key) >= idx("QC5"):
+            pills += weeks * min(h["pavilion"], tcfg["PAVILION_WEEK"])
+        if p["seclusion"]:
+            pills += days * ASSUME.get("seclusion_hours", 10) * tcfg["RARE_CHANCE"] * find_share
+        if key == "QC5":
+            pills += tcfg["FIRST_PILLS"]
+        snow = weeks * h["snowpeak"] if idx(key) >= idx("QR6") else 0.0
+        ling = weeks * h["lingzhi"] if idx(key) >= idx("FE4") else 0.0
+        room = min(days * tcfg["PER_DAY"], weeks * tcfg["PER_WEEK"])
+        for pts, n in ((tcfg["POINTS"]["TemperingPill"], pills), (tcfg["POINTS"]["NineLeafLingzhi"], ling), (tcfg["POINTS"]["SnowpeakLotus"], snow)):
+            take = min(n, room)
+            used["capped"] += n - take
+            room -= take
+            if take > 0:
+                got = temper(pts, tcfg["CEILING"], take)
+                used["items"] += take
+                used["points"] += got
+                used["wasted"] += take * pts - got
+    return {"grades": grades, "used": used}
+
+
+def temper_table(game, profiles, tables, cfg, tcfg):
+    """Sealed vs tempered (heart demon + seclusion items) at FE9."""
+    print(f"\nTempering (heart demon {cfg['TEMPER_POINTS']:.0f} pts to {cfg['TEMPER_MAX']:.0f}%; seclusion items {tcfg['POINTS']} to {tcfg['CEILING']:.0f}%, {tcfg['PER_DAY']:.0f}/day {tcfg['PER_WEEK']:.0f}/week)")
+    out = {}
+    for n, prof in profiles.items():
+        m = Model(game, prof)
+        res = m.run()
+        sealed = stage_percents(tables[n], cfg)
+        t = tempered_percents(m, res, sealed, n, cfg, tcfg)
+        before = [v[1] for v in sealed.values()]
+        after = list(t["grades"].values())
+        def line(pcts):
+            med = sorted(pcts)[len(pcts) // 2]
+            return (f"median {med:.0f}%, under 100%: {sum(1 for x in pcts if x < 100)}, 130%+: {sum(1 for x in pcts if x >= 130)}, "
+                    f"bonus +{100 * sum(stage_bonus(x, cfg) for x in pcts):.0f}%")
+        u = t["used"]
+        print(f"  {n:8} sealed   {line(before)}")
+        print(f"  {'':8} tempered {line(after)}   (heart demon +{u['hd']:.0f} pts, deepened +{u['deep']:.0f}; {u['items']:.1f} items +{u['points']:.0f} pts, {u['wasted']:.0f} pts with nothing to mend, {u['capped']:.1f} over the cap)")
+        out[n] = t
+    n_st = idx("FE9") - idx("QC4")
+    print(f"  reference over {n_st} stages: all mended to 100% +{100 * n_st * stage_bonus(100, cfg):.0f}%, all deepened to {cfg['DEEPEN_MAX']:.0f}% +{100 * n_st * stage_bonus(cfg['DEEPEN_MAX'], cfg):.0f}%, all earned to {cfg['MAX_PERCENT']:.0f}% +{100 * n_st * stage_bonus(cfg['MAX_PERCENT'], cfg):.0f}%")
+    return out
 
 
 FOUNDATION_GOAL = {"casual": 95, "regular": 105, "heavy": 135}  # median stage percent (owner via coordinator, 2026-10-24)

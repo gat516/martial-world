@@ -75,6 +75,8 @@ export type Data = {
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
 	ring: { string }, -- the spirit ring: herb and item ids whose whole stack is banked even in the wilds (Haul.luau)
+	-- the unbanked haul left out when the last session logged off away from a bank point (Haul.luau)
+	haul: { rawQi: number, stones: number, herbs: { [string]: number }, items: { [string]: number }, seeds: { [string]: number } },
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
 	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()
@@ -154,6 +156,7 @@ local function default(): Data
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
 		ring = {},
+		haul = { rawQi = 0, stones = 0, herbs = {}, items = {}, seeds = {} },
 		buffs = {},
 		decor = {},
 		receipts = {},

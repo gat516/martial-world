@@ -22,6 +22,9 @@ local lastTravel: { [Player]: number } = {}
 
 local Travel = {}
 
+-- Called with (player) just before a ride moves the character (Haul banks quietly).
+Travel.onTravel = {} :: { (Player) -> () }
+
 -- The array instance for a gate id; "Peak" is the player's own peak's array.
 local function array(player: Player, id: string): Instance?
 	if id == "Peak" then
@@ -112,6 +115,9 @@ function Travel.go(player: Player, where: any): (boolean, string?)
 		return false, "That array has gone quiet."
 	end
 	lastTravel[player] = now
+	for _, fn in Travel.onTravel do
+		pcall(fn, player)
+	end
 	pcall(player.RequestStreamAroundAsync, player, target.Position, STREAM_TIMEOUT)
 	if player.Character ~= character or humanoid.Health <= 0 then
 		return false, nil

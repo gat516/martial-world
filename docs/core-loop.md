@@ -40,6 +40,11 @@ surprises are, and it has two verbs:
   most of the long-term goals come from. The world caches (ManualCache,
   WeaponRack) are the first piece of this; each new region should add more. Neither is a side game: **home turns what you bring back into
 progress, and out is where you get what home is missing.**
+- **Bring it home: Store all.** What you gather out there is your haul, and it's
+  at risk until you store it: a death spills half of it ([haul](systems/haul.md)).
+  Coming home (your peak, the sect, any teleport array) offers one tap, "Store all"
+  (like "sell all", but storing), that banks the whole trip with one line, so the
+  return is a beat of its own. Onboarding teaches it right after the first hunt.
 
 The game must always tell the player **which wall they're at and where to go**.
 The full stage plan (QC1 to FE9, with Qi Refining, the sect, difficulty modes) is in [progression](progression.md).
@@ -87,6 +92,7 @@ Every trip should get the thing you went for, plus a chance at a surprise.
 | World events, treasures, caches | surprise loot during trips |
 | Tribulation | the gate of a major realm |
 | Travel | moves you between home and out |
+| The haul, Store all, spirit ring | makes "come home" matter: store the trip, or risk half of it on a death |
 
 ## A player's life, and when each thing is introduced
 

@@ -255,6 +255,7 @@ end
 --   ("seen", { id })          the Inventory showed these: they stop being NEW
 --   ("view", tab, sort, filter) remember the Inventory's sort and filter for a tab
 --   ("ring", itemId, inRing)  put a whole stack in the spirit ring (true) or take it out (false)
+--   ("storeAll")              bank the whole haul at a bank point (Haul.storeAll)
 function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -265,6 +266,8 @@ function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): 
 		return Inventory.use(player, a)
 	elseif action == "comprehend" then
 		return Progression.comprehend(player, a)
+	elseif action == "storeAll" then
+		return Haul.storeAll(player)
 	elseif action == "ring" then
 		ok, message = Haul.setRing(player, a, b)
 		if not ok then

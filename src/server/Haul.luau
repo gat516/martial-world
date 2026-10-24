@@ -10,17 +10,25 @@
 --   - Never at risk: refined cultivation, stages, weapons, techniques and manuals
 --     (none of them are in the snapshot), finds at or above SAFE_RARITY (banked the
 --     moment they're held), and whatever stacks sit in the spirit ring.
---   - Banking: on the sect's safe ground (their peak, the plaza: Gates.inSect) or
---     on any teleport array, out of combat. In the testbed (no map, and the whole
---     arena reads as the sect) only near the spawn pad, where the TestPeak sits.
+--   - Banking is a beat, like "sell all" but "store all": at a bank point (the
+--     sect's safe ground, Gates.inSect: their peak, the plaza; or any teleport
+--     array), out of combat and with something unbanked, the player attribute
+--     `HaulReady` is set and the client offers a one-tap "Store all" prompt
+--     (InventoryAction "storeAll" -> Haul.storeAll) that banks the lot with one
+--     summary line. Only riding an array (Travel.onTravel) and logging out at a
+--     bank point bank silently. In the testbed (no map, and the whole arena reads
+--     as the sect) only near the spawn pad, where the TestPeak sits.
+--   - Haul.onBanked hooks (player, amounts, how: "store" | "travel") let
+--     onboarding teach the beat after the first hunt.
 --   - Death: SPILL_SHARE of each unbanked amount leaves the player and waits as a
 --     spill at the last place they stood, for SPILL_SECONDS. Only they see it (the
 --     Effect "spill" goes to them alone) and walking into it gives it back, as
 --     haul again. A new death replaces an unclaimed spill.
 --   - Leaving while combat-tagged (the InCombat attribute) loses the same share,
 --     with nothing to reclaim.
--- The snapshot and the spill live in memory only: a rejoin starts with
--- everything banked (players arrive at home).
+-- The snapshot and the spill live in memory. Logging out away from a bank point
+-- saves the unbanked haul in `data.haul`, so a rejoin (at home) offers Store all
+-- for it; logging out at a bank point banks it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -48,7 +56,7 @@ type Spill = { at: Vector3, expires: number, contents: Amounts }
 type State = {
 	data: PlayerData.Data?, -- the profile the snapshot belongs to (a slot switch rebanks)
 	banked: Amounts,
-	out: boolean, -- away from safe ground since the last bank
+	ready: boolean, -- the HaulReady attribute as last published
 	lastGround: Vector3?, -- the last place they stood: where a fall spills
 	spill: Spill?,
 }
@@ -56,6 +64,10 @@ type State = {
 local states: { [Player]: State } = {}
 
 local Haul = {}
+
+-- Called with (player, amounts banked, how) on every bank that moved something:
+-- "store" (the Store all prompt) or "travel" (riding an array). Onboarding watches it.
+Haul.onBanked = {} :: { (Player, Amounts, string) -> () }
 
 local BAGS = { "herbs", "items", "seeds" }
 
@@ -275,6 +287,44 @@ function Haul.bank(player: Player): Amounts
 	return gained
 end
 
+local function announce(player: Player, gained: Amounts, how: string)
+	if isEmpty(gained) then
+		return
+	end
+	for _, fn in Haul.onBanked do
+		task.spawn(fn, player, gained, how)
+	end
+end
+
+-- Silent bank (riding an array). Travel.onTravel, before the character moves.
+function Haul.bankQuietly(player: Player)
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not (root and Haul.safeAt(player, root.Position)) then
+		return
+	end
+	announce(player, Haul.bank(player), "travel")
+end
+
+-- InventoryAction "storeAll": the Store all prompt at a bank point.
+function Haul.storeAll(player: Player): (boolean, string?)
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not (root and Haul.safeAt(player, root.Position)) then
+		return false, "Store your haul at home, in the sect, or on a teleport array."
+	end
+	if player:GetAttribute("InCombat") == true then
+		return false, "You can't store your haul mid-fight."
+	end
+	local gained = Haul.bank(player)
+	if isEmpty(gained) then
+		return false, "Nothing to store: your haul is already safe."
+	end
+	local line = `Stored: {describe(gained)}`
+	effectRemote:FireClient(player, "banked", line)
+	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })
+	announce(player, gained, "store")
+	return true, nil
+end
+
 --[[ Losing it ]]
 
 -- Take SPILL_SHARE of each unbanked amount out of the profile. Returns what was taken.
@@ -342,12 +392,21 @@ end
 
 -- PlayerRemoving (before the profile is released): leaving mid-fight is a death
 -- with nothing to reclaim.
+-- Otherwise: at a bank point it banks; elsewhere the haul is saved as unbanked
+-- (data.haul) for the next session.
 function Haul.leaving(player: Player)
-	if player:GetAttribute("InCombat") == true and states[player] then
-		local taken = takeShare(player)
-		if not isEmpty(taken) then
-			print(`Haul: {player.Name} left in combat and lost {describe(taken)}`)
+	local s = states[player]
+	local data = PlayerData.get(player)
+	if s and data and s.data == data then
+		if player:GetAttribute("InCombat") == true then
+			local taken = takeShare(player)
+			if not isEmpty(taken) then
+				print(`Haul: {player.Name} left in combat and lost {describe(taken)}`)
+			end
 		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local home = root ~= nil and Haul.safeAt(player, root.Position) and player:GetAttribute("InCombat") ~= true
+		data.haul = if home then empty() else Haul.unbanked(player) :: any
 	end
 	states[player] = nil
 end
@@ -379,7 +438,22 @@ local function check(player: Player)
 	end
 	local s = states[player]
 	if not s or s.data ~= data then
-		s = { data = data, banked = snapshot(data), out = false, lastGround = nil, spill = nil }
+		-- a fresh session: everything is banked but what the last one left out (data.haul)
+		local banked = snapshot(data)
+		local saved = (data.haul or empty()) :: any
+		banked.rawQi = math.max(0, banked.rawQi - (saved.rawQi or 0))
+		banked.stones = math.max(0, banked.stones - (saved.stones or 0))
+		for _, bag in BAGS do
+			local into = (banked :: any)[bag] :: { [string]: number }
+			for id, n in ((saved :: any)[bag] or {}) :: { [string]: number } do
+				if into[id] then
+					local left = into[id] - n
+					into[id] = if left > 0 then left else nil
+				end
+			end
+		end
+		data.haul = empty()
+		s = { data = data, banked = banked, ready = false, lastGround = nil, spill = nil }
 		states[player] = s
 	end
 	local st = s :: State
@@ -393,6 +467,8 @@ local function check(player: Player)
 		effectRemote:FireClient(player, "spillGone", false)
 	end
 	if not (alive and root and humanoid) then
+		bankSafe(st, data)
+		lower(st, data)
 		return
 	end
 	local position = root.Position
@@ -402,20 +478,17 @@ local function check(player: Player)
 	if st.spill and (st.spill.at - position).Magnitude <= Tuning.RECLAIM_RADIUS then
 		reclaim(player, st, data)
 	end
-	if Haul.safeAt(player, position) and player:GetAttribute("InCombat") ~= true then
-		local gained = Haul.bank(player)
-		if st.out and not isEmpty(gained) then
-			Cultivation.notify(player, `Haul banked: {describe(gained)}.`)
-		end
-		st.out = false
-	else
-		bankSafe(st, data)
-		lower(st, data)
-		st.out = true
+	-- at a bank point with something unbanked: offer Store all (HaulReady)
+	local left = Haul.unbanked(player) -- also lowers the snapshot and banks the ring
+	local ready = not isEmpty(left) and player:GetAttribute("InCombat") ~= true and Haul.safeAt(player, position)
+	if ready ~= st.ready then
+		st.ready = ready
+		player:SetAttribute("HaulReady", ready or nil)
 	end
 end
 
 function Haul.start()
+	table.insert(Travel.onTravel, Haul.bankQuietly)
 	local function watch(player: Player)
 		-- a respawn re-sends the spill (and says where it is)
 		player.CharacterAdded:Connect(function()

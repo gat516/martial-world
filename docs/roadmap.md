@@ -85,7 +85,9 @@ for UI and vfx passes.**
   refined cultivation, stages, the equipped weapon, learned techniques, and rare
   finds (manuals, weapons, bloodline essences), which are banked the moment you
   pick them up.
-- **Banking** happens on reaching home, the sect, or any teleport array.
+- **Banking** happens on reaching home, the sect, or any teleport array, as a one-tap
+  "Store all" (user, 2026-10-23: "think sell all but you store all"); riding an array
+  and logging out at home bank silently.
 - **The spirit ring:** a storage ring with a few safe slots; whatever is in it is
   banked even out in the wilds. More slots by realm or from the Pavilion. Choosing
   what goes in the ring is the interesting decision.

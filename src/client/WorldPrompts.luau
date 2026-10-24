@@ -28,13 +28,12 @@
 --
 -- The billboard (non-touch) sits just under the PlantTag card above a plant (same anchor:
 -- top of the part plus a stud, then the 55px the tag hangs below that), sized in
--- pixels so it reads and taps the same at any distance. Each card is the kit's
--- prompt banner tucked behind a round key plate (docs/ui/dialogue.md, "Interaction
--- prompts"): the key letter (or the gamepad button) is live text on the plate's
--- tile, the object and action text sit on the banner (kept live: prices and "No
--- seeds" change while shown) with the action's white glyph at its right end
--- (Glyphs.forPrompt), and a prompt with a HoldDuration sweeps a lit ring round the
--- plate while held. On touch there's no key to press: the plate shows the action's
+-- pixels so it reads and taps the same at any distance. Each card is a quiet dark
+-- band fading out to the right behind a small round key (docs/ui/dialogue.md,
+-- "Interaction prompts"): the key letter (or the gamepad button) is live text on the
+-- key, the object and action text sit on the band (kept live: prices and "No seeds"
+-- change while shown), and a prompt with a HoldDuration sweeps a lit ring round the
+-- key while held. On touch there's no key to press: the key shows the action's
 -- glyph instead, and the whole card is the button.
 -- A mouse can click a card too (ClickablePrompt), but only while the cursor is
 -- free: under shift lock or lock-on the mouse sits at the screen's centre, which
@@ -166,13 +165,10 @@ local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.
 	-- long key names (Space, Enter) shrink to fit the tile
 	letter.TextScaled = #letter.Text > 1
 
-	-- the banner's glyph (the plate already shows it on touch)
-	local banner = glyph ~= nil and not touch
-	icon.Visible = banner
-	if banner then
-		icon.Image = glyph :: string
-	end
-	text.Size = if banner then bodySize else bodySize + UDim2.fromOffset(bodyWiden, 0)
+	-- no glyph at the band's end (the user found the card tacky with it); on touch the
+	-- key shows it in place of a letter
+	icon.Visible = false
+	text.Size = bodySize + UDim2.fromOffset(bodyWiden, 0)
 
 	local hasObject = prompt.ObjectText ~= ""
 	object.Visible = hasObject

@@ -67,7 +67,10 @@ Each has a `.preview()` callable from the client console in play, e.g.
 `require(game.Players.LocalPlayer.PlayerScripts.Client.DeathSave).preview()`. Nothing in
 the real flow calls them yet.
 
-### Foundation solidity meter (`FoundationMeter.luau`, roadmap 1)
+### Foundation solidity meter (`FoundationMeter.luau`, shelved)
+Shelved by Phase A (2026-10-23): there's no meter; a foundation grade shows on the
+breakthrough card instead ([roadmap](../roadmap.md) "Phase A"). Kept until that pass
+decides whether to delete it.
 - `FoundationMeter.set({ solidity = 0..1, cracks = 0..3, deep = bool })`.
 - A 28 px round meter on the HUD plate's bottom-right corner, the mirror of the Dash and
   Strike chips (`Stack` x 0.9006, y 0.5436), so the HUD doesn't grow. It is cloned from
@@ -80,7 +83,9 @@ the real flow calls them yet.
 - The system must provide: the stage's solidity share, a crack level, and the deep flag,
   whenever any changes (a State field is the natural route).
 
-### Death-save prompt (`DeathSave.luau`, roadmap 1)
+### Death-save prompt (`DeathSave.luau`, shelved)
+Shelved by Phase A: the qi surge fires from the realm plaque with no prompt or pause.
+The vignette may be reused for the surge.
 - `DeathSave.prompt({ seconds = 4, hold = 0.6, title?, hint? }, function(accepted) end)`,
   `DeathSave.cancel()`, `DeathSave.isOpen()`.
 - `Canvas.DeathSave`: `death_vignette` over the whole screen at 0.45 transparency (subtle),

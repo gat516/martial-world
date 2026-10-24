@@ -6,6 +6,11 @@ break through to the next stage. Stages raise health and damage, so progress is
 felt in fights.
 
 ## Design intent
+- **Phase A (decided 2026-10-23, not built):** insight is deleted, breakthroughs get a
+  foundation grade (a permanent stat bonus from what you experienced that stage), death
+  leaves a fast-healing wound, and the forced breakthrough becomes the qi surge fired
+  from the realm plaque. See [roadmap](../roadmap.md) "Phase A". The rest of this
+  page is the code as it stands.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
   The QR and FE2-9 rows are first-guess curves, untuned in play.
@@ -71,7 +76,7 @@ felt in fights.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
   (button, light column, the milestone card on your own breakthrough and the
-  "ready to break through" nudge); the ready-to-wire foundation meter and death-save
+  "ready to break through" nudge); the foundation meter and death-save (shelved by Phase A)
   are in [cultivation UI](../ui/cultivation.md),
   `CirculationMinigame.luau`.
 

@@ -38,7 +38,7 @@ Entries show in the order given (sort by tier, then Herbs.Order). It registers w
 - Undiscovered herbs as entries too (`discovered = false`), so the book shows the
   gaps; their name stays hidden, their tier shows.
 - Rewards for completing a page or tier are not drawn yet (open question in the
-  roadmap: cosmetic only, or small solidity).
+  roadmap: cosmetic only, or foundation experiences).
 
 ### Layout
 `StarterGui.Herbarium` (`assets/Herbarium.rbxmx`): `Canvas` (fitted by `UiScale`) >

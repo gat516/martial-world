@@ -53,7 +53,7 @@ board), but they don't yet frame it as one rhythm.
 |---|---|---|---|---|
 | Empty dantian | bar not full, no raw qi to refine | hunting, qi nodes, eating herbs | the wilds, the garden | built |
 | Full dantian | carrying lots of raw qi | refining it | home or a qi node | built |
-| Insight | full bar, "you need more insight" | first kills of new beasts, the boss, kill milestones | the wilds | built (QC9) |
+| Insight | full bar, "you need more insight" | first kills of new beasts, the boss, kill milestones | the wilds | built (QC9); deleted by Phase A: the sources become foundation-grade experiences ([roadmap](roadmap.md)) |
 | Region seal | the next wilds array is sealed | reaching its realm | breaking through | built (QC5, FE1) |
 | Tribulation | a major breakthrough, **heaven-defying players only** (bloodline or root; decided 2026-10-22) | surviving or bracing against the lightning; never a skill gate | the main peak | built for everyone at QC9; to be gated behind the flag |
 | Beasts too strong | dying out there | weapon, technique, Dao, root, herbs, breaking through | both | partly: it's not signposted |
@@ -146,10 +146,10 @@ introduced alone, at a breather stage, by the elder or the quest board.
 ## Techniques: many, found, chosen
 Many more techniques are planned. Every one is a manual you find out in the
 world (caches, ruins, boss pools, events, milestones), never something a tree or
-shop hands out, so exploring keeps paying. Insight is deliberately scarce
-against them: players comprehend a few favourites, not all. So each new region
-must add its own insight sources (its beasts' first kills, event relics, secret
-comprehension spots), or mastery slows to a crawl. No weapon perk trees: weapon
+shop hands out, so exploring keeps paying. Weapon Dao is what limits them
+(Phase A, 2026-10-23): a technique is learned and comprehended only at the class
+Dao its power and rarity require, so players deepen the arts of the weapons they
+actually fight with. Insight is being deleted. No weapon perk trees: weapon
 Dao stays a level that grows by fighting (decided 2026-10-21, to keep combat
 simple).
 

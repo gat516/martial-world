@@ -22,7 +22,7 @@ scales all player damage.
   target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
   (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
-  it's the condition for a forced breakthrough. Getting hurt or landing damage
+  it's the condition for a forced breakthrough (to become the qi surge, Phase A). Getting hurt or landing damage
   (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
   pass quietly; the client reads only that (the top-right tiles fold down, the
   boss bar lifts, Guide holds its spotlight).
@@ -49,7 +49,8 @@ scales all player damage.
   tiers I-III (levels 3, 6, 9) XP stops at a bottleneck (`Techniques.bottleneck`);
   the player breaks it seated in meditation by spending insight and Spirit Stones
   (`InventoryAction "comprehend"` -> `Progression.comprehend`, costs in
-  `Pacing.Comprehension`), which opens the next visual tier.
+  `Pacing.Comprehension`), which opens the next visual tier. Phase A replaces the insight cost with a class
+  Dao requirement ([roadmap](../roadmap.md) section 4); not built.
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),

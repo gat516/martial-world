@@ -20,6 +20,11 @@ until playtested. Nothing here is built yet unless it says so.
 - **Content: reuse what exists.** The 13 shipped beasts and 3 bosses are spread
   over the ladder with elite tiers (below); new beasts are not needed to get to FE9.
 - **Next system: the sect and its quests** (below).
+- **Insight is deleted; walls are the bar (user, 2026-10-23).** A breakthrough
+  is graded by what the player experienced that stage (the foundation grade, a
+  permanent stat bonus); death leaves a fast-healing wound; the forced breakthrough
+  becomes the qi surge. See [roadmap](roadmap.md) "Phase A". Not built yet: the
+  code still gates on insight.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 
@@ -41,9 +46,9 @@ Every three stages is a **chapter**; every nine is a **realm**.
 - **Stage 1 of a chapter:** something new (a region seal, a beast tier, a home
   idea). The "hook" of the chapter.
 - **Stage 2:** the loop settles in (breather).
-- **Stage 3:** a mini-wall: the chapter's elite hunt or event chain, one insight.
-- **Stage 9 of a realm:** the wall: the biggest bar, the realm's insight, an
-  optional realm boss as the fast road. Heaven-defying players add the tribulation.
+- **Stage 3:** a mini-wall: the chapter's elite hunt or event chain, a foundation experience.
+- **Stage 9 of a realm:** the wall: the biggest bar, the realm's experiences, an
+  optional realm boss as the fast road to a Deep foundation. Heaven-defying players add the tribulation.
 
 One new idea per chapter, never per stage, and never two at once.
 
@@ -59,7 +64,7 @@ The map isn't done, so these are logical regions; the map-builder fits them late
 
 **Elite and apex tiers** are the cheap way to fill 18 stages: the same body with
 a tint, an aura tier and one extra move per tier (`vfx` and `animator` do a short
-pass per beast, not a rebuild), higher `realm`, new insight on first kill. A
+pass per beast, not a rebuild), higher `realm`, a new first-kill experience. A
 beast re-tiered by realm keeps its identity, so the player reads "the same
 wolf, but older".
 
@@ -76,8 +81,8 @@ wolf, but older".
 | QC5 | RAMP | Ruined Borderlands | **the sect board:** daily tasks, contribution, Outer Disciple rank | full dantian |
 | QC6 | MINI-WALL | Borderlands | herbs matter (tier I herbs eaten for qi) | more than a dantian of qi |
 | QC7 | BREATHER | Borderlands | second weapon class, Dao drills; Jade Jiao | beasts too strong |
-| QC8 | RAMP | Borderlands | rumours of ruins; the first secret place | insight |
-| QC9 | WALL | Borderlands | the realm boss is optional (faster insight), 5 insight; the quiet breakthrough ceremony | bar, insight (a boss is one source) |
+| QC8 | RAMP | Borderlands | rumours of ruins; the first secret place | foundation (soft) |
+| QC9 | WALL | Borderlands | the realm boss is optional (a Boss experience); the quiet breakthrough ceremony | bar |
 
 ### Qi Refining (new; the sect and the home deepen)
 Rank becomes **Inner Disciple** at QR1.
@@ -89,9 +94,9 @@ Rank becomes **Inner Disciple** at QR1.
 | QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |
 | QR5 | BREATHER | Wastes | Thunder Ape event and boss | beasts too strong |
 | QR6 | MINI-WALL | Deep Wilds | Dao glimpses at special places (storms, springs) | region seal |
-| QR7 | RAMP | Deep Wilds | sect trials: a rank test with a tiny reward | insight |
+| QR7 | RAMP | Deep Wilds | sect trials: a rank test with a tiny reward | foundation (soft) |
 | QR8 | BREATHER | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
-| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar, insight |
+| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar |
 
 ### Foundation Establishment (new content, 10 hours)
 Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
@@ -101,12 +106,12 @@ Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
 | FE1 | HOOK | **cultivation method:** the sect library; Far Reaches seal | method |
 | FE2 | BREATHER | method upgrades from exploring | none |
 | FE3 | MINI-WALL | tier III herbs; the Pavilion's second shelf | herbs |
-| FE4 | RAMP | **treasure slot:** one equipped treasure | insight |
+| FE4 | RAMP | **treasure slot:** one equipped treasure | foundation (soft) |
 | FE5 | BREATHER | secret realms: timed rifts with manuals | none |
 | FE6 | MINI-WALL | **spirit beast egg:** a cosmetic pet that follows you | beasts too strong |
 | FE7 | RAMP | tier IV herbs; Dao tree preview | full dantian |
 | FE8 | BREATHER | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
-| FE9 | WALL | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar, insight |
+| FE9 | WALL | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar |
 
 ## Home, herbs and the loop (the missing link)
 The garden dies at QC6 because herb qi is flat. Fix:
@@ -147,7 +152,8 @@ quest defs (`Quests.Quest`, `data.quests`).
   out into the world ("a cultivator's cave lies past the ruined bridge").
 
 ## Tribulations (heaven-defying only)
-Normal players break through with a bar, insight and a quiet ceremony.
+Normal players break through with a bar and a quiet ceremony.
+A weak foundation grade makes the tribulation harder, never impossible.
 - **Who:** a player whose bloodline or spirit root is flagged `heavenDefying`.
   They face a tribulation at **every major** breakthrough.
 - **Why:** the heavens won't suffer them to exist. Lines are written per cause
@@ -188,24 +194,23 @@ No difficulty modes, no damage or reward scaling (user, 2026-10-22: difficulty
 stays pure skill). Instead, **nothing in the progression requires beating a
 boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
 - **Bosses are optional.** They exist for worldbuilding and as quest targets
-  ("slay the Elder Wolf King"). Killing one is a **faster road**: a big qi and
-  insight payout, a manual or weapon, a bounty reward. Skipping one only costs time.
+  ("slay the Elder Wolf King"). Killing one is a **faster road**: a big qi payout, a
+  Boss experience (counts double toward the foundation grade), a manual or weapon, a bounty reward. Skipping one only costs time.
 - **Two ways to climb, both complete:**
   - *The fighter:* hunt, bounties, bosses and events. Fast, with surprises.
   - *The gardener:* meditate, tend the spirit garden, run sect
     errands and chapter quests that need no combat. Slower, always sure.
   Pacing is tuned so the gardener's road reaches every wall, just later.
-- **Every wall has a non-combat road.** Insight, the thing a boss used to
-  gate, also comes from comprehension spots, Dao rain, quests, secret places
-  (explored, not fought), sect trials and rare elixirs from rifts and quests. First kills and
-  bosses are *one* source.
-- **A wall is a bar plus insight**, never a boss. QC9 and QR9 no longer say
-  "kill the boss"; they say "5 insight", which a boss can supply.
+- **Every wall has a non-combat road.** A wall is the bar, never a boss. The
+  foundation grade, the thing a boss speeds up, also comes from harvests, Dao
+  milestones, secret places (explored, not fought), events and quests. First kills
+  and bosses are *one* source, and a low grade never blocks a breakthrough.
 - **Quests offer the fight, they don't demand it.** A bounty to slay a boss
   pays well; the same chain has a peaceful sibling (a herb errand, an exploring task).
 - **Enemy difficulty stays what the designers set**, tuned per realm in
   `Pacing`. Fights can be hard; skipping them is always allowed.
-- **Dying is cheap** (no lost cultivation), so trying is free.
+- **Dying costs a little, never a stage.** A death leaves a wound on the bar that
+  heals about 3x faster than cultivating (Phase A), so trying stays cheap.
 - Open: how big the gardener's slowdown is (a proposal: 1.5-2x the fighter's
   time), and whether to hint the peaceful road when a player keeps dying.
 
@@ -217,7 +222,7 @@ Beast Surge and the new events. Plan:
 - **Existing:** Thousand-Year Ginseng, Beast Surge, Auspicious Clouds, Violet
   Cloud Mist, Golden Auspicious Clouds.
 - **New (proposed):**
-  - *Secret Realm Rift:* a timed rift to a small zone with manuals and insight.
+  - *Secret Realm Rift:* a timed rift to a small zone with manuals and Discover experiences.
   - *Roaming Beast King:* a boss (the four existing ones, re-tiered) walks the
     wilds, announced server-wide.
   - *Dao Rain:* a storm that gives comprehension progress to those who sit in it.
@@ -232,9 +237,8 @@ Built 2026-10-22: QR1-9 and FE2-9 rows in `Pacing.Curve` (and combat qi), the
 `QiRefining` major in `Realms`, `data.heavenDefying` and the tribulation gate.
 
 Still open from that pass:
-- **Insight above 10 is unreachable without bosses** until non-combat sources
-  exist (comprehension spots, quests, secret places). First kills of the 8
-  non-boss types plus 2 milestones give 10. FE3 11 and FE6 13 wait for them.
+- **Insight is still in the code** (QC9 5 up to FE6 13, and above 10 is
+  unreachable without bosses). Phase A deletes it.
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
   QR regions need the map.
@@ -249,7 +253,7 @@ Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
-4. Make every wall's insight reachable without combat (comprehension spots, quests); turn bosses into quest targets.
+4. Phase A: foundation grades, wounds, the qi surge, insight deleted ([roadmap](roadmap.md)); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).
 6. World-event and tribulation vfx passes (`world-fx`).
 7. Elite and apex beast tiers: `enemy-designer`, `vfx` and `animator`, one per beast.

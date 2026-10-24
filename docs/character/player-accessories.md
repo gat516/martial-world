@@ -26,6 +26,14 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
    - Headless `tools/blender_run.sh` is only for jobs nobody needs to watch.
 2. **Directions first.** 2-3 directions on one sheet, then stop for the user's pick.
    The user often keeps all of them as variants.
+   **One body per variant, side by side**, on the sheet and in the live viewport
+   (user: "you made all of the accessories on the same rig so i cant see"). Never
+   stack variants on one R6 reference. Run `tools/blender_lineup.py` with `LOOKS` (rows
+   of looks, each the set collections worn together); it builds a `Lineup` scene of
+   collection instances, one R6 body per look, and switches the window to it. Rebuilding
+   a set updates the lineup.
+   Prefix every material with the set or race (`Wolf_FurOuter`), or one race's rebuild
+   recolours another's shared `FurOuter`.
 3. **Polish, export, commit.** One FBX + JSON per set under
    `art/player/cosmetics/<race>/`, a re-runnable `build_<race>.py`, `make_sheet.py`,
    the `.blend` and a README.
@@ -50,6 +58,11 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
 The fox (`art/player/cosmetics/fox/`) is the worked example of every step. The tiger
 (`art/player/cosmetics/tiger/`) adds patterned fur, ear markings, whiskers (a third accessory
 on FaceFrontAttachment), size ratios and a limb-clearance check.
+
+Race sets built so far (each folder's README has its looks, sizes and checks):
+- Beast Folk Wolf: `art/player/cosmetics/wolf/`. Three looks (Sentinel + Brush, Ruff +
+  Mane, Lance + Banner), all kept as variants (user, 2026-10-23). Imported to
+  `assets/Cosmetics/Wolf.rbxm`; the Wolf variant wears Sentinel + Brush.
 
 **Space.** Each FBX is in its attachment's space. A Blender point `(x, y, z)` is
 Roblox `(-x, z, y)` from the attachment, with no extra rotation. The fox README's
@@ -120,6 +133,11 @@ first note (a pi turn) put the tail in front of the body.
   both moods, "cool / tuff / aggressive and cute".
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
+  A tail that hangs low can't drop straight down from the waist. An R6 leg swung back
+  1 radian sweeps up to its back face's line (0.54 y + 0.84 z = 0.5 from the hip) and
+  reaches about 2.06 studs. So a hanging tail leaves the back a little above the waist,
+  carries back and arcs down outside that reach (the wolf tails; `run_clearance` in the
+  JSON measures it).
 - **Budget:** ears about 1,500 tris a pair, horns 2,000-3,500 a pair, a tail about
   4,000 (6,000 at most).
 - **Sheet:** front, side, back, rear three-quarter, bent pose, a seating close-up

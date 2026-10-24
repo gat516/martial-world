@@ -8,8 +8,8 @@ felt in fights.
 ## Design intent
 - **Phase A (decided 2026-10-23, not built):** insight is deleted, breakthroughs get a
   foundation grade (a permanent stat bonus from what you experienced that stage), death
-  leaves a fast-healing wound, and the forced breakthrough becomes the qi surge fired
-  from the realm plaque. See [roadmap](../roadmap.md) "Phase A". The rest of this
+  spills half of the unbanked haul (raw qi, herbs, stones; a spirit ring keeps some
+  safe), and the forced breakthrough becomes the qi surge (a mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
   page is the code as it stands.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).

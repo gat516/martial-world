@@ -22,7 +22,7 @@ until playtested. Nothing here is built yet unless it says so.
 - **Next system: the sect and its quests** (below).
 - **Insight is deleted; walls are the bar (user, 2026-10-23).** A breakthrough
   is graded by what the player experienced that stage (the foundation grade, a
-  permanent stat bonus); death leaves a fast-healing wound; the forced breakthrough
+  permanent stat bonus); death spills half of the unbanked haul (a spirit ring keeps some safe); the forced breakthrough
   becomes the qi surge. See [roadmap](roadmap.md) "Phase A". Not built yet: the
   code still gates on insight.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
@@ -209,8 +209,9 @@ boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
   pays well; the same chain has a peaceful sibling (a herb errand, an exploring task).
 - **Enemy difficulty stays what the designers set**, tuned per realm in
   `Pacing`. Fights can be hard; skipping them is always allowed.
-- **Dying costs a little, never a stage.** A death leaves a wound on the bar that
-  heals about 3x faster than cultivating (Phase A), so trying stays cheap.
+- **Dying costs a little, never a stage.** A death spills about half of the haul
+  you haven't banked, recoverable where you fell for a few minutes (Phase A), so
+  trying stays cheap.
 - Open: how big the gardener's slowdown is (a proposal: 1.5-2x the fighter's
   time), and whether to hint the peaceful road when a player keeps dying.
 
@@ -253,7 +254,7 @@ Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
-4. Phase A: foundation grades, wounds, the qi surge, insight deleted ([roadmap](roadmap.md)); turn bosses into quest targets.
+4. Phase A: foundation grades, the haul and spirit ring, the qi surge, insight deleted ([roadmap](roadmap.md)); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).
 6. World-event and tribulation vfx passes (`world-fx`).
 7. Elite and apex beast tiers: `enemy-designer`, `vfx` and `animator`, one per beast.

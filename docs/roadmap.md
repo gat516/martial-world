@@ -37,10 +37,10 @@ These are real plans but **not in this pass**. Nothing before FE9 depends on the
 27-stage ladder, `heavenDefying` tribulation gate, optional bosses on the quest
 board ([progression](progression.md)).
 
-### Phase A: foundation, wounds and the surge (decided 2026-10-23)
-Replaces the solidity meter and the insight gate. No new HUD element: the phone HUD
-has no room, so everything rides on the realm plaque, toasts, the seated
-cultivation track and the breakthrough card.
+### Phase A: foundation, the haul and the surge (decided 2026-10-23)
+Replaces the solidity meter and the insight gate. No new HUD meter: the phone HUD
+has no room, so the grade rides on toasts and the breakthrough card, and the surge
+button only appears while it's ready.
 
 **Foundation grade (per breakthrough).**
 - Every breakthrough is graded **Cracked, Steady, Solid or Deep** by what the
@@ -66,24 +66,37 @@ cultivation track and the breakthrough card.
   Shattering your cultivation stays a one-time story beat on the demon path
   ([replayability](roadmap/replayability.md)).
 
-**Wounds: the cost of death.**
-- Today death costs nothing. Now a death injures the meridians: a share of the
-  current bar (about 15%) becomes a **wound**, drawn as a dim segment on the
-  seated cultivation track (`SeatBars`); the fighting HUD has no cultivation bar.
-- A wound refills about 3x faster than normal cultivation, faster still meditating.
-  You recover, you don't re-earn. A death never drops a stage.
+**The haul and the spirit ring: the cost of death (user, 2026-10-23).**
+- Today death costs nothing, so surviving a fight doesn't matter. Now what you
+  carry home is at stake, which gives "bring it home" in the loop its weight.
+- **At risk: this trip's haul,** everything picked up since you last banked: raw qi
+  in the dantian, herbs, seeds, materials and Spirit Stones. **Never at risk:**
+  refined cultivation, stages, the equipped weapon, learned techniques, and rare
+  finds (manuals, weapons, bloodline essences), which are banked the moment you
+  pick them up.
+- **Banking** happens on reaching home, the sect, or any teleport array.
+- **The spirit ring:** a storage ring with a few safe slots; whatever is in it is
+  banked even out in the wilds. More slots by realm or from the Pavilion. Choosing
+  what goes in the ring is the interesting decision.
+- **Death spills about half the unbanked haul** where you died, as a spirit-light
+  only you can pick up, for about 5 minutes. No other player can loot it (no griefing,
+  no PvP looting). A death never costs cultivation or a stage.
+- **Leaving while combat-tagged counts as a death** (no combat logging).
+- **Rejected:** a wound on the cultivation bar as the death cost. Two death
+  penalties at once is where it turns hardcore.
 
 **The qi surge (replaces the forced breakthrough).**
+- **Its point:** survive and keep your haul. A clutch comeback, not insurance.
 - **Ready** when the bar is at least 90% and health is low (today's `canForce`
-  conditions): the realm plaque glows and pulses.
-- **Fire** by tapping the plaque (mobile) or one key (PC, works locked on). No
-  prompt, no pause, no menu.
-- **Effect:** about 15 s at the next stage's stats and a small heal; the plaque
+  conditions).
+- **Fire:** on mobile a surge button appears in the touch cluster while it's ready;
+  on PC a notice reads "M to qi surge". M is Meditate today; while the surge is
+  ready in combat, M surges instead (nobody meditates mid-fight). No prompt, no pause.
+- **Effect:** about 15 s at the next stage's stats and a small heal; the realm plaque
   shows the higher stage.
-- **After:** when the combat tag drops, one toast ("Your cultivation falls back.
-  Your meridians are strained.") and a small wound, smaller than a death's. Surging
-  and winning is always cheaper than dying, so it's a comeback tool, not free
-  insurance.
+- **Cost:** it burns a share of the raw qi in your dantian (or essence blood, if that
+  becomes a resource), so it trades a little of the haul to save the rest. When the
+  combat tag drops, one toast: "Your cultivation falls back."
 - The real forced breakthrough and its qi debt are removed; breakthroughs are seated only.
 
 **Insight is deleted.** It no longer gates breakthroughs (the walls are the bar,
@@ -92,11 +105,13 @@ Its sources (first kills, bosses, milestones) become foundation experiences.
 Technique gating moves to weapon Dao (section 4).
 
 **Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
-prompt (`DeathSave.luau`) from the UI pass. The surge needs the plaque glow, the
-grade line on the breakthrough card and the wound segment on the seated track instead.
+prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
+button and "M to qi surge" notice, the grade line on the breakthrough card, the
+spirit ring slots, and the spilled-haul spirit-light.
 
-**Build order:** docs and Pacing numbers; wounds on death; delete insight and move
-comprehension to Dao; foundation grades and experience pools; the surge.
+**Build order:** docs and Pacing numbers; the haul, banking and death spill; the
+spirit ring; delete insight and move comprehension to Dao; foundation grades and
+experience pools; the surge.
 
 ### Pacing follow-ups
 Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
@@ -331,7 +346,7 @@ Each phase ends in a commit and a test-build playtest.
 
 | Phase | Work | Agents |
 |---|---|---|
-| A | Foundation grades, wounds, the qi surge, insight deleted | main session; `ui-designer` for the plaque glow and the wound segment |
+| A | Foundation grades, the haul and spirit ring, the qi surge, insight deleted | main session; `ui-designer` for the surge button, ring slots and grade line |
 | B | Herb tiers, qi scaling, Herbarium | main session |
 | C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
 | D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
@@ -354,8 +369,9 @@ The solidity meter and death-save prompt are shelved by Phase A.
 ## Open questions
 - Foundation grade bonuses: which stats, and how big a gap between Cracked and Deep?
 - How many experiences per stage make each grade?
-- Wound size (15% proposed) and recovery speed (3x proposed); does a wound stack on repeat deaths?
-- Surge length (15 s proposed), its PC key, and does it have a cooldown beyond the 90% bar?
+- Spill share (half proposed), spirit-light lifetime (5 min proposed), ring slot counts.
+- Surge length (15 s proposed), its raw-qi cost, and does it have a cooldown beyond the 90% bar?
+- Essence blood: a resource of its own (for the surge, the Blood Rite, the demon path) or flavour?
 - How much harder is a tribulation or heart-demon trial per grade below Solid?
 - Does the Herbarium reward cosmetics only, or foundation experiences?
 - Which building sets are robux and which are earnable? (earnable first)

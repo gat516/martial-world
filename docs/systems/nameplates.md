@@ -29,6 +29,10 @@ the name for a title, for when titles come in (user, 2026-10-23).
   xianxia ("Li Wei"). Until a player has both, it falls back to their Roblox
   DisplayName (the main game has no character screen yet).
 - Roblox's own humanoid name is turned off, so there's only ever one name.
+- Tapping or clicking another player's plate opens their player card
+  ([party](party.md)): a transparent `Hit` button over the band (the BillboardGui is
+  `Active`) calls `Nameplates.onTap`, which `Social` sets. The look is unchanged; the
+  testbed stand-in's plate has no card.
 - It's cut off by `BillboardGui.MaxDistance` (measured from the camera), not
   faded, at 60 studs.
 - The testbed has a stand-in player beside the spawn pad ("Li Wei", title

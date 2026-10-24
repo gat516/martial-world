@@ -5,7 +5,8 @@
 -- gold-ruled ink band with the name, a small title line above it) is cloned per
 -- character, adorned to its Head and kept in PlayerGui.Nameplates, so it's local
 -- only. BillboardGui.MaxDistance (from the camera) hides it beyond MAX_DISTANCE
--- studs. Roblox's own name over the humanoid is turned off.
+-- studs. Roblox's own name over the humanoid is turned off. Tapping or clicking a
+-- player's plate calls Nameplates.onTap (their player card, Social.luau).
 --
 -- Non-player characters tagged NAMEPLATE_TAG (the testbed's stand-in player,
 -- TestbedDummy) get one too, reading the same attributes from the model.
@@ -30,6 +31,10 @@ local WATCHED = { "Surname", "FirstName", "Title", "TitleColor" }
 local NAMEPLATE_TAG = "NameplateTarget"
 
 local Nameplates = {}
+
+-- Called with the player whose namecard was tapped or clicked (set by Social, which
+-- opens their player card). The template's `Hit` button covers the band.
+Nameplates.onTap = nil :: ((Player) -> ())?
 
 -- Whose plate: a Player, or a tagged model that carries the attributes itself.
 type Source = Player | Model
@@ -86,6 +91,16 @@ local function attach(source: Source, character: Model)
 	plate.Name = source.Name
 	plate.MaxDistance = MAX_DISTANCE
 	plate.Adornee = head
+	local hit = plate:FindFirstChild("Hit", true) :: GuiButton?
+	if hit then
+		hit.Visible = source:IsA("Player") -- a stand-in model has no card
+		hit.Activated:Connect(function()
+			local onTap = Nameplates.onTap
+			if onTap and source:IsA("Player") then
+				onTap(source)
+			end
+		end)
+	end
 	plate.Parent = folder
 	plates[source] = plate
 	paint(source)

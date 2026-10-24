@@ -58,7 +58,7 @@ one row of tiles above them (`Hud.Stack.CultivatePrompt`, `src/client/Meditation
 |---|---|---|
 | Circulate | refine raw qi (the circulation minigame) | bar not full |
 | Break Through | `CultivationAction "breakthrough"` (`BreakthroughView.attempt`) | bar full (replaces Circulate) |
-| Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
+| Method (reads Seclusion without a method) | panel: on your own peak the Seclusion row first (Enter Seclusion, [seclusion](seclusion.md)), then owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation), or seated on your own peak |
 | Spirit Root | panel: the root's card and exact numbers (same text as the Self card), root pills, the reform choice; a seal dot while a choice waits | root tested |
 | Practice | swaps the row for the Practice tiles (below); a seal dot while a technique is at a bottleneck | either Practice action exists (a bottleneck, or the Dao drill is unlocked) |
 | Rise | stand up | always |

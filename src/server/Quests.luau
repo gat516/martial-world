@@ -35,7 +35,9 @@
 --           "Method", "SpiritRoot" (seated tiles),
 --           "Travel", "Attack", "Inventory", "Self",
 --           "RootPill" (the Absorb button on the Spirit Root page; until that
---           page is open the client points at the SpiritRoot tile)
+--           page is open the client points at the SpiritRoot tile),
+--           "Seclusion" (the Enter Seclusion row in the meditation panel; until
+--           it is open, the Method tile, which reads Seclusion without a method)
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
 --   point   (no dim) a bobbing pointer and a callout beside the button
@@ -705,6 +707,45 @@ Quests.Lessons = {
 				return { place = "Garden" }
 			end
 			return travelTo(player, "Peak", nil, "MyPeak")
+		end,
+	},
+	{
+		-- QC4, after Home (paired with it: the seed just planted is what the first
+		-- seclusion tends): the AFK mode as a reward moment. The first seclusion ends
+		-- by itself after Pacing.Seclusion FIRST_SECONDS with a generous card
+		-- (Seclusion.luau), which is what `done` reads.
+		id = "Seclusion",
+		elder = "Now rest. Sit on your peak and enter seclusion: shut out the world, and it rewards you while you are gone.",
+		talk = {
+			lines = {
+				"A cultivator who never rests burns out.",
+				"Sit on your own peak and enter seclusion. Shut out the world for a while.",
+				"Your garden is tended and stones gather while you sit. Even when you are away.",
+			},
+			reply = "I will try it.",
+		},
+		objective = "Enter seclusion on your peak",
+		reward = REWARDS.Seclusion,
+		when = function(_, data)
+			return reached(data, "QC4") and not data.seclusion.first and (data.quests.Home == true or Config.TESTBED)
+		end,
+		open = function(_, data)
+			return reached(data, "QC4")
+		end,
+		done = function(_, data)
+			return data.seclusion.first == true
+		end,
+		guide = function(player)
+			if player:GetAttribute("Secluded") then
+				return nil -- secluded: nothing to point at
+			end
+			if not onOwnPeak(player) then
+				return travelTo(player, "Peak", nil, "MyPeak")
+			end
+			if seated(player) then
+				return { button = "Seclusion", point = true, say = "Enter Seclusion" }
+			end
+			return { button = "Cultivate", point = true, say = "Sit in meditation" }
 		end,
 	},
 	{

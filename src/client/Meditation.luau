@@ -7,6 +7,9 @@
 -- is full it gives way to Break Through; at a major's stage 9 the heart demon may ask
 -- first, HeartDemon.luau, which also offers itself on sitting), Method (once you own one), Spirit Root
 -- (once tested; a seal dot while a reformed element waits for a choice),
+-- Seclusion (the Method tile: on your own peak it opens the panel with Enter
+-- Seclusion; it reads Seclusion until a method is owned; in seclusion only it and
+-- Rise stay),
 -- Practice, and Rise.
 -- Practice (shown while either of its actions exists; a seal dot while a
 -- technique is at a bottleneck) swaps the row for its own tiles (user decision,
@@ -187,13 +190,15 @@ local function refresh()
 		practiceRow = false
 	end
 	local main = not practiceRow
-	tile("Circulate").Visible = main and not full
-	tile("Breakthrough").Visible = main and full
-	for _, page in { "Method", "Root" } do
-		tile(page).Visible = main and relevant[page] == true
-	end
+	-- in seclusion only the Seclusion tile (the Method tile) and Rise are left
+	local secluded = player:GetAttribute("Secluded") == true
+	tile("Circulate").Visible = main and not full and not secluded
+	tile("Breakthrough").Visible = main and full and not secluded
+	tile("Method").Visible = main and relevant.Method == true;
+	(tile("Method"):FindFirstChild("Caption") :: TextLabel).Text = if MeditationMenu.ownsMethod() then "Method" else "Seclusion"
+	tile("Root").Visible = main and relevant.Root == true and not secluded;
 	(tile("Root"):FindFirstChild("Badge") :: GuiObject).Visible = MeditationMenu.rootPending()
-	tile("Practice").Visible = main and anyPractice;
+	tile("Practice").Visible = main and anyPractice and not secluded;
 	(tile("Practice"):FindFirstChild("Badge") :: GuiObject).Visible = relevant.Comprehend == true
 	tile("Rise").Visible = main
 	for _, name in { "PracticeTechnique", "PracticeDao", "Back" } do
@@ -429,6 +434,17 @@ end
 
 -- The calm view's clock and its way back: any input restarts the idle clock; a
 -- key, or a tap that isn't a camera drag (and didn't land on our GUI), ends it.
+-- Tell the server a person is here (input seen), at most every AWAKE_PING seconds,
+-- so online play never counts as AFK (Pacing.Income.AFK_AFTER).
+local lastPing = -math.huge
+local function pingAwake()
+	local now = os.clock()
+	if now - lastPing >= Pacing.Income.AWAKE_PING then
+		lastPing = now
+		remote:FireServer("awake")
+	end
+end
+
 local function watchInput()
 	local presses: { [InputObject]: { at: number, pos: Vector3 } } = {}
 	local function pointer(input: InputObject): boolean
@@ -436,6 +452,7 @@ local function watchInput()
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
 		lastInput = os.clock()
+		pingAwake()
 		if pointer(input) then
 			if not processed then
 				presses[input] = { at = os.clock(), pos = input.Position }
@@ -449,6 +466,7 @@ local function watchInput()
 		if kind == Enum.UserInputType.MouseMovement or kind == Enum.UserInputType.MouseWheel or kind == Enum.UserInputType.Touch
 			or (kind.Name:match("^Gamepad") and input.Position.Magnitude > 0.2) then
 			lastInput = os.clock()
+			pingAwake()
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
@@ -553,6 +571,7 @@ function Meditation.init(gui: ScreenGui)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
 	player:GetAttributeChangedSignal("Root"):Connect(refresh)
 	player:GetAttributeChangedSignal("Realm"):Connect(refresh)
+	player:GetAttributeChangedSignal("Secluded"):Connect(refresh)
 	-- the Practice countdown ticks while seated
 	task.spawn(function()
 		while true do

@@ -3,7 +3,7 @@
 -- (QC9, QR9, and FE9 at the peak) an inner voice asks the player about how they
 -- actually climbed: the path they walked (blade or garden, from kills and
 -- harvests), the beasts they slew, their deaths, forced breakthroughs, hours in
--- stillness. Each question has 2-3 answers; the one the player's own record
+-- stillness and in seclusion. Each question has 2-3 answers; the one the player's own record
 -- contradicts is a denial. Finishing tempers old foundation grades
 -- (Foundation.temper): Pacing.HeartDemon TEMPER_CALM with no denials (the demon is
 -- calmed), one fewer per denial, never fewer than TEMPER_ROUGH, never lowering
@@ -239,6 +239,23 @@ local function stillQuestion(data: PlayerData.Data): Question?
 	}
 end
 
+-- Seclusion (Seclusion.luau): long hours shut away, online and offline.
+local function seclusionQuestion(data: PlayerData.Data): Question?
+	local hours = data.stats.secluded / 3600
+	if hours < Config.SECLUDED_MIN_HOURS then
+		return nil
+	end
+	return {
+		id = "seclusion",
+		lines = { `You sat in seclusion for {math.floor(hours + 0.5)} hours.`, "Were you hiding?" },
+		answers = {
+			{ text = "No. I was gathering.", reply = "Then let what you gathered show.", honest = true, heart = "shut the world out to gather yourself" },
+			{ text = "Yes. The world is loud.", reply = "It is. But it waits for you.", honest = true, heart = "hid from the world, and said so" },
+			{ text = "I never shut myself away.", reply = "Never? The door was closed a long time.", honest = false, heart = "would not admit your seclusion" },
+		},
+	}
+end
+
 -- Always there: why climb at all (every answer is honest).
 local function climbQuestion(): Question
 	return {
@@ -256,7 +273,7 @@ end
 -- with "why climb" filling in; up to Config.QUESTIONS, answers shuffled.
 function HeartDemon.questions(data: PlayerData.Data): { Question }
 	local list = { pathQuestion(data) }
-	for _, q in { slainQuestion(data), fearQuestion(data), forcedQuestion(data), stillQuestion(data), climbQuestion() } do
+	for _, q in { slainQuestion(data), fearQuestion(data), forcedQuestion(data), seclusionQuestion(data), stillQuestion(data), climbQuestion() } do
 		if q and #list < Config.QUESTIONS then
 			table.insert(list, q)
 		end

@@ -16,7 +16,9 @@ felt in fights.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
 - **The curve (2026-10-23, [roadmap](../roadmap.md) "Pacing, realm gaps and verbs"):**
-  active play is about 2.4 h of QC, 7 h of QR and 20 h of FE. The hook lands QC2,
+  active play is about 2.4 h of QC, 7 h of QR and 20 h of FE. Bars never go down
+  from one stage to the next (QR1 22000 > QC9 20000); QR1-2 open fast with a row
+  `gather` (x2.0, x1.6 raw qi from kills, nodes and daily qi) instead. The hook lands QC2,
   QC3 and QC4 in the first ten minutes; each realm is three thirds, each opened by a
   breather; the real slowdown is mid Qi Refining (QR4 on), where passive grows as a
   share of income so the garden aura, peak build items and herbs carry cultivation;
@@ -48,6 +50,14 @@ felt in fights.
 - Two speeds: **passive** cultivation is always on (online, offline, faster while
   meditating) so nobody is ever stuck; **active** play (kill beasts / gather qi
   nodes, then refine with a skill minigame) is several times faster.
+- **AFK online = offline (user, 2026-10-23).** Offline time (up to 12 h), AFK online
+  (no input for `Pacing.Income.AFK_AFTER`, 10 min; the client pings `Meditate "awake"`
+  on input) and [seclusion](seclusion.md) all earn `Cultivation.afkRate`: the plain
+  stage passive x `OFFLINE_RATE` (1), no meditation, aura, weather, buffs, root or
+  method, for at most `OFFLINE_MAX_HOURS` of AFK, up to the overflow cap. Nothing
+  breaks through on its own. At the cap a toast says "Your dantian can hold no more.
+  Break through." once, and again on coming back from AFK, offline or seclusion.
+  The balance (a night is about one stage) is in the `Pacing.luau` header.
 - A deliberate rhythm, not a flat ramp: QC1-3 hook (onboarding), QC4 breather,
   QC5 ramp, QC6 mini-wall, QC7 breather, QC8 ramp, QC9 wall (biggest bar, a
   tribulation for heaven-defiers), then Qi Refining and Foundation
@@ -221,6 +231,7 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   `health`, `power` (beasts follow through `Pacing.BeastBaseline`).
 - **Pacing.Suppression** (`KEEP`) and **Pacing.HeavenDefying** (`BAR`,
   `SUPPRESSION_RESIST`).
+- **Pacing.Curve** rows can carry `gather` (the curve's own raw qi multiplier, QR1-2).
 - **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE9"`:
   `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `levels`,
   `tribulation` (field overrides), `health`, `power`, `beastHealth`,
@@ -276,5 +287,5 @@ to Stone Boars).
   guesses. Open question: should gains past the bar slow down (a lower rate
   instead of only a cap), and should the QC9 -> FE1 tribulation carry as much as
   a minor breakthrough?
-- The idle warning about a full bar fires at the bar, not at the cap; nothing
-  tells the player when the overflow cap is reached except refining refusing.
+- The cap line ("Your dantian can hold no more") is a toast only; the objective line
+  doesn't show it.

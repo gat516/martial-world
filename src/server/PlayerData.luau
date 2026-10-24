@@ -47,6 +47,9 @@ export type HerbRecord = { n: number, l: number, m: { string } } -- one Herbariu
 -- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
 -- the heart line the player keeps (the Self card), and os.time()
 export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number }
+export type SeclusionTally = { stones: number, frac: number, cultivation: number, items: { [string]: number }, seeds: { [string]: number }, mutations: number, growth: number }
+export type Seclusion = { since: number, counted: number, online: number, start: number, rolled: number, tally: SeclusionTally, streak: number, streakDay: number, first: boolean }
+
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
 export type Data = {
@@ -90,7 +93,16 @@ export type Data = {
 		deaths: number,
 		seated: number,
 		forced: number,
+		secluded: number, -- seconds in seclusion, online and offline (server Seclusion)
 	},
+	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
+	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
+	-- seconds of it spent online; start = cultivation when it began; rolled = hourly
+	-- rare rolls made; tally = what this one has earned so far (stones and the
+	-- fractional stone, cultivation, finds by id, seeds by id, mutations, plants tended);
+	-- streak days and the day (os.time() // 86400) last counted; first = the
+	-- onboarding's first seclusion is done
+	seclusion: Seclusion,
 	-- heart-demon trials (server HeartDemon), by major id: the result, and when a
 	-- seat offer was last declined
 	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number } },
@@ -152,6 +164,10 @@ local function startingDao(): { [string]: Dao }
 	return dao
 end
 
+local function newTally(): SeclusionTally
+	return { stones = 0, frac = 0, cultivation = 0, items = {}, seeds = {}, mutations = 0, growth = 0 }
+end
+
 local function default(): Data
 	return {
 		v = SCHEMA_VERSION,
@@ -177,8 +193,9 @@ local function default(): Data
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
-		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0 },
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0 },
 		heartDemon = { trials = {}, declined = {} },
+		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
@@ -327,7 +344,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do
@@ -495,6 +512,7 @@ type Profile = {
 local profiles: { [Player]: Profile } = {}
 
 local PlayerData = {}
+PlayerData.newTally = newTally -- a fresh seclusion tally (server Seclusion)
 
 PlayerData.validSlot = validSlot
 -- Slot ids in order, "1".."MAX".

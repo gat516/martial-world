@@ -123,12 +123,14 @@ QC3->4 by ~9-10); not yet timed in play.
   player only).
 
 **One idea per chapter after the hook** (lessons, roadmap section 2): Home (QC4,
-plant a seed), Board (QC5, read the quest board), Herbs (QC6, eat one), Rumours
+plant a seed), paired with Seclusion (QC4 after Home: enter seclusion on your peak; the
+first one ends by itself after 90 s with a generous card, a reward moment; the seed
+just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the quest board), Herbs (QC6, eat one), Rumours
 (QC8, find a hidden cache; no guide), Wall (QC9, break into Qi Refining), and at QR1
 the second weapon (WeaponRack) and the Dao drill (DaoPractice, `Pacing.DaoPractice.FROM`
 moved from QC7). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
 doesn't land on FreePlay's own line. Still to write, as each system lands: QR (a
-master, the Halls, seclusion, rifts, the heart demon) and FE (refinement, treasures, pets).
+master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
 
 ### Beats and lessons (built)
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
@@ -136,7 +138,8 @@ master, the Halls, seclusion, rifts, the heart demon) and FE (refinement, treasu
   beat from which the formation is taught (FirstKill).
 - **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: RootPill
   (first, so a standing lesson like DaoPractice can't hide it), Home
-  (QC4, nothing planted: walk to your garden), Board (QC5), Herbs (QC6), Rumours
+  (QC4, nothing planted: walk to your garden), Seclusion (QC4, Home claimed, the first
+  seclusion not done: home, sit, the Method tile reading Seclusion, Enter Seclusion), Board (QC5), Herbs (QC6), Rumours
   (QC8), Wall (QC9), Bottleneck, WeaponRack (QR1, a
   single weapon class: the Main Peak rack), DaoPractice (QR1), Method. In free
   play, the first lesson whose condition holds says
@@ -210,7 +213,8 @@ master, the Halls, seclusion, rifts, the heart demon) and FE (refinement, treasu
   the same defs and share the claim path.
 - **What each one asks** (`done`; a lesson's objective applies while `open`,
   by default its `when`): the beats as above; RootPill: a pill absorbed;
-  Home (from QC4): a herb planted; Board (from QC5): the board's Read prompt
+  Home (from QC4): a herb planted; Seclusion (from QC4): the first seclusion finished
+  (`data.seclusion.first`); Board (from QC5): the board's Read prompt
   (`data.lessons.BoardRead`); Herbs (from QC6): a herb eaten (`data.lessons.HerbEaten`,
   set in `Inventory.use`); Rumours (from QC8): a world cache claimed (not a `rack:`
   one); Wall (from QC9): QR1 reached; Bottleneck (while a technique is

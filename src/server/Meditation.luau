@@ -7,7 +7,8 @@
 -- (Peaks.meditationBonus). World events can open sites (Meditation.addSite) that
 -- beat sitting anywhere while they last. The client plays the animations and asks to start
 -- or stop; the server re-checks the spot every second and stands the player up
--- if they drift away from where they sat.
+-- if they drift away from where they sat. The same remote carries the client's
+-- throttled "awake" ping (input seen), which keeps the player from counting as AFK.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -21,7 +22,7 @@ local Peaks = require(script.Parent.Peaks)
 
 local meditateRemote = ReplicatedStorage.Remotes.Meditate :: RemoteEvent
 
-export type Spot = { multiplier: number, place: string }
+export type Spot = { multiplier: number, place: string, own: boolean? } -- own: on your own peak (where seclusion can begin)
 type Session = { anchor: Vector3, spot: Spot }
 
 local Meditation = {}
@@ -79,9 +80,9 @@ local function spotAt(player: Player, position: Vector3): Spot
 			local item = bestItem(peak, position)
 			local base = Rates.ON_PEAK + Peaks.meditationBonus(player) -- the peak score (Pacing.PeakScore)
 			if item then
-				return { multiplier = base + item.bonus, place = `on your {item.name}` }
+				return { multiplier = base + item.bonus, place = `on your {item.name}`, own = true }
 			end
-			return { multiplier = base, place = "on your peak" }
+			return { multiplier = base, place = "on your peak", own = true }
 		end
 	end
 	local best: Spot = { multiplier = Rates.ANYWHERE, place = "" }
@@ -139,6 +140,8 @@ function Meditation.handle(player: Player, on: any)
 		start(player)
 	elseif on == false then
 		stop(player, false)
+	elseif on == "awake" then
+		Cultivation.awake(player) -- the client saw input (Pacing.Income.AFK_AFTER)
 	end
 end
 

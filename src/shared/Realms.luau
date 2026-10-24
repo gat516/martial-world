@@ -85,7 +85,7 @@ for i, row in Pacing.Curve do
 		health = math.floor(row.health * (adjust.health or 1) + 0.5),
 		power = row.power * (adjust.power or 1),
 		refine = (adjust.refine or 1) * G.REFINE,
-		gather = (adjust.gather or 1) * G.GATHER,
+		gather = (row.gather or 1) * (adjust.gather or 1) * G.GATHER,
 		difficulty = math.clamp(row.difficulty + (adjust.difficulty or 0) + G.DIFFICULTY, -0.5, 1),
 		levels = adjust.levels or row.levels,
 		tribulation = tribulation,

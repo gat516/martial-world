@@ -230,8 +230,19 @@ end
 
 Circulation.atRefiningSpot = atRefiningSpot
 
+-- Seated actions a secluded player can't take (they rise to leave seclusion first).
+local NOT_SECLUDED = { start = true, practiceStart = true, heartDemon = true, method = true, root = true }
+
 function Circulation.handle(player: Player, action: any, ...: any): (boolean, any)
-	if action == "start" then
+	if Cultivation.secluded and Cultivation.secluded(player) and NOT_SECLUDED[action] then
+		return false, "You are in seclusion. Rise to leave it first."
+	end
+	if action == "seclusion" then
+		if Cultivation.enterSeclusion then
+			return Cultivation.enterSeclusion(player)
+		end
+		return false, nil
+	elseif action == "start" then
 		return Circulation.start(player)
 	elseif action == "finish" then
 		return Circulation.finish(player, ...)

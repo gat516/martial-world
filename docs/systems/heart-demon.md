@@ -100,6 +100,10 @@ surges should count there or get their own question), deaths that spilled a haul
 Store all, peak building and the Herbarium.
 
 ## Known gaps
+- **Later (user, 2026-10-23): a real heart-demon sequence.** Not only dialogue: a
+  physical heart demon, e.g. a mirror copy of the player with red eyes, in its own
+  short scene (inner-world space, the copy speaking the questions). Needs a
+  designer brief, then vfx/animator; the dialogue flow stays the backbone.
 - UI: the speaker uses the generic `unnamed` gray silhouette and the ruby name tab. A
   heart-demon silhouette of its own (uploaded and added to `Dialogue` `PORTRAITS`) and
   the crimson demon tab (Codex sheet A7) are ui-designer work. No sound or vfx cue.

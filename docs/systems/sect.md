@@ -14,7 +14,9 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
 - **Both roads.** No daily is only combat: at most one combat daily a day, the rest
   peaceful. Every combat chain step has a peaceful path beside it, and either one
   finishes it.
-- **Never qi, never root pills** from contribution. Qi stays with Pacing.
+- **Never qi, never whole root pills** from contribution. Qi stays with Pacing. Root
+  pill *fragments* are sold, a few a week (user, 2026-10-24: the gardener's road to a
+  better root; never for Robux).
 - **Rank goes by contribution earned** (all time), so spending at the Pavilion never
   costs a promotion.
 
@@ -69,7 +71,13 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
   1200 FE; `Haul.ringSlots` adds `data.sect.ring[major]`), and copies of the
   kill-milestone manuals while not owned or held (Fire Seal 60, Sword Qi Wave 100,
   Iron Skin 150, Moonflash Draw 200, Palm Strike 250; through `Progression.grantManual`,
-  so the Dao gate still holds). No cosmetics: none are sold anywhere yet.
+  so the Dao gate still holds), and root pill fragments ([spirit root](../character/spirit-root.md)
+  "Pity fragments"): a Marrow Washing fragment for 100 (3 a week) and a Root Rebirth
+  fragment for 80 (2 a week), `Pacing.Sect.FRAGMENTS`, counted in `data.sect.weekBought`
+  and reset with the dailies' week (Monday 00:00 UTC). Ten fuse into the pill on their
+  own (`Inventory.fragment`). Needs a tested root. 3 Marrow a week is about 300 of the
+  ~700 a week dailies pay, so a pill every ~3.5 weeks from the Pavilion alone. No
+  cosmetics: none are sold anywhere yet.
 - **Quest log and tracking:** tapping a taken notice opens the quest log on it (taken
   dailies, the chain step with both paths, the rank road). Track puts it on the HUD
   objective line in free play (`Quests.trackedObjective`: after a guiding lesson,

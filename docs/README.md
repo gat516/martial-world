@@ -101,7 +101,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Knockback / stagger (beasts) | `src/shared/Knockback.luau` |
 | Player flinch, stagger, stun: lengths, immunity, diminishing returns; which enemy hits stagger; knockback on the player | `Config.Combat.CC` (`HEAVY_KINDS`, `STAGGER_WEIGHT`, `KNOCK_*`); per attack `react`/`knock`, per beast `knock` in `Enemies.luau`; API `PlayerStun.apply` ([combat](systems/combat.md#player-crowd-control)) |
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
-| Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
+| Spirit roots: element odds, grades, perks (rare `BONUS`), element match, pity fragments | `src/shared/Pacing.luau` `Roots` (Pavilion fragment prices `Sect.FRAGMENTS`); elements in `src/shared/Roots.luau` |
 | Cultivation methods: qi speed, reach, root match | `src/shared/Pacing.luau` `Methods`; defs in `src/shared/Methods.luau` |
 | Guard: move speed, front arcs (melee, dash), chip, drain, regen, break, parry window and stagger, chain parry, threat facing, race grace; cue volume; per-class guard clips | `Config.Combat.GUARD`; `assets/Animations.rbxmx` (`Guard.<Class>`); `assets/SoundGroups/SFX.rbxmx` (`GuardRaise`, `Parry`, `Block`, `GuardBreak`; [guard and parry](combat/guard-parry.md)) |
 | Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |

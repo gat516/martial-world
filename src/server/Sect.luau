@@ -15,7 +15,8 @@
 --              beside it, and either finishes the step. Each claim sends the quest
 --              card; the last ends at the Broken Pagoda (or the Elder Wolf King).
 --   Pavilion   seed packets by tier, a spirit ring slot per major, copies of the
---              kill-milestone manuals. Never qi, never root pills.
+--              kill-milestone manuals, root pill fragments (a few of each a week,
+--              Tuning.FRAGMENTS). Never qi, never whole root pills.
 -- From QC5 (Pacing.Sect.OPENS; the testbed at any realm) the board's Read prompt
 -- opens the sect board (Quests.openBoard); before that it opens the goals list.
 -- Client: src/client/SectView.luau, through QuestState { sect = view, open = bool }
@@ -30,14 +31,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Items = require(ReplicatedStorage.Shared.Items)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Regions = require(ReplicatedStorage.Shared.Regions)
+local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local PlayerData = require(script.Parent.PlayerData)
 local Cultivation = require(script.Parent.Cultivation)
 local Foundation = require(script.Parent.Foundation)
 local Progression = require(script.Parent.Progression)
+local Inventory = require(script.Parent.Inventory)
 local Quests = require(script.Parent.Quests)
 local Analytics = require(script.Parent.Analytics)
 
@@ -347,6 +351,7 @@ local function refresh(data: PlayerData.Data)
 	if sect.weekId ~= week then
 		sect.weekId = week
 		sect.week = 0
+		sect.weekBought = {}
 	end
 end
 
@@ -561,6 +566,19 @@ local function stockList(data: PlayerData.Data)
 			add(`manual:{id}`, `{def.name} manual`, "A copy of an art the sect teaches every disciple.", cost)
 		end
 	end
+	-- root pill fragments, a few a week (Tuning.FRAGMENTS; the week resets with the dailies')
+	local per = Pacing.Roots.FRAGMENTS.PER_PILL
+	for _, pill in Pacing.Roots.FRAGMENTS.PILLS do
+		local f = Tuning.FRAGMENTS[pill]
+		local item = Items.Defs[pill]
+		if f and item then
+			local left = f.week - (data.sect.weekBought[pill] or 0)
+			local have = RootDefs.fragments(data.root, pill)
+			add(`fragment:{pill}`, RootDefs.FragmentNames[pill],
+				`{per} fuse into a {item.name} (you hold {have}/{per}). {math.max(0, left)} left this week.`, f.cost,
+				if left <= 0 then "Sold out this week" elseif not RootDefs.tested(data.root) then "Have your root tested first" else nil)
+		end
+	end
 	return list
 end
 
@@ -606,7 +624,7 @@ local function view(data: PlayerData.Data)
 			end
 		end
 		table.insert(tasks, { id = "pavilion", kind = "pavilion", glyph = "chest", title = "The Pavilion",
-			body = "Spend contribution on seeds, arts and a ring slot.", state = "taken" })
+			body = "Spend contribution on seeds, arts, a ring slot and root pill fragments.", state = "taken" })
 	end
 	-- the rank road, in the log only (soft: the board shows the promotion once it's met)
 	local r = nextRank(data)
@@ -819,6 +837,10 @@ local function buy(player: Player, data: PlayerData.Data, id: any): (boolean, st
 				Cultivation.notify(player, "Your spirit ring keeps one more stack safe.")
 			elseif string.sub(id, 1, 7) == "manual:" then
 				Progression.grantManual(player, string.sub(id, 8))
+			elseif string.sub(id, 1, 9) == "fragment:" then
+				local pill = string.sub(id, 10)
+				data.sect.weekBought[pill] = (data.sect.weekBought[pill] or 0) + 1
+				Inventory.fragment(player, pill, 1)
 			else
 				return false, nil
 			end

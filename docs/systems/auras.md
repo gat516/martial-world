@@ -36,6 +36,10 @@ ring, Lightning's bolts, Wind's vortex, Ice's glass lotus); see
 [spirit root](../character/spirit-root.md), "The reveal". A new element's reveal should
 reuse its first method's motif.
 
+A rare spirit root (Lightning, Wind, Ice) adds a PointLight of its element's
+colour to whatever aura its player sits in (`MethodAura` `RARE_GLOW`; spirit root
+"Rare-root glow").
+
 ## Per-method auras
 
 Each method's brief, what's built, budget and gaps live in its own file:

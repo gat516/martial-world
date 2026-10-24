@@ -60,6 +60,7 @@ local GRADES = {
 	Spirit = { width = 1, height = 1, bright = 0, count = 1, size = 1, sky = false },
 	Earth = { width = 1.15, height = 1.12, bright = 0.06, count = 1.2, size = 1.15, sky = false },
 	Heaven = { width = 1.3, height = 1.25, bright = 0.12, count = 1.4, size = 1.35, sky = true },
+	Immortal = { width = 1.45, height = 1.4, bright = 0.18, count = 1.6, size = 1.5, sky = true },
 }
 local BOLT_SEGMENTS = 9
 local BOLT_JAG = 5 -- studs a bolt's joints wander

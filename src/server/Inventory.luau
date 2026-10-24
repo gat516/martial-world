@@ -6,7 +6,8 @@
 --   - The hotbar (Hotbar.luau) is nine free-form slots of techniques and items;
 --     a newly gained item goes into the first empty slot.
 --   - Items come from beasts (EnemyService drops), heavenly treasures
---     (Treasures.luau) and the garden.
+--     (Treasures.luau) and the garden. Bosses and treasures that give no root
+--     pill give root pill fragments (Inventory.pity; 10 fuse into the pill).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,6 +16,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local Haul = require(script.Parent.Haul)
@@ -190,13 +193,60 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	return true, `{item.name}: {item.blurb}`
 end
 
--- EnemyService.onKill: roll the beast's drops for this player.
+--[[ Root pill fragments ]]
+
+local ROOT_PILLS = Pacing.Roots.FRAGMENTS.PILLS
+
+-- Add `count` pity fragments toward root pill `pill` (Pacing.Roots.FRAGMENTS).
+-- Every PER_PILL of them combine into the pill on their own (granted like a drop).
+function Inventory.fragment(player: Player, pill: string, count: number, from: Vector3?)
+	local data = PlayerData.get(player)
+	local name = RootDefs.FragmentNames[pill]
+	if not (data and name and Items.Defs[pill]) or count <= 0 then
+		return
+	end
+	local fragments = data.root.fragments or {}
+	data.root.fragments = fragments
+	local have = (fragments[pill] or 0) + count
+	local per = Pacing.Roots.FRAGMENTS.PER_PILL
+	local made = have // per
+	fragments[pill] = have - made * per
+	if made > 0 then
+		Inventory.grant(player, pill, made, from)
+		Cultivation.notify(player, `{per} {name}s fuse into a {Items.Defs[pill].name}!`)
+	else
+		Cultivation.notify(player, `+{count} {name} ({fragments[pill]}/{per}). {per} make a {Items.Defs[pill].name}.`)
+		Cultivation.pushState(player)
+	end
+end
+
+-- The pity road (Pacing.Roots.FRAGMENTS): a boss kill or a heavenly treasure that
+-- gave no root pill gives a Marrow Washing fragment, and sometimes a Rebirth one.
+function Inventory.pity(player: Player, gotPill: boolean, from: Vector3?)
+	if gotPill then
+		return
+	end
+	Inventory.fragment(player, "MarrowWashingPill", 1, from)
+	if math.random() < Pacing.Roots.FRAGMENTS.REBIRTH_CHANCE then
+		Inventory.fragment(player, "RootRebirthPill", 1, from)
+	end
+end
+
+-- EnemyService.onKill: roll the beast's drops for this player; a boss that drops
+-- no root pill gives pity fragments instead.
 function Inventory.onKill(player: Player, def: Enemies.Def, model: Model)
 	local at = model:GetPivot().Position
+	local gotPill = false
 	for _, drop in def.drops or {} do
 		if math.random() < drop.chance then
 			Inventory.grant(player, drop.item, 1, at)
+			if table.find(ROOT_PILLS, drop.item) then
+				gotPill = true
+			end
 		end
+	end
+	if def.boss then
+		Inventory.pity(player, gotPill, at)
 	end
 end
 

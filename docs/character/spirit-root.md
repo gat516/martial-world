@@ -25,8 +25,14 @@ with a rune circle, Lightning jagged bolts striking the stone under a darkened
 violet sky, Wind a vortex of rings corkscrewing up and clouds spraying out, Ice a
 giant glass lotus blooming round the stone. Rare roots go taller with a ground
 shockwave, a sky burst and a sky tint. Grade (in the payload) makes the column
-taller, wider and brighter and the element's pieces bigger; a Heaven root also
-gets the sky burst. A short glow on the stone when `first` is false.
+taller, wider and brighter and the element's pieces bigger; a Heaven or Immortal
+root also gets the sky burst. A short glow on the stone when `first` is false.
+
+**Rare-root glow (user, 2026-10-24):** a rare root (Lightning, Wind, Ice) shows
+after the reveal too: while its player sits (meditating or circulating), every
+client adds a PointLight of the element's colour to their method aura
+(`MethodAura` `RARE_GLOW`, read from the `Root` attribute), so others can tell a
+rare root at a glance. Code only; a richer element trail is a vfx pass for later.
 
 **Element (rolled):**
 
@@ -37,12 +43,18 @@ gets the sky burst. A short glow on the stone when `first` is false.
 | Wood | 18% | Your herbs grow faster (+25%, while online) | Dragon-Piercing Thrust |
 | Metal | 18% | Your weapon strikes hit harder (+8%) | Sword Qi Wave, Iron Skin, Rampaging Tiger Cleave |
 | Earth | 18% | You have more health (+10%) | Palm Strike, Heaven-Splitting Descent |
-| Lightning (rare) | 4% | You run faster (+2) | Lightning Talisman |
-| Wind (rare) | 3% | You jump higher (+15%) | Great Sage Awakening |
-| Ice (rare) | 3% | You take less damage (-6%) | Moonflash Draw |
+| Lightning (rare) | 4% | You run faster (+3), and your techniques hit harder (+6%) | Lightning Talisman |
+| Wind (rare) | 3% | You jump higher (+20%), and your weapon strikes hit harder (+6%) | Great Sage Awakening |
+| Ice (rare) | 3% | You take less damage (-8%), and you have more health (+6%) | Moonflash Draw |
 
 - Perks are small so no element is "the best"; the numbers are at Spirit grade
-  and scale with grade (`Pacing.Roots.PERKS`, `GRADES`).
+  and scale with grade (`Pacing.Roots.PERKS`, `BONUS`, `GRADES`).
+- **Rare roots are worth at least a common one (user, 2026-10-24).** The review
+  found Lightning (+2 walk) and Wind (+15% jump) the weakest perks, so teens
+  would reroll away from the rarest roots. Each rare element now has a stronger
+  main perk plus a second perk worth about a common root's whole perk
+  (`Pacing.Roots.BONUS`; `Roots.perks` lists them, `Roots.perk` sums by kind).
+  The card shows both lines.
 - **Matching technique:** +15% damage on techniques of your element
   (`Pacing.Roots.MATCH`). Every element has at least one.
 - The perks touch systems that already exist (combat, health, regen, garden,
@@ -51,12 +63,21 @@ gets the sky burst. A short glow on the stone when `first` is false.
   (refining speed), `Combat` (`strike`, technique damage, `guard` in `hurt`),
   `Garden.tendGarden` (growth), `Roots` (Water's regen loop).
 
-**Grade (grows):** everyone starts at **Spirit** grade (blue). In the lore a
+**Grade (grows):** everyone starts at **Spirit** grade (jade). In the lore a
 Mortal grade means no root at all, so nobody is told their root is trash.
-- Spirit -> Earth -> Heaven raises passive and refining speed (roughly x1.0,
-  x1.1, x1.25) and strengthens the element perk.
+- Spirit -> Earth -> Heaven -> **Immortal** raises passive and refining speed
+  (x1.0, x1.1, x1.25, x1.4) and strengthens the element perks (x1, x1.5, x2, x2.5).
+- **Why these four (user, 2026-10-24: keep Earth and Heaven, more steps welcome):**
+  one rare grade was added on top, **Immortal**, because every kid knows an
+  immortal is the very top of cultivation, it needs no explaining, and it gives
+  Heaven-grade players a long goal. Its colour is rose (`Roots.GradeColors`;
+  weapons have no Immortal grade). No grade was added below Spirit: a lower start
+  would either change everyone's speed (existing saves at Spirit would leapfrog new
+  players) or be a step that does nothing, and a starting grade under "Spirit"
+  risks reading as "your root is trash". Existing saves keep their grade.
 - Raised by the **Marrow Washing Pill** (built: Legendary, `Items.luau`), and it
-  takes several: **3 to reach Earth, 5 more for Heaven** (`Pacing.Roots.WASH`).
+  takes several: **3 to reach Earth, 5 more for Heaven, 8 more for Immortal**
+  (`Pacing.Roots.WASH`).
   Each absorbed pill adds one to the current element's washing progress
   (`root.washed[element]`, `Roots.wash`); reaching the count raises the grade and
   clears it (pills absorbed also count in `data.stats.washed`, Root Rebirth Pills in
@@ -68,6 +89,17 @@ Mortal grade means no root at all, so nobody is told their root is trash.
   treasure (weight 1 of 103, about 1%). Earth is a long hunt; nothing in Qi
   Condensation realistically reaches Heaven. Later also alchemy and the
   Auspicious Clouds relic. It is a long-term goal, not a gate.
+- **Pity fragments (user, 2026-10-24).** Every boss kill (Enemies `boss`) and every
+  claimed heavenly treasure that gives no root pill gives a **Marrow Washing
+  fragment**, and 25% of the time also a **Root Rebirth fragment**
+  (`Inventory.pity`, `Pacing.Roots.FRAGMENTS`). **10 fragments fuse into the pill
+  on their own** (`Inventory.fragment`; granted like a drop, with a notice), so no
+  one goes 200 kills dry: Earth is at most 30 boss kills. Fragments are counted in
+  `root.fragments` (by pill id, shared by every element, never lost on death) and
+  shown on the Spirit Root page and the root card's detail once one is held. The
+  **Sect Pavilion** sells them for contribution, weekly-capped
+  (`Pacing.Sect.FRAGMENTS`, [sect](../systems/sect.md)), so gardeners have a road
+  too. Never sold for Robux.
 - **Never in the hook:** everyone starts at Spirit, and the first session never
   hands out or teaches root pills. The test kit skips them
   (`Config.TestKit.SKIP_ITEMS`); the RootPill lesson waits for QC5 and a pill
@@ -91,7 +123,12 @@ element; returning costs nothing, so it can never leave you worse off
 Both pills are absorbed seated in meditation (`Inventory.use`, item uses
 `rootGrade` / `rootReroll`), from the meditation menu's Spirit Root page.
 
-**Data:** `data.root = { element: string, grade: string, pending: string, grades: { [element]: grade }, washed: { [element]: pills } }` (schema v6; `pending`, `grades` and `washed` filled by default); `""`
+**Heaven grade vs Defier of Heaven (user, 2026-10-24).** The Heaven grade keeps its
+name. The heaven-defying flag (`data.heavenDefying`, tribulations) is called
+**Defier of Heaven** wherever players see it (`Pacing.HeavenDefying.TITLE`), never
+"heaven-defying", so the two can't be mixed up.
+
+**Data:** `data.root = { element: string, grade: string, pending: string, grades: { [element]: grade }, washed: { [element]: pills }, fragments: { [pillId]: count } }` (schema v6; `pending`, `grades`, `washed` and `fragments` filled by default); `""`
 element = not yet tested; `grade` is the current element's, `grades` the others'
 (saves from before 2026-10-21 have none recorded, so earlier elements read as Spirit). Tuning in `Pacing.Roots`. Pushed in `PlayerState`
 (`root`); published as player attributes `Root` and `RootGrade` for others'

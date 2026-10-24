@@ -142,7 +142,7 @@ end
 
 function SelfCard.gradeColor(grade: string): Color3
 	local g = Weapons.Grades[grade]
-	return if g then g.color else Color3.new(1, 1, 1)
+	return if g then g.color else Roots.GradeColors[grade] or Color3.new(1, 1, 1)
 end
 
 -- The tested root: the state snapshot, else the player's attributes.
@@ -163,23 +163,22 @@ local function percent(share: number): string
 	return `{math.floor(share * 100 + 0.5)}%`
 end
 
--- The perk's exact amount at this root's grade, as one line.
-local function perkLine(root: Roots.Root): string
-	local def = Roots.Elements[root.element]
-	local amount = Roots.perk(root, def.perk)
-	if def.perk == "technique" then
+-- One perk's exact amount at this root's grade, as one line.
+local function perkLine(root: Roots.Root, kind: Roots.Perk): string
+	local amount = Roots.perk(root, kind)
+	if kind == "technique" then
 		return `+{percent(amount)} technique damage`
-	elseif def.perk == "regen" then
+	elseif kind == "regen" then
 		return `Heal {percent(amount)} of your health each second out of combat`
-	elseif def.perk == "growth" then
+	elseif kind == "growth" then
 		return `Herbs grow +{percent(amount)} faster while you're online`
-	elseif def.perk == "strike" then
+	elseif kind == "strike" then
 		return `+{percent(amount)} weapon strike damage`
-	elseif def.perk == "health" then
+	elseif kind == "health" then
 		return `+{percent(amount)} max health`
-	elseif def.perk == "walk" then
+	elseif kind == "walk" then
 		return `+{math.floor(amount * 10 + 0.5) / 10} run speed`
-	elseif def.perk == "jump" then
+	elseif kind == "jump" then
 		return `+{percent(amount)} jump height`
 	end
 	return `-{percent(amount)} damage taken`
@@ -205,7 +204,11 @@ end
 -- A root's effects, one line each (plain text; the card colours them).
 local function rootEffects(root: Roots.Root): { string }
 	local def = Roots.Elements[root.element]
-	local lines = { perkLine(root), `+{percent(Pacing.Roots.MATCH)} {def.name} technique damage` }
+	local lines = {}
+	for _, p in Roots.perks(def.id) do
+		table.insert(lines, perkLine(root, p.kind))
+	end
+	table.insert(lines, `+{percent(Pacing.Roots.MATCH)} {def.name} technique damage`)
 	local speed = signed(Roots.speed(root) - 1)
 	if speed then
 		table.insert(lines, `{speed} cultivation speed`)
@@ -748,16 +751,22 @@ end
 local function renderRoot(root: Roots.Root)
 	local def = Roots.Elements[root.element]
 	local effects = rootEffects(root)
-	local summary = { gain(effects[1]) }
-	local detail = {}
-	for i = 2, #effects do
-		table.insert(detail, gain(effects[i]))
+	local mains = #Roots.perks(def.id) -- every perk at a glance (a rare root has two)
+	local summary, detail = {}, {}
+	for i, line in effects do
+		table.insert(if i <= mains then summary else detail, gain(line))
 	end
 	local washed, need = Roots.washed(root)
 	local nextGrade = Roots.nextGrade(root.grade)
 	if need and nextGrade then
 		local line = `Washed {washed} / {need} toward {nextGrade} grade`
 		table.insert(if washed > 0 then summary else detail, line)
+	end
+	for _, pill in Pacing.Roots.FRAGMENTS.PILLS do
+		local have, per = Roots.fragments(root, pill)
+		if have > 0 then
+			table.insert(detail, `{Roots.FragmentNames[pill]}s: {have} / {per}`)
+		end
 	end
 	fill("Root", {
 		name = `{def.name} Root`,

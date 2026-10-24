@@ -1,5 +1,7 @@
 # Review: spirit roots, washing and rebirth pills
 
+**Owner's decision (user, 2026-10-24):** pity fragments yes (bosses and treasures without a pill give Marrow Washing fragments, rarer Rebirth fragments; 10 fuse into a pill; the Pavilion sells them weekly-capped; never Robux). Earth and Heaven keep their names; a rare Immortal grade was added on top. The heaven-defying flag is shown as "Defier of Heaven". Rare roots got stronger perks plus a second perk and an element glow on their aura. Built: see [spirit root](../character/spirit-root.md).
+
 **Verdict: keep with changes.** The reveal is excellent. It's free, it needs no decisions, there's a pillar per element, and it says "this cultivator is you" at minute 5. The pills are a long hunt with no pity and no gardener road, the rarest roots get the mildest perks, and "Heaven grade" collides with "heaven-defying". Reviewed 2026-10-23 from spirit-root.md and `Pacing.Roots`; nothing played.
 
 ## Why it exists / who it's for

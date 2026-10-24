@@ -47,9 +47,9 @@ Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
   same-stage player's share, beasts' blows take about 1.25x a same-stage player's
   share of their health (never more than unsheltered), so they reach the kill share
   and survive. Rewards stay their own realm's. Leaving the party or the radius ends
-  it at once. Shown by a "Sheltered by <name>" feed line once per engagement, the
-  "sheltered" enemy-bar tier (a jade shield and "Sheltered"), the pips' shelter marks
-  and a faint jade qi thread between the two in combat.
+  it at once. No "sheltered" label (user, 2026-10-24): it shows as the HUD's
+  Suppressed status lifting, beast bars reading the synced stage, the jade qi swirl
+  on the patron's pip and a faint jade qi thread between the two in combat.
   The stronger member earns `SENIOR_QI_SHARE` (20%) of their own qi for each kill a
   sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`),
   and, once the sect is open to them, `CONTRIBUTION` (2) sect contribution, inside the
@@ -163,10 +163,10 @@ cinnabar seal. Calm and plain: no ornament beyond the frame.
   any window is open. Tap a member for their card, your own row for **Leave party** (a
   130x40 lacquer button that drops under it for 4 s).
   The party shelter shows on the pips (`Social` `refreshShelter`, from every player's
-  `ShelteredBy`): a jade shield (`Band.Sheltered`, the kit shield's silhouette) on a
-  sheltered member's row and the jade qi swirl (`Band.Patron`, the kit's `glyph_qi`) on
-  the patron's, 16x18 at the band's right end before its lozenge; the name narrows to
-  clear it.
+  `ShelteredBy`): the jade qi swirl (`Band.Patron`, the kit's `glyph_qi`) on the
+  patron's row, 16x18 at the band's right end before its lozenge; the name narrows to
+  clear it. The sheltered member's row has no mark (the authored `Band.Sheltered`
+  shield is kept hidden in code; it can go in a later Hud export).
 - **Friend toast:** `friendHere` -> `Hud.toast("<name> is on this mountain")`.
 
 **In the Hud (built 2026-10-24, `assets/Hud.rbxmx`):**

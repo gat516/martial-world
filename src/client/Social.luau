@@ -8,8 +8,8 @@
 --   the invite prompt a small card under the top bar with a countdown, Accept / Decline
 --   party pips        a tiny stack at the left edge: each member's name, a health sliver,
 --                     the leader's seal, dimmed when not near; tap your own for Leave;
---                     the party shelter's marks (a jade shield on a sheltered member, the
---                     jade qi swirl on the one sheltering them; player attribute ShelteredBy)
+--                     the jade qi swirl on a member sheltering another (party shelter;
+--                     player attribute ShelteredBy)
 --   friend toast      "<name> is on this mountain" through the HUD toast
 -- Laid out at the phone baseline (844x390) and fitted by UiScale (max 1.3), like Sect.
 --
@@ -477,10 +477,11 @@ end
 
 local rowsByUser: { [number]: GuiButton } = {}
 
--- The party shelter on the pips (docs/systems/combat.md "Realm pressure"): a jade
--- shield on a member a stronger one shelters, the jade qi swirl on that patron. From
--- each member's ShelteredBy attribute (the patron's UserId; Social.preview's members
--- carry `shelteredBy` instead).
+-- The party shelter on the pips (docs/systems/combat.md "Realm pressure"): the jade
+-- qi swirl on a member sheltering another. The sheltered one gets no mark (user,
+-- 2026-10-24: "dont do sheltered"), so the authored Sheltered shield stays hidden.
+-- From each member's ShelteredBy attribute (the patron's UserId; Social.preview's
+-- members carry `shelteredBy` instead).
 local NAME_WIDTH = UDim2.new(1, -36, 0, 16) -- PlayerName as authored
 local NAME_WIDTH_MARKED = UDim2.new(1, -52, 0, 16) -- clear of the mark
 
@@ -508,14 +509,14 @@ refreshShelter = function()
 		local band = row:FindFirstChild("Band") :: ImageLabel
 		local shield = band:FindFirstChild("Sheltered") :: GuiObject?
 		local swirl = band:FindFirstChild("Patron") :: GuiObject?
-		local isSheltered, isPatron = sheltered[userId] == true, patrons[userId] == true and not sheltered[userId]
+		local isPatron = patrons[userId] == true and not sheltered[userId]
 		if shield then
-			shield.Visible = isSheltered
+			shield.Visible = false
 		end
 		if swirl then
 			swirl.Visible = isPatron
 		end
-		(band:FindFirstChild("PlayerName") :: GuiObject).Size = if isSheltered or isPatron then NAME_WIDTH_MARKED else NAME_WIDTH
+		(band:FindFirstChild("PlayerName") :: GuiObject).Size = if isPatron then NAME_WIDTH_MARKED else NAME_WIDTH
 	end
 end
 

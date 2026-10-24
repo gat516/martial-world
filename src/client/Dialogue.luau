@@ -614,8 +614,10 @@ function Dialogue.init()
 		warn(`Dialogue: {copies} Dialogue ScreenGuis in PlayerGui; StarterGui has a stale copy beside Rojo's`)
 	end
 	local canvas = gui:WaitForChild("Canvas") :: Frame
-	UiScale.fit(canvas)
 	local phone = UiScale.isPhone()
+	-- fitted at the layout's own baseline; the phone layout never grows past 1x (a
+	-- short PC window, under 600 px, gets it and blew it up to about 1.3x)
+	UiScale.fit(canvas, if phone then { base = UiScale.PHONE, max = 1 } else { base = UiScale.DESKTOP })
 	local desktopLayout = canvas:WaitForChild("Desktop") :: Frame
 	local phoneLayout = canvas:WaitForChild("Phone") :: Frame
 	layout = if phone then phoneLayout else desktopLayout

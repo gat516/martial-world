@@ -70,7 +70,9 @@ shouldn't be way taller than the dialogue"). It started from the user's mockup
 screen like in figma") and replaced a panel in the screen's centre. The gameplay HUD
 is hidden while it's open (Menus), so the bottom is free. Laid out at a baseline
 inside `Canvas` and fitted by `UiScale` (one `UiScale` UIScale); `UiScale.isPhone()`
-picks the layout once and the other is destroyed. The layout root is the bar plus
+picks the layout once and the other is destroyed, and the canvas is fitted at that
+layout's baseline; the phone layout is capped at 1x, since a PC window under 600 px tall
+gets it too and it filled half the screen there at 1.3x (2026-10-24). The layout root is the bar plus
 the name tab, anchored at its bottom centre (AnchorPoint 0.5,1); `Responses` hangs
 off its right edge.
 

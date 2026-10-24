@@ -148,3 +148,4 @@ Blox Fruits, Sailor Piece, Anime Vanguards-style games, Deepwoken, Arcane Odysse
 
 ## Addenda
 Findings added by game-designer reviews, one line each with a source.
+- Catalog peak building is fine for under-16 catalogs; the restriction covers free-form 2D drawing and creation, not placing catalog pieces. Keep it catalog-only with no player text on signs (TechCrunch, 2024-11-07, techcrunch.com/2024/11/07/roblox-adds-new-safety-measures-to-ban-kids-under-13-from-social-spaces).

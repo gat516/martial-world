@@ -44,7 +44,9 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "WolfStamina" },
 		Modifiers = { walk = 1 },
-		Cosmetics = { "WolfEars", "WolfTail" },
+		-- Look A (Sentinel ears + Brush tail) is the default; the Ruff/Mane and
+		-- Lance/Banner sets are in Cosmetics/Wolf for a later style picker.
+		Cosmetics = { "WolfEarsSentinel", "WolfTailBrush" },
 	},
 	Tiger = {
 		DisplayName = "Tiger",

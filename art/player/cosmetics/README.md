@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `StoneSpirit.rbxm` (Stone Spirit, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `Wolf.rbxm` (Beast Folk Wolf, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `StoneSpirit.rbxm` (Stone Spirit, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -51,6 +51,19 @@ rig, colours, asset ids and the Studio build (`tiger/place_tiger_cosmetics.luau`
 | `TigerEarsRound`, `TigerTailCurl`, `TigerWhiskersMarks` | Cub: plump round ears, thick low tail curling up, three short whiskers | Beast Folk Tiger (default) |
 | `TigerEarsPinned`, `TigerTailLash`, `TigerWhiskersFine` | Feral: ears pinned flat, long level tail, long drooped whiskers | nothing yet (style picker) |
 | `TigerEarsTufted`, `TigerTailCrown`, `TigerWhiskersCurl` | Regal: upright tufted ears, high question-mark tail, curled whiskers | nothing yet (style picker) |
+
+## Wolf (`assets/Cosmetics/Wolf.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Beast Folk Wolf, each ears
+(HatAttachment) and a tail (WaistBackAttachment), any ears with any tail. Model, rig,
+colours, asset ids and the Studio build (`wolf/place_wolf_cosmetics.luau`) are in
+[`wolf/README.md`](wolf/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `WolfEarsSentinel`, `WolfTailBrush` | A, cool: upright ears with charcoal rims, full grey brush with a pale point | Beast Folk Wolf (default) |
+| `WolfEarsRuff`, `WolfTailMane` | B, tuff: short splayed notched ears, broad shaggy fan tail | nothing yet (style picker) |
+| `WolfEarsLance`, `WolfTailBanner` | C, sleek: ears laid back, slim-rooted tail with a long full pale end | nothing yet (style picker) |
 
 ## Dragonblood (`assets/Cosmetics/Dragonblood.rbxm`)
 
@@ -103,9 +116,9 @@ SmoothPlastic with a shade ramp, jade is Neon. Model, rig, asset ids and the Stu
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
 The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
-rigged Accessories, two per Beast Folk variant. The Crane and Tiger variants now wear the
-Blender-made Crane and Tiger sets above, so `CraneCrest`, `CraneTail`, `TigerEars` and
-`TigerTail` here are unused leftovers. They are built by
+rigged Accessories, two per Beast Folk variant. The Crane, Tiger and Wolf variants now wear the
+Blender-made Crane, Tiger and Wolf sets above, so `CraneCrest`, `CraneTail`, `TigerEars`,
+`TigerTail`, `WolfEars` and `WolfTail` here are unused leftovers. They are built by
 `build_beastfolk_cosmetics.luau` in the fox set's shape language: plain
 SmoothPlastic, invisible 0.2 Handles, and every part unanchored and Massless with
 CanCollide, CanQuery and CanTouch off. Each set has one loud piece: the wolf's

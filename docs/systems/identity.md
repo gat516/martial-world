@@ -184,7 +184,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Who | Wears | Set |
 |---|---|---|
 | Spirit Fox (Looks: Tail Plume / Crescent / Wisp, Ears Sleek / Broad / Long, picked freely) | FoxTailPlume / FoxTailCrescent / FoxTailWisp, FoxEarsSleek / FoxEarsBroad / FoxEarsLong | Fox (skinned Blender meshes) |
-| Beast Folk Wolf / Serpent | WolfEars, WolfTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Wolf | WolfEarsSentinel, WolfTailBrush | Wolf (skinned Blender meshes) |
+| Beast Folk Serpent | SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
@@ -230,9 +231,12 @@ its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
 The Blender-built race sets are in `art/player/cosmetics/<race>/`
-([player accessories](../character/player-accessories.md)). Beast Folk Wolf has
-three ear sets and three tails there (`WolfEars*`, `WolfTail*`), exported but not
-imported or named in the variant's `Cosmetics` yet.
+([player accessories](../character/player-accessories.md)).
+
+The Wolf set holds three looks, each ears and a tail: Sentinel + Brush (the Wolf variant's
+default), Ruff + Mane and Lance + Banner, any ears with any tail. Ruff/Mane and
+Lance/Banner wait for a style picker. The part-built `WolfEars`/`WolfTail` in
+`BeastFolk.rbxm` are now unused leftovers (`art/player/cosmetics/wolf/README.md`).
 
 Demonic Human's horns and tail are its `Looks` (Horns: Ram, Swept, Crescent; Tail:
 Whip, Hook, Trail; the first of each is the default), picked freely, any horns with any

@@ -68,7 +68,7 @@ Sheets:
   - Its CFrame relative to the attachment is `CFrame.new(-cx, cz, cy)`, no rotation.
   - The JSON's `roblox_head` already uses this mapping.
 - **Mesh names.** Every mesh name is unique across the six files.
-- **Import.** A separate agent does it, following `docs/character/player-accessories.md` step 4.
+- **Import.** Done (In Roblox, below).
 
 ## Colour (recolour contract)
 
@@ -118,13 +118,44 @@ never keyed.
 - **Bent check.** The sheet shows the tails at -16 degrees sway per joint, the ears folded 60
   degrees and flicked 35 degrees.
 
+## In Roblox
+
+`assets/Cosmetics/Wolf.rbxm` is the Folder `Wolf` (mapped into `ReplicatedStorage.Cosmetics`) with
+the six Accessories, built by `place_wolf_cosmetics.luau` (the fox's script with the wolf's sets and
+colours). Beast Folk Wolf wears look A, `WolfEarsSentinel` + `WolfTailBrush`
+(`src/shared/Identity/Variants/BeastFolk.luau`); B and C wait for a style picker.
+
+| Set | Model asset (upload_asset.py model, 2026-10-23) |
+| --- | --- |
+| `WolfEarsSentinel` | `rbxassetid://113657184040034` |
+| `WolfEarsRuff` | `rbxassetid://110825140385163` |
+| `WolfEarsLance` | `rbxassetid://99712108208240` |
+| `WolfTailBrush` | `rbxassetid://83511268782093` |
+| `WolfTailMane` | `rbxassetid://83228390208191` |
+| `WolfTailBanner` | `rbxassetid://108213896664267` |
+
+The shade ramp is the shared `rbxassetid://124559907609415`.
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new id in
+   `ASSETS` in `place_wolf_cosmetics.luau`.
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_wolf_cosmetics.luau` through `execute_luau`. Sets without an import keep their
+   current template.
+4. Export the folder (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Wolf")`, `tools/export_rbxm.luau`)
+   to `assets/Cosmetics/Wolf.rbxm`.
+
+Checked in a sandbox (2026-10-23) on R6 dummies from the creator's `Dummy` template, one per look:
+handles sit exactly on their attachments, every mesh centre matches the JSON, bending the
+`Tail1..5` and `EarL`/`EarR` bones deforms the meshes, the ear bases sit flush on the head from a
+close side view at head height, and `ScaleTo(1.15)` keeps everything on its attachment.
+
 ## Not done here
 
-- **Import.** Roblox import and the Accessories in `assets/Cosmetics/<Set>.rbxm` are a separate agent's job.
-- **Wiring.** Naming the accessories in the Wolf variant's `Cosmetics` comes after the import.
 - **Untested in game:**
   - the tails during the real run animation (the measured swing is the R6 default, 1 radian)
   - sitting, where the tail dips to knee height behind
   - the ears with tall hats
   - Lance's low profile at phone distance
+  - the creator preview's copies
 - **Budget.** The ear pairs are 1,768 tris, over the ~1,500 budget, the same as the fox's tufted ears.

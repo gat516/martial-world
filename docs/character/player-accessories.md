@@ -61,8 +61,8 @@ on FaceFrontAttachment), size ratios and a limb-clearance check.
 
 Race sets built so far (each folder's README has its looks, sizes and checks):
 - Beast Folk Wolf: `art/player/cosmetics/wolf/`. Three looks (Sentinel + Brush, Ruff +
-  Mane, Lance + Banner), all kept as variants (user, 2026-10-23). Built in Blender and
-  exported; not imported yet.
+  Mane, Lance + Banner), all kept as variants (user, 2026-10-23). Imported to
+  `assets/Cosmetics/Wolf.rbxm`; the Wolf variant wears Sentinel + Brush.
 
 **Space.** Each FBX is in its attachment's space. A Blender point `(x, y, z)` is
 Roblox `(-x, z, y)` from the attachment, with no extra rotation. The fox README's

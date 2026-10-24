@@ -162,6 +162,10 @@ Check every screen against these before reporting.
   `panel_frame`, the house plaque, the plaque toast) so it matches the rest; the
   rebuilt creator "does not match at all" until it did. Compare against the
   reference and an existing screen side by side.
+- **Don't over-explain.** Descriptions and status lines say what a thing is and
+  its state, not how to use the UI ("Tap a hotbar slot to put it there" under every
+  item was cut). A how-to line only for a real mechanic the player can't see
+  otherwise (the spirit ring keeping items safe), never repeated on every card.
 - **Titles fit their text.** Three-part ribbons and plaques size their plain middle
   from `TextBounds` with even padding (`src/client/Ribbon.luau`); text never runs
   under a cap. Long text grows to a max width, then shrinks a little, then truncates.

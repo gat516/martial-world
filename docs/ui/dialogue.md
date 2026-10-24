@@ -1,11 +1,11 @@
 # Dialogue screen and interaction prompts
 
 The dialogue screen (`StarterGui.Dialogue`, `src/client/Dialogue.luau`) and the world
-prompt cards (`StarterGui.Prompts`, `src/client/WorldPrompts.luau`), both in the kit's
-style from the house reference
-([dialogue_prompt_reference.webp](../reference/ui/dialogue_prompt_reference.webp)).
-Built 2026-10-23. Composed from the cut art in Studio (the Figma kit was over its plan
-limit that day), by `tools/build_dialogue.luau` and `tools/build_prompts.luau`.
+prompt cards (`StarterGui.Prompts`, `src/client/WorldPrompts.luau`). The dialogue is in
+the kit's style from the house reference
+([dialogue_prompt_reference.webp](../reference/ui/dialogue_prompt_reference.webp)),
+composed from the cut art by `tools/build_dialogue.luau`. The prompt cards use no art
+(plain shapes, `tools/build_prompts.luau`; see "Interaction prompts").
 
 ## Dialogue: API
 Its first user is Elder Qingyun's Talk prompt (wired 2026-10-23, see
@@ -148,34 +148,48 @@ All cut art, never repainted (ids in `art/ui/assets.json`):
 ## Interaction prompts
 `WorldPrompts` keeps its behaviour (one target in focus, keys muted elsewhere, billboard
 on the target with a mouse, keyboard or gamepad, the touch Dock otherwise). The card
-(`Prompts.Board.List.Card`, 300 x 52 on the billboard) is now a quiet one (user,
-2026-10-24: the kit's medallion plate and bracket-ended banner read "tacky"; "make it
-nice, just not tacky"):
-- `Banner`: a plain dark band (#0c0f14 at 22 % transparency, 36 tall) from the key's
-  centre to the card's right, its `Fade` UIGradient clearing it out by the right end; a
-  1 px gold `Rule` (#d6ac5c, 35 %) along its bottom from the key's edge, fading the same
-  way. No caps, border or cloud ends.
-- `Key`: a 38 px round dark tile (#10141b, UICorner 0.5) with a 1.5 px gold `Edge`
-  UIStroke, centred 26 px in. The key letter is live cream text on it (the gamepad
-  button image when one exists); on touch it shows the action's glyph instead (a hand
-  when there's none, `Glyphs.forPrompt` from the action's first word or a `Glyph`
-  attribute) and the whole card is the button.
-- `Icon`: kept in the template but always hidden; the action glyph at the band's end
-  went with the old look.
-- `Key.Hold`: for a prompt with a HoldDuration, the `hold_ring` cut round the key (1.3x):
-  a dim track and a lit copy swept clockwise from the top while held (two clipped
-  halves, each a UIGradient with a hard edge, rotated `min(p, 0.5) * 360` and
-  `max(p, 0.5) * 360`).
-- `Body`: gold object line (12 px, top 10) over the cream action (17 px, top 24), soft
-  strokes, from 54 px to 16 px short of the right end. Both lines truncate.
-Not checked in Studio yet: the band's fade over bright ground and the ring's fit round
-the smaller key.
+(`Prompts.Board.List.Card`, 52 tall) is a plain rounded slab with no kit art (user,
+2026-10-24: the medallion plate, the bracket-ended banner and then the fading band
+with a ringed key all read "tacky"; "clean and readable, restrained"). Plain
+UICorner/UIStroke shapes beat cut art here: the outline must be traced exactly by the
+hold line at any width, and they stay crisp at the billboard's and the phone's sizes.
+- `Plate`: #0e1117 at 14 % transparency, radius 10, a faint top-lit `Sheen` gradient
+  and a 1 px gold `Edge` hairline (#d6ac5c, 72 %), drawn inside the edge.
+- `Key` (keyboard and gamepad only): a 30 px dark cap (#363d4a, radius 7, 1 px cream
+  hairline) with the live key letter in cream, 11 px from the left (= its top pad).
+  Long key names (Space, Enter) widen the cap (letter width + 9 px a side) instead of
+  shrinking. A gamepad button shows its own image with no cap behind it.
+- `Glyph` (touch only): no cap and no letter; the action's 24 px cream glyph
+  (`Glyphs.forPrompt`, a hand when there's none) where the cap was. The whole card is
+  the button.
+- `Body`: object line (14 px, pale gold #e6ca92) over the action (18 px, cream), soft
+  dark strokes, vertically centred (9 px above and below at 52). Both truncate.
+- Width: each card wants its text's width plus the key or glyph and an 18 px right pad
+  (`Want` attribute, measured with `TextService:GetTextSize`); every card on a board
+  takes the widest want, at least 150 and at most the board's or column's width / 1.05
+  (room for the hover growth). The billboard list is centred, the dock's right-aligned.
+- `Hold`: a 2 px light-gold line that runs once round the card's whole outline,
+  clockwise from the top centre, as the hold fills (`src/client/PromptHold.luau`). Nine
+  pieces trace the outline: five straight runs (Frames) and four corners (an r x r clip
+  holding a 2r round Frame with an Inner UIStroke whose UIGradient has a hard edge;
+  turning the gradient sweeps the quarter arc open). Each piece fills by its share of
+  the outline's length, so the line moves at one speed at any card width. The rest
+  hairline is the track.
+- Layout numbers the code reads are attributes on the card (`TextLeftGlyph`,
+  `PadRight`, `Gap`, `KeyPad`) and the key (`Fill`).
+- Prompt-like world billboards elsewhere were checked and left alone: `GateMarkers`
+  (a seal and name over teleport arrays), `PlantTag` (an info card), the event pins and
+  the guide marker are labels, not buttons. Every interactable in the world is a
+  ProximityPrompt drawn by this card.
 
 Touch Dock: its box still mirrors `Hud.Stack` (aspect 3.75839, max 560 x 149). Its
-`List` is 280 wide, cards bottom-up with a 6 px gap; `Lift` (same box) is where a
+`List` is 280 wide, cards bottom-up and right-aligned with a 6 px gap; `Lift` (same box) is where a
 leaving card fades. Both carry a `Fit` UIScale that WorldPrompts sets to the dock's
 height / 149, clamped to 0.85..1, so on a phone the cards are 44 px tall (as before)
-and on a full-size stack 52.
+and on a full-size stack 52. Fitting the width to the text took a typical phone card
+from 238 x 44 to about 160 x 44.
+Not yet seen in play: the hold line's sweep in motion, cards over dark or busy
+scenery, gamepad button images on the card, a real phone.
 
 ## Known gaps
 - On a real iPhone 13 the 844-wide phone layout is fitted to the 750 x 369 safe area at

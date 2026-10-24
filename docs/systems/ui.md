@@ -135,8 +135,9 @@ cursor, settings and the admin panel.
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right
   end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
-  are in thumb reach wherever the camera points. Each card is the kit's prompt banner
-  behind a round key plate (live key letter, the action's glyph, a hold ring); see
+  are in thumb reach wherever the camera points. Each card is a plain rounded dark slab
+  sized to its text: a key cap with the live key letter on PC, the action's glyph on
+  touch, and a hold line that runs round the card's whole outline; see
   [dialogue](../ui/dialogue.md). With a mouse, cards take clicks
   only while the cursor is free; under shift lock or lock-on the centred mouse
   would otherwise sit on the board and swallow attacks and camera drags.
@@ -242,7 +243,7 @@ a new top-level `require` between them can close a cycle that stops the client l
   `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),
   `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, the hotbar's words, class glyphs and
   colours, weapon art), `ListWindow.luau`.
-- `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
+- `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`); `PromptHold.luau` (the card's hold line round its outline).
 - `Rewards.luau` (reward banners, `StarterGui.Rewards`: `Rewards.show` with the small,
   feed, banner and card tiers; the boss victory, quest and milestone card), and
   `RegionBanner.luau` (the region entry banner on the banner tier). See

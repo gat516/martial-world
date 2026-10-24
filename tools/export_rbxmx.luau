@@ -21,7 +21,7 @@ local PROPS = {
 	"ScrollBarImageTransparency", "TopImage", "MidImage", "BottomImage", "ScrollingDirection", "ElasticBehavior", "VerticalScrollBarInset",
 	"ResetOnSpawn", "ZIndexBehavior", "IgnoreGuiInset", "DisplayOrder", "ScreenInsets", "ClipToDeviceSafeArea",
 	"SafeAreaCompatibility", "ResampleMode", "TileSize", "BorderColor3", "BorderMode",
-	"CornerRadius", "Color", "Thickness", "Transparency", "ApplyStrokeMode", "LineJoinMode", "Offset",
+	"CornerRadius", "Color", "Thickness", "Transparency", "ApplyStrokeMode", "LineJoinMode", "BorderStrokePosition", "Offset",
 	"FillDirection", "HorizontalAlignment", "VerticalAlignment", "SortOrder", "Padding", "Wraps",
 	"CellSize", "CellPadding", "FillDirectionMaxCells", "StartCorner", "PaddingTop", "PaddingBottom",
 	"PaddingLeft", "PaddingRight", "MinSize", "MaxSize", "AspectRatio", "AspectType", "DominantAxis",

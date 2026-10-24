@@ -141,6 +141,7 @@ local FADE_PROPS = {
 	ImageButton = { "ImageTransparency" },
 	TextLabel = { "TextTransparency", "TextStrokeTransparency" },
 	Frame = { "BackgroundTransparency" },
+	UIStroke = { "Transparency" },
 }
 local authored: { [Instance]: { [Instance]: { [string]: number } } } = setmetatable({}, { __mode = "k" }) :: any
 

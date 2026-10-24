@@ -67,12 +67,14 @@ Each has a `.preview()` callable from the client console in play, e.g.
 `require(game.Players.LocalPlayer.PlayerScripts.Client.DeathSave).preview()`. Nothing in
 the real flow calls them yet.
 
-### Foundation row in the Self card (built)
-The character window's Self card shows it as its first row ([character
-window](../character/character-window.md), Foundation). It reads
+### Foundation in the Self card (built)
+The character window shows it in its Cultivation column (Cultivation tab on
+phones; [character window](../character/character-window.md), Foundation): the
+percentage of the stage's target on a 0-150 % bar that overfills past its 100 %
+mark. It reads
 `State.current.foundation` (server `Foundation.state`, every PlayerState push):
-`{ count, target, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`,
-only through `foundationOf()` in `SelfCard.luau`. `grade` is what the current stage would
+`{ count, target, percent?, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`,
+only through `foundationOf()` in `SelfCard.luau` (`percent` when sent, else count / target x 100). `grade` is what the current stage would
 get now (Cracked, Steady, Solid, Deep), `bonus` the summed health/power share from graded
 stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
 Dao, Discover, World).

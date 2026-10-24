@@ -42,8 +42,9 @@ cursor, settings and the admin panel.
   breakthrough nudge: [vitals stack](../ui/hud-vitals.md).
 - Inventory (weapons and arts by class, rarity frames, NEW badges, drag to equip, sort, filter and search): [inventory](../ui/inventory.md).
 - Character window (`SelfCard`, the Self tile, the realm crest shortcut, the
-  `RootReveal` card): every row has the same shape, gains in jade (decided
-  2026-10-21). Layout, rows and room for later tabs:
+  `RootReveal` card): Inventory-sized, three columns at once (Self |
+  Cultivation | Path; tabs on phones), every section the same shape, details on
+  tap, gains in jade. Layout and sections:
   [character window](../character/character-window.md). Switching methods lives in
   the meditation menu ([meditation](meditation.md)).
 - Top-right tiles (`Hud.Buttons`, right-aligned list, 440 px wide), left to right: Herbarium
@@ -94,7 +95,7 @@ cursor, settings and the admin panel.
   23.8%, and the middle half of the top two thirds 8.7% -> 1.3% at 844x390
   (19.1% -> 5.4% at 667x375, the tile row in the top bar). Element seals are drawn in
   `art/ui/draw_icons.py` (`icon_Root<Element>`) and shown on the weapon badge disc.
-  Layout and room for later rows and tabs: [character window](../character/character-window.md).
+  Layout and sections: [character window](../character/character-window.md).
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
   greyed under a cinnabar 封 seal with "Opens at <realm>". A seal-and-name marker
   floats over arrays (others' peaks only up close) and the screen fades to ink

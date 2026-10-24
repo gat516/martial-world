@@ -1,65 +1,51 @@
 --!strict
 -- The character window, opened by the Self tile in the top-right row
 -- (Hud.Buttons.SelfButton) or, as a shortcut, by tapping the realm crest over the
--- vitals (Hud.Stack.Vitals.Crest.Open). It grows with the player
--- (docs/character/character-window.md); this is the first stage:
--- one card, Self, with no tabs.
---   Header: realm name and its stage bar (cultivation toward the next stage).
---   Self page (Body.Pages.Self, a ScrollingFrame list by LayoutOrder). Every row
---   has the same shape (user decision, 2026-10-21: the rows were unclear): a seal,
---   then Lines = Kind (what the row is, in small gold capitals), Top (name, with
---   grade or level on the right) and Effects (what it does for the player, one
---   line each, gains in jade; no flavour text). The numbers come from the shared
---   defs (Roots/Pacing.Roots, Methods, Weapons/Pacing.Weapons).
---     3   Foundation, "FOUNDATION": the grade breaking through now would give
---         ("Steady foundation", the grade word in its colour), a bar of this
---         stage's experiences toward Deep ("2 / 4 experiences", marked at the Steady
---         and Solid shares of Pacing.Foundation), the summed bonus of past grades in
---         jade, then the open experiences, one line each with the category in gold
---         ("HUNT  Slay a Stone Boar for the first time"). From PlayerState
---         `foundation` through foundationOf(), the one reader (hidden without it
---         live; sample data in Studio).
---     5   Dantian, "DANTIAN": raw qi in the dantian (RawQi / DantianCap) as a
---         bar, live while the card is open. Standing, this is the only place the
---         dantian shows (the HUD shows it only while seated, SeatBars).
---     8   Race, "RACE": race and variant ("Beast Folk · Wolf", from the Race and
---         RaceVariant attributes), its rarity on the right (lifted rarity colour),
---         the race, variant and innate-trait modifiers summed, one line each.
---     9   Bloodline, "BLOODLINE": not built yet, so "None", muted (seal, Kind and
---         name dimmed, no effect lines). Fill it like Race when bloodlines land.
---     10  Root, "SPIRIT ROOT": the perk at this grade, the element's technique
---         bonus, the cultivation speed from the grade.
---     12-19 free for root actions (a Reroll button, a stored-roots strip).
---     20  Method, "CULTIVATION METHOD" (from Foundation, once a method is
---         active): its cultivation speed (with the root match) and how far it
---         takes you. Read-only: switching methods belongs to the meditation menu.
---     30  Dao, "WEAPON DAO": the equipped class's Dao level, its XP bar and the
---         weapon damage it gives now and at the next level. No weapon or
---         technique names here (they live in the Inventory).
---     Later systems add rows of the same shape; the list scrolls once it is
---     taller than the screen allows (on a phone it always does).
---   Future tabs (Self | Body) go in Body at LayoutOrder 3, between the stage bar
---   and Pages; each tab is a page frame inside Pages.
+-- vitals (Hud.Stack.Vitals.Crest.Open): who you are as a cultivator, and what
+-- would solidify your next breakthrough (docs/character/character-window.md).
+-- Inventory-sized (760x500 at most, centred; Menus moves it under Roblox's top bar
+-- on short screens). Built by tools/build_self_card.luau; this fills it.
+--   Desktop: three columns at once.
+--     Self         the avatar (a live copy of your character in Avatar.View), your
+--                  name, Race (race · variant, rarity), Bloodline ("None", muted;
+--                  deferred), Strength (max health, power with the foundation bonus)
+--     Cultivation  Realm (stage bar, % right, what's next), Foundation (grade word in
+--                  its colour, experiences bar marked at Steady and Solid, the next
+--                  open experiences), Dantian (raw qi), Heart (heart-demon notes,
+--                  once a trial is done)
+--     Path         Spirit Root (grade, perk, Marrow Washing progress), Cultivation
+--                  Method (from Foundation; hidden on Sect Breathing), Weapon Dao (a
+--                  plain row per class trained, the one in hand first)
+--   Phone (UiScale.isPhone): the same sections on three tabs, Self | Cultivation |
+--     Path, each page in two columns; the title plaque is hidden.
+-- Every section has one shape: Kind (gold capitals), Top (NameLabel, Right), an
+-- optional Bar, Summary (a few lines at a glance) and Detail (the exact numbers,
+-- hidden). Tapping a section with detail ("+" by its Kind) expands it in place; so
+-- does tapping a Dao row. Effects are gains in jade and losses in a muted red, the
+-- numbers from the shared defs. No flavour text, no technique or weapon names.
 -- The tile shows (and the crest is tappable) only once the root is tested. After
 -- the reveal the tile pops in, swells once and wears a small seal dot until the
 -- window is first opened (not saved).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
 
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Rarities = require(ReplicatedStorage.Shared.CharacterCreator.Rarities)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Nameplates = require(script.Parent.Nameplates)
 local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
+local UiScale = require(script.Parent.UiScale)
 
 local player = Players.LocalPlayer
 
@@ -82,18 +68,26 @@ local PULSE_SCALE = 1.14
 local GAIN = "#82E6B9"
 local LOSS = "#E69A82"
 local GOLD = "#E2BA68" -- the Kind labels' gold, for the hint categories
-local MUTED = Color3.fromRGB(140, 136, 126) -- an empty row ("None")
+local MUTED = Color3.fromRGB(140, 136, 126) -- an empty section ("None")
 local NAME_COLOR = Color3.fromRGB(236, 232, 220)
+local DAO_EQUIPPED = Color3.fromRGB(255, 226, 160) -- the class in hand (as the Inventory)
 local MARK_ON_FILL = Color3.fromRGB(14, 18, 20) -- the foundation bar's grade marks
 local MARK_ON_TROUGH = Color3.fromRGB(236, 232, 220)
--- foundation grades, lowest first (Pacing.Foundation.GRADES), and their colours
+local HOVER = 0.94 -- a section's background on hover (1 = none)
+-- foundation grade words and their colours (Cracked: the count-based grades still
+-- live; Unsteady: the percentage grades on region-experiences)
 local FOUNDATION_COLORS: { [string]: string } = {
 	Cracked = "#E69A82",
+	Unsteady = "#E69A82",
 	Steady = "#9FC6E0",
 	Solid = "#82E6B9",
 	Deep = "#F0C860",
 }
-local LIST_MARGIN = 24 -- px the card keeps from the screen's top and bottom edges
+local TAB_ON = { image = "rbxassetid://89951515494594", text = Color3.fromRGB(255, 244, 214) }
+local TAB_OFF = { image = "rbxassetid://70679462267599", text = Color3.fromRGB(170, 190, 184) }
+local PAGES = { "Self", "Cultivation", "Path" }
+local AVATAR_FOV = 30
+local AVATAR_YAW = math.rad(-14) -- a slight three-quarter turn, like the creator's preview
 
 -- Major names for "Reaches: ..." by stage-key prefix (Pacing.Curve keys).
 local MAJOR_SHORT: { [string]: string } = {
@@ -103,6 +97,12 @@ local MAJOR_SHORT: { [string]: string } = {
 	CF = "Core Formation",
 	NS = "Nascent Soul",
 }
+-- heart-demon trials are keyed by major (Pacing.Curve `major`)
+local MAJOR_NAMES: { [string]: string } = {
+	QiCondensation = "Qi Condensation",
+	QiRefining = "Qi Refining",
+	Foundation = "Foundation Establishment",
+}
 
 local SelfCard = {}
 
@@ -111,9 +111,9 @@ local crest: GuiObject
 local openButton: GuiButton -- over the crest
 local tile: GuiButton -- Buttons.SelfButton
 local newDot: GuiObject -- on the tile
-local selfPage: ScrollingFrame
-local hud: ScreenGui
+local body: GuiObject -- the layout in use: window.Desktop or window.Phone
 local seenOnce = false
+local page = "Self" -- the phone tab shown
 
 function SelfCard.rootIcon(element: string): string
 	return ROOT_ICONS[element] or ""
@@ -220,34 +220,12 @@ end
 SelfCard.currentRoot = currentRoot
 SelfCard.rootDetail = detailText
 
--- A row's parts: its name and right-hand label (Lines.Top) and its effect lines.
-local function rowParts(name: string): (GuiObject, TextLabel, TextLabel, TextLabel)
-	local row = selfPage:FindFirstChild(name) :: GuiObject
-	local lines = row:FindFirstChild("Lines") :: Instance
-	local top = lines:FindFirstChild("Top") :: Instance
-	return row, top:FindFirstChild("NameLabel") :: TextLabel, top:FindFirstChild("Grade") :: TextLabel, lines:FindFirstChild("Effects") :: TextLabel
-end
 
 local function paintSeal(seal: Instance, element: string)
 	local icon = seal:FindFirstChild("Icon") :: ImageLabel
 	icon.Image = SelfCard.rootIcon(element)
 	icon.Visible = icon.Image ~= "";
 	(seal:FindFirstChild("Glyph") :: TextLabel).Visible = icon.Image == ""
-end
-
-local function renderRoot(root: Roots.Root)
-	local def = Roots.Elements[root.element]
-	local row, name, grade, effects = rowParts("Root")
-	paintSeal(row:FindFirstChild("Seal") :: Instance, def.id)
-	name.Text = `{def.name} Root`
-	name.TextColor3 = def.color
-	grade.Text = `{root.grade} grade`
-	grade.TextColor3 = SelfCard.gradeColor(root.grade)
-	local lines = {}
-	for _, line in rootEffects(root) do
-		table.insert(lines, gain(line))
-	end
-	effects.Text = table.concat(lines, "\n")
 end
 
 -- "+4% weapon damage" (or "Normal weapon damage") at a Dao level.
@@ -260,66 +238,6 @@ local function daoDamage(level: number): string
 	return if string.sub(text, 1, 1) == "+" then gain(line) else loss(line)
 end
 
--- The equipped class's Dao: level, XP toward the next, and what it gives.
-local function renderDao()
-	local id = SlotArt.equipped()
-	local classId = Weapons.classOf(if id == "" then nil else id)
-	local class = Weapons.Classes[classId]
-	local dao = State.current.dao and State.current.dao[classId]
-	local level = if dao then dao.level else 0
-	local xp = if dao then dao.xp else 0
-	local row, name, levelLabel, effects = rowParts("Dao")
-	local seal = row:FindFirstChild("Seal") :: Instance
-	local icon = seal:FindFirstChild("Icon") :: ImageLabel
-	icon.Image = SlotArt.classIcon(classId)
-	icon.Visible = icon.Image ~= "";
-	(seal:FindFirstChild("Glyph") :: TextLabel).Visible = icon.Image == ""
-	name.Text = if class then class.dao else "Weapon Dao"
-	levelLabel.Text = `Level {level}`
-	local bar = (row:FindFirstChild("Lines") :: Instance):FindFirstChild("Bar") :: Instance
-	local fill = (bar:FindFirstChild("Bar") :: Instance):FindFirstChild("Fill") :: Frame
-	local value = bar:FindFirstChild("Value") :: TextLabel
-	local lines = { daoDamage(level) }
-	if level >= Weapons.MAX_LEVEL then
-		fill.Size = UDim2.fromScale(1, 1)
-		value.Text = "Mastered"
-	else
-		local need = Weapons.xpToNext(level)
-		Motion.ease(fill, { Size = UDim2.fromScale(math.clamp(xp / need, 0, 1), 1) })
-		value.Text = `{math.floor(xp)} / {need} Dao XP`
-		table.insert(lines, `Next level: {daoDamage(level + 1)}`)
-	end
-	fill.Visible = level >= Weapons.MAX_LEVEL or xp > 0
-	effects.Text = table.concat(lines, "\n")
-end
-
--- Raw qi in the dantian (refined into cultivation by Circulate).
-local function renderDantian()
-	local row = selfPage:FindFirstChild("Dantian") :: GuiObject
-	local raw = tonumber(player:GetAttribute("RawQi")) or 0
-	local room = tonumber(player:GetAttribute("DantianCap")) or 0
-	local bar = (row:FindFirstChild("Lines") :: Instance):FindFirstChild("Bar") :: Instance
-	local fill = (bar:FindFirstChild("Bar") :: Instance):FindFirstChild("Fill") :: Frame
-	Motion.ease(fill, { Size = UDim2.fromScale(if room > 0 then math.clamp(raw / room, 0, 1) else 0, 1) })
-	fill.Visible = raw > 0;
-	(bar:FindFirstChild("Value") :: TextLabel).Text = if room > 0
-		then `{math.floor(raw)} / {math.floor(room)} raw qi`
-		else `{math.floor(raw)} raw qi`
-end
-
-local function renderRealm()
-	local header = (window:FindFirstChild("Body") :: Instance):FindFirstChild("Header") :: Instance;
-	(header:FindFirstChild("Realm") :: TextLabel).Text = player:GetAttribute("Realm") or ""
-	local stage = (window:FindFirstChild("Body") :: Instance):FindFirstChild("Stage") :: Instance
-	local value = player:GetAttribute("Cultivation") or 0
-	local max = player:GetAttribute("CultivationMax") or 0
-	local fill = (stage:FindFirstChild("Bar") :: Instance):FindFirstChild("Fill") :: Frame
-	Motion.ease(fill, { Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1) })
-	fill.Visible = value > 0;
-	(stage:FindFirstChild("Value") :: TextLabel).Text = if max > 0
-		then `{math.floor(value)} / {math.floor(max)} cultivation`
-		else `{math.floor(value)} cultivation`
-end
 
 -- Methods -------------------------------------------------------------------------
 
@@ -372,33 +290,6 @@ end
 
 function SelfCard.paintSeal(seal: Instance, element: string)
 	paintSeal(seal, element)
-end
-
-local function renderMethod()
-	local row = selfPage:FindFirstChild("Method") :: GuiObject
-	local activeId = activeMethod()
-	row.Visible = activeId ~= ""
-	if activeId == "" then
-		return
-	end
-	local def = Methods.active(activeId)
-	local _, name, grade, effects = rowParts("Method")
-	paintSeal(row:FindFirstChild("Seal") :: Instance, def.element)
-	name.Text = def.name
-	name.TextColor3 = SelfCard.gradeColor(def.grade)
-	grade.Text = `{def.grade} grade`
-	grade.TextColor3 = SelfCard.gradeColor(def.grade)
-	local match = def.element ~= "" and def.element == rootElement()
-	local speed = signed(Methods.speed(def, rootElement()) - 1)
-	local lines = {}
-	if speed then
-		local line = `{speed} cultivation speed` .. (if match then " (matches your root)" else "")
-		table.insert(lines, if string.sub(speed, 1, 1) == "+" then gain(line) else loss(line))
-	else
-		table.insert(lines, "Normal cultivation speed")
-	end
-	table.insert(lines, limitText(def.reaches))
-	effects.Text = table.concat(lines, "\n")
 end
 
 -- Race, bloodline, foundation ------------------------------------------------------
@@ -472,42 +363,12 @@ local function raceEffects(raceId: string, variantId: string): { string }
 end
 
 -- "RACE": the race and its variant ("Beast Folk · Wolf"), the rarity on the right.
-local function renderRace()
-	local row, name, rarityLabel, effects = rowParts("Race")
-	local raceId = player:GetAttribute("Race")
-	local race = Registry.race(raceId)
-	row.Visible = race ~= nil
-	if not race then
-		return
-	end
-	local variantId = player:GetAttribute("RaceVariant")
-	variantId = if type(variantId) == "string" then variantId else ""
-	local variant = Registry.variant(raceId, variantId)
-	name.Text = if variant then `{race.DisplayName} · {variant.DisplayName}` else race.DisplayName
-	name.TextColor3 = NAME_COLOR
-	local rarity = Rarities[(variant and variant.Rarity) or race.Rarity]
-	rarityLabel.Text = if rarity then rarity.DisplayName else ""
-	-- the rarity hue, lifted so it reads on the dark card at phone size
-	rarityLabel.TextColor3 = if rarity then rarity.Color:Lerp(Color3.new(1, 1, 1), 0.35) else NAME_COLOR
-	local lines = raceEffects(raceId, variantId)
-	effects.Text = table.concat(lines, "\n")
-	effects.Visible = #lines > 0
-end
-
--- "BLOODLINE": not built yet (docs/character/bloodline.md), so always "None",
--- muted. When it lands, read data.bloodline.id here and fill the row like Race.
-local function renderBloodline()
-	local _, name, right, effects = rowParts("Bloodline")
-	name.Text = "None"
-	name.TextColor3 = MUTED
-	right.Text = ""
-	effects.Visible = false
-end
 
 export type Foundation = {
 	count: number, -- weighted experiences this stage (a boss counts double)
-	target: number, -- this stage's count for a Deep grade
-	grade: string, -- what breaking through now would give: Cracked | Steady | Solid | Deep
+	target: number, -- this stage's target count
+	percent: number, -- the stage's foundation as a percentage of its target; may pass 100 (cap ~200)
+	grade: string, -- the grade word breaking through now would give (Unsteady | Steady | Solid | Deep)
 	bonus: number, -- every graded stage's bonus summed, as a share of health and power
 	hints: { { category: string, text: string } }, -- open experiences, up to ~5
 }
@@ -517,6 +378,7 @@ export type Foundation = {
 local PREVIEW_FOUNDATION: Foundation = {
 	count = 2,
 	target = 4,
+	percent = 86,
 	grade = "Steady",
 	bonus = 0.04,
 	hints = {
@@ -533,91 +395,571 @@ local function foundationOf(state: any): Foundation?
 	if type(f) ~= "table" then
 		return if RunService:IsStudio() then PREVIEW_FOUNDATION else nil
 	end
+	local count, target = tonumber(f.count) or 0, tonumber(f.target) or 0
 	return {
-		count = tonumber(f.count) or 0,
-		target = tonumber(f.target) or 0,
+		count = count,
+		target = target,
+		-- `percent` from the percentage backend; count / target before it
+		percent = tonumber(f.percent) or (if target > 0 then count / target * 100 else 100),
 		grade = if type(f.grade) == "string" then f.grade else "Cracked",
 		bonus = tonumber(f.bonus) or 0,
 		hints = if type(f.hints) == "table" then f.hints else {},
 	}
 end
 
--- Where the bar's grade marks sit: the shares of the target that reach Steady and
--- Solid (the grades between the lowest and the highest in Pacing.Foundation).
-local function gradeShares(): { number }
-	local grades = Pacing.Foundation.GRADES
-	local shares = {}
-	for i = 2, #grades - 1 do
-		table.insert(shares, grades[i].share)
+-- The foundation bar spans 0-150 % (Deep from 150 % up): the fill runs to the 100 %
+-- mark, then on in a brighter tone (Over) past it; the marks sit at 50 % (Steady)
+-- and 100 % (Solid). Past 150 % the bar stays full and the label keeps counting.
+local FOUNDATION_SPAN = 150
+local FOUNDATION_FULL = 100
+local FOUNDATION_MARKS = { 50, 100 }
+
+local function sectionOf(name: string): GuiButton
+	return body:FindFirstChild(name, true) :: GuiButton
+end
+
+local function number(n: number): string
+	local s = tostring(math.floor(n))
+	local formatted = string.reverse((string.gsub(string.reverse(s), "(%d%d%d)", "%1,")))
+	return (string.gsub(formatted, "^,", ""))
+end
+
+-- The name takes what the right-hand label leaves.
+local function fitTop(top: Instance)
+	local name = top:FindFirstChild("NameLabel") :: TextLabel
+	local right = top:FindFirstChild("Right") :: TextLabel
+	local width = 0
+	if right.Text ~= "" then
+		width = TextService:GetTextSize(right.Text, right.TextSize, Enum.Font.BuilderSansBold, Vector2.new(1000, 100)).X + 8
 	end
-	return shares
+	name.Size = UDim2.new(1, -width, 1, 0)
+end
+
+local function setLines(label: TextLabel, lines: { string }?)
+	local text = if lines then table.concat(lines, "\n") else ""
+	label.Text = text
+	return text ~= ""
+end
+
+-- Fill one section; a section whose detail went away folds back up.
+local function fill(name: string, f: Fill)
+	local section = sectionOf(name)
+	local top = section:FindFirstChild("Top") :: Instance
+	local nameLabel = top:FindFirstChild("NameLabel") :: TextLabel
+	local right = top:FindFirstChild("Right") :: TextLabel
+	nameLabel.Text = f.name
+	nameLabel.TextColor3 = f.nameColor or NAME_COLOR
+	right.Text = f.right or ""
+	right.TextColor3 = f.rightColor or NAME_COLOR
+	fitTop(top)
+	local bar = section:FindFirstChild("Bar")
+	if bar and f.share then
+		local fillFrame = (bar:FindFirstChild("Trough") :: Instance):FindFirstChild("Fill") :: Frame
+		Motion.ease(fillFrame, { Size = UDim2.fromScale(math.clamp(f.share, 0, 1), 1) })
+		fillFrame.Visible = f.share > 0
+	end
+	local summary = section:FindFirstChild("Summary") :: TextLabel
+	summary.Visible = setLines(summary, f.summary)
+	local detail = section:FindFirstChild("Detail") :: TextLabel
+	local hasDetail = setLines(detail, f.detail)
+	local more = (section:FindFirstChild("Kind") :: Instance):FindFirstChild("More") :: TextLabel
+	more.Visible = hasDetail
+	section.Active = hasDetail
+	if not hasDetail then
+		detail.Visible = false
+	end
+	more.Text = if detail.Visible then "–" else "+"
+end
+
+-- Self ----------------------------------------------------------------------------
+
+-- "RACE": the race and its variant ("Beast Folk · Wolf"), the rarity on the right,
+-- the modifiers in the detail.
+local function renderRace()
+	local section = sectionOf("Race")
+	local raceId = player:GetAttribute("Race")
+	local race = Registry.race(raceId)
+	section.Visible = race ~= nil
+	if not race then
+		return
+	end
+	local variantId = player:GetAttribute("RaceVariant")
+	variantId = if type(variantId) == "string" then variantId else ""
+	local variant = Registry.variant(raceId, variantId)
+	local rarity = Rarities[(variant and variant.Rarity) or race.Rarity]
+	local lines = raceEffects(raceId, variantId)
+	fill("Race", {
+		name = if variant then `{race.DisplayName} · {variant.DisplayName}` else race.DisplayName,
+		right = if rarity then rarity.DisplayName else "",
+		-- the rarity hue, lifted so it reads on the dark card at phone size
+		rightColor = if rarity then rarity.Color:Lerp(Color3.new(1, 1, 1), 0.35) else nil,
+		detail = if #lines > 0 then lines else { "No traits that change your strength" },
+	})
+end
+
+-- "BLOODLINE": not built yet (docs/character/bloodline.md), so always "None",
+-- muted. When it lands, read data.bloodline.id here and fill it like Race.
+local function renderBloodline()
+	fill("Bloodline", { name = "None", nameColor = MUTED })
+end
+
+-- The stage the Realm attribute names (Realms.Stages), for its power.
+local function currentStage(): Realms.Stage?
+	local name = player:GetAttribute("Realm")
+	for _, stage in Realms.Stages do
+		if stage.name == name then
+			return stage
+		end
+	end
+	return nil
+end
+
+-- "STRENGTH": max health and power (the realm's, times the foundation bonus, as
+-- the server's Combat.power; a qi surge's boost isn't counted).
+local function renderStats()
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local stage = currentStage()
+	local f = foundationOf(State.current)
+	local bonus = if f then f.bonus else 0
+	local base = if stage then stage.power else 1
+	local power = base * (1 + bonus)
+	local health = if humanoid then humanoid.MaxHealth elseif stage then stage.health * (1 + bonus) else 0
+	local detail = { `Max health {number(health)}`, `Power x{string.format("%.2f", base)} from your realm` }
+	local share = signed(bonus)
+	if share and bonus > 0 then
+		table.insert(detail, gain(`{share} max health and power from your foundations`))
+	end
+	fill("Stats", {
+		name = `{number(health)} health`,
+		right = `Power x{string.format("%.2f", power)}`,
+		detail = detail,
+	})
+end
+
+-- The avatar: a still copy of your character in the well's ViewportFrame,
+-- turned a little toward three-quarters and lit from the upper left. Rebuilt on
+-- each open (and when the character respawns while it's open).
+local function renderAvatar()
+	local view = body:FindFirstChild("View", true) :: ViewportFrame?
+	if not view then
+		return
+	end
+	local world = view:FindFirstChildOfClass("WorldModel")
+	if not world then
+		world = Instance.new("WorldModel")
+		world.Parent = view
+	end
+	local camera = view:FindFirstChildOfClass("Camera")
+	if not camera then
+		-- built here: a Camera inside a ViewportFrame doesn't survive the Rojo sync
+		camera = Instance.new("Camera")
+		camera.FieldOfView = AVATAR_FOV
+		camera.Parent = view
+	end
+	view.CurrentCamera = camera
+	world:ClearAllChildren()
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not character or not rootPart then
+		return
+	end
+	local archivable = character.Archivable
+	character.Archivable = true
+	local copy = character:Clone()
+	character.Archivable = archivable
+	if not copy then
+		return
+	end
+	for _, d in copy:GetDescendants() do
+		if d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("ForceField") or d:IsA("LayerCollector") or d:IsA("ParticleEmitter") or d:IsA("Tool") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+		end
+	end
+	local humanoid = copy:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	end
+	copy:PivotTo(CFrame.new()) -- upright at the origin, facing -Z
+	copy.Parent = world
+	local cf, size = copy:GetBoundingBox()
+	local height = size.Y * 1.12
+	local distance = (height / 2) / math.tan(math.rad(AVATAR_FOV / 2))
+	local facing = CFrame.Angles(0, AVATAR_YAW, 0) * Vector3.new(0, 0, -1)
+	camera.CFrame = CFrame.lookAt(cf.Position + facing * distance, cf.Position)
+end
+
+local function renderSelf()
+	(body:FindFirstChild("PlayerName", true) :: TextLabel).Text = Nameplates.nameOf(player)
+	renderRace()
+	renderBloodline()
+	renderStats()
+end
+
+-- Cultivation -----------------------------------------------------------------------
+
+-- "REALM": the stage, its bar (share on the right), and what's next; the exact
+-- cultivation in the detail.
+local function renderRealm()
+	local value = tonumber(player:GetAttribute("Cultivation")) or 0
+	local max = tonumber(player:GetAttribute("CultivationMax")) or 0
+	local share = if max > 0 then math.clamp(value / max, 0, 1) else 0
+	local stage = currentStage()
+	local nextStage = nil
+	if stage then
+		local i = table.find(Realms.Stages, stage)
+		nextStage = if i then Realms.Stages[i + 1] else nil
+	end
+	local summary = {}
+	if player:GetAttribute("BreakthroughReady") == true then
+		table.insert(summary, gain("Ready to break through"))
+	elseif nextStage then
+		table.insert(summary, `Next: {nextStage.name}`)
+	end
+	fill("Realm", {
+		name = player:GetAttribute("Realm") or "",
+		nameColor = Color3.fromRGB(226, 186, 104),
+		right = `{math.floor(share * 100)}%`,
+		share = share,
+		summary = summary,
+		detail = { if max > 0 then `{number(value)} / {number(max)} cultivation` else `{number(value)} cultivation` },
+	})
 end
 
 -- "FOUNDATION": the grade this stage would get now, experiences toward Deep on a
--- bar marked at Steady and Solid, the bonus so far, and what's still open.
+-- bar marked at Steady and Solid, the next two open experiences; the rest, the
+-- bonus so far and the grade steps in the detail.
+local function hintLine(hint: { category: string, text: string }): string
+	local size = if UiScale.isPhone() then 12 else 11
+	return `<font color="{GOLD}" size="{size}">{string.upper(hint.category)}</font>  {hint.text}`
+end
+
 local function renderFoundation()
-	local row, name, right, effects = rowParts("Foundation")
+	local section = sectionOf("Foundation")
 	local f = foundationOf(State.current)
-	row.Visible = f ~= nil
+	section.Visible = f ~= nil
 	if not f then
 		return
 	end
-	name.Text = `<font color="{FOUNDATION_COLORS[f.grade] or "#ECE8DC"}">{f.grade}</font> foundation`
-	right.Text = ""
-	local bar = (row:FindFirstChild("Lines") :: Instance):FindFirstChild("Bar") :: Instance
-	local trough = bar:FindFirstChild("Bar") :: Instance
-	local fill = trough:FindFirstChild("Fill") :: Frame
-	local share = if f.target > 0 then math.clamp(f.count / f.target, 0, 1) else 1
-	Motion.ease(fill, { Size = UDim2.fromScale(share, 1) })
-	fill.Visible = share > 0
-	for i, at in gradeShares() do
+	local percent = math.max(0, f.percent)
+	local trough = (section:FindFirstChild("Bar") :: Instance):FindFirstChild("Trough") :: Instance
+	local full = FOUNDATION_FULL / FOUNDATION_SPAN
+	local over = trough:FindFirstChild("Over") :: Frame
+	local past = math.clamp((percent - FOUNDATION_FULL) / FOUNDATION_SPAN, 0, 1 - full)
+	over.Position = UDim2.fromScale(full, 0)
+	Motion.ease(over, { Size = UDim2.fromScale(past, 1) })
+	over.Visible = past > 0
+	local share = math.clamp(percent / FOUNDATION_SPAN, 0, 1)
+	for i, at in FOUNDATION_MARKS do
 		local mark = trough:FindFirstChild(`Mark{i}`) :: GuiObject?
 		if mark then
 			-- dark where the fill covers it, pale on the empty trough
-			mark.Position = UDim2.fromScale(at, 0)
-			mark.BackgroundColor3 = if at <= share then MARK_ON_FILL else MARK_ON_TROUGH
+			local x = at / FOUNDATION_SPAN
+			mark.Position = UDim2.fromScale(x, 0)
+			mark.BackgroundColor3 = if x <= share then MARK_ON_FILL else MARK_ON_TROUGH
 		end
 	end
-	(bar:FindFirstChild("Value") :: TextLabel).Text = `{math.floor(f.count)} / {math.floor(f.target)} experiences`
-	local lines = {}
+	local summary, detail = {}, {}
+	if f.grade == "Deep" then
+		table.insert(summary, gain("Deep: the strongest foundation this stage can give"))
+	end
+	for i, hint in f.hints do
+		table.insert(if i <= 2 and f.grade ~= "Deep" then summary else detail, hintLine(hint))
+	end
 	local bonus = signed(f.bonus)
 	if bonus and f.bonus > 0 then
-		table.insert(lines, gain(`{bonus} max health and power from your foundations`))
+		table.insert(detail, gain(`{bonus} max health and power from your foundations`))
 	end
-	if f.grade == "Deep" then
-		table.insert(lines, gain("Deep: nothing more to gain at this stage"))
-	else
-		for _, hint in f.hints do
-			table.insert(lines, `<font color="{GOLD}" size="11">{string.upper(hint.category)}</font>  {hint.text}`)
+	fill("Foundation", {
+		name = `<font color="{FOUNDATION_COLORS[f.grade] or "#ECE8DC"}">{f.grade}</font> foundation`,
+		right = `{math.floor(percent + 0.5)}%`,
+		share = math.min(percent, FOUNDATION_FULL) / FOUNDATION_SPAN,
+		summary = summary,
+		detail = detail,
+	})
+end
+
+-- "DANTIAN": raw qi (refined into cultivation by Circulate), live while open.
+local function renderDantian()
+	local raw = tonumber(player:GetAttribute("RawQi")) or 0
+	local room = tonumber(player:GetAttribute("DantianCap")) or 0
+	fill("Dantian", {
+		name = "Raw qi",
+		right = if room > 0 then `{number(raw)} / {number(room)}` else number(raw),
+		share = if room > 0 then raw / room else 0,
+		detail = { "Circulate while meditating to refine raw qi into cultivation" },
+	})
+end
+
+-- "HEART DEMON": once a trial is done, the latest heart note; every trial's note
+-- in the detail (State.current.heartDemon.trials[major].note).
+local function renderHeart()
+	local section = sectionOf("Heart")
+	local trials = State.current.heartDemon and State.current.heartDemon.trials
+	local done = {}
+	for major, trial in trials or {} do
+		if type(trial) == "table" and type(trial.note) == "string" and trial.note ~= "" then
+			table.insert(done, { major = major, trial = trial })
 		end
 	end
-	effects.Text = table.concat(lines, "\n")
-	effects.Visible = #lines > 0
+	section.Visible = #done > 0
+	if #done == 0 then
+		return
+	end
+	table.sort(done, function(a, b)
+		return (tonumber(a.trial.at) or 0) > (tonumber(b.trial.at) or 0)
+	end)
+	local latest = done[1]
+	local detail = {}
+	if #done > 1 then
+		for _, d in done do
+			table.insert(detail, `{MAJOR_NAMES[d.major] or d.major}: {d.trial.note}`)
+		end
+	end
+	if (tonumber(latest.trial.tempered) or 0) > 0 then
+		table.insert(detail, gain(`Tempered {latest.trial.tempered} of your foundations`))
+	end
+	fill("Heart", {
+		name = if latest.trial.calm then "Calmed" else "Still whispers",
+		nameColor = if latest.trial.calm then Color3.fromRGB(130, 230, 185) else Color3.fromRGB(230, 154, 130),
+		right = MAJOR_NAMES[latest.major] or "",
+		rightColor = Color3.fromRGB(200, 196, 184),
+		summary = { latest.trial.note },
+		detail = detail,
+	})
 end
 
-local function renderRows(root: Roots.Root)
-	renderRoot(root)
-	renderDao()
+local function renderCultivation()
 	renderRealm()
-	renderMethod()
-	renderDantian()
-	renderRace()
-	renderBloodline()
 	renderFoundation()
+	renderDantian()
+	renderHeart()
 end
 
--- The list grows with its rows up to what fits on screen, then scrolls. The
--- canvas comes from the layout: AutomaticCanvasSize doesn't count rows that
--- size themselves. Sizes are in the card's own units (its pop scale divided out).
-local function fitList()
-	local layout = selfPage:FindFirstChildOfClass("UIListLayout") :: UIListLayout
-	local motion = window:FindFirstChild("Motion") :: UIScale?
-	local scale = if motion and motion.Scale > 0 then motion.Scale else 1
-	local content = layout.AbsoluteContentSize.Y / scale
-	local chrome = window.AbsoluteSize.Y / scale - selfPage.Size.Y.Offset
-	local room = math.max(120, hud.AbsoluteSize.Y - 2 * LIST_MARGIN - chrome)
-	selfPage.Size = UDim2.new(1, 0, 0, math.min(content, room))
-	selfPage.CanvasSize = UDim2.fromOffset(0, content)
+-- Path -------------------------------------------------------------------------------
+
+-- "SPIRIT ROOT": the perk at a glance, with the Marrow Washing progress once a pill
+-- is in; the element bonus, speed and the washing count in the detail.
+local function renderRoot(root: Roots.Root)
+	local def = Roots.Elements[root.element]
+	local effects = rootEffects(root)
+	local summary = { gain(effects[1]) }
+	local detail = {}
+	for i = 2, #effects do
+		table.insert(detail, gain(effects[i]))
+	end
+	local washed, need = Roots.washed(root)
+	local nextGrade = Roots.nextGrade(root.grade)
+	if need and nextGrade then
+		local line = `Washed {washed} / {need} toward {nextGrade} grade`
+		table.insert(if washed > 0 then summary else detail, line)
+	end
+	fill("Root", {
+		name = `{def.name} Root`,
+		nameColor = def.color,
+		right = `{root.grade} grade`,
+		rightColor = SelfCard.gradeColor(root.grade),
+		summary = summary,
+		detail = detail,
+	})
+end
+
+-- "CULTIVATION METHOD" (from Foundation, once one is active): its cultivation
+-- speed at a glance; the root match and how far it takes you in the detail.
+local function renderMethod()
+	local section = sectionOf("Method")
+	local activeId = activeMethod()
+	section.Visible = activeId ~= ""
+	if activeId == "" then
+		return
+	end
+	local def = Methods.active(activeId)
+	local match = def.element ~= "" and def.element == rootElement()
+	local speed = signed(Methods.speed(def, rootElement()) - 1)
+	local line = "Normal cultivation speed"
+	if speed then
+		line = `{speed} cultivation speed`
+		line = if string.sub(speed, 1, 1) == "+" then gain(line) else loss(line)
+	end
+	local detail = { limitText(def.reaches) }
+	if match then
+		table.insert(detail, 1, "Matches your root")
+	end
+	fill("Method", {
+		name = def.name,
+		nameColor = SelfCard.gradeColor(def.grade),
+		right = `{def.grade} grade`,
+		rightColor = SelfCard.gradeColor(def.grade),
+		summary = { line },
+		detail = detail,
+	})
+end
+
+-- "WEAPON DAO": a plain row per class trained (any level or XP), the class in
+-- hand first and always listed, then Weapons.ClassOrder. Tap a row for its XP and
+-- the weapon damage now and at the next level.
+local function renderDao()
+	local section = sectionOf("Dao")
+	local rows = section:FindFirstChild("Rows") :: Instance
+	local template = rows:FindFirstChild("RowTemplate") :: GuiButton
+	local id = SlotArt.equipped()
+	local held = Weapons.classOf(if id == "" then nil else id)
+	local dao = State.current.dao or {}
+	local classes = { held }
+	for _, classId in Weapons.ClassOrder do
+		local d = dao[classId]
+		if classId ~= held and d and (d.level > 0 or d.xp > 0) then
+			table.insert(classes, classId)
+		end
+	end
+	local keep: { [Instance]: boolean } = {}
+	for i, classId in classes do
+		local class = Weapons.Classes[classId]
+		local d = dao[classId]
+		local level = if d then d.level else 0
+		local xp = if d then d.xp else 0
+		local name = `Row_{classId}`
+		local row = rows:FindFirstChild(name) :: GuiButton?
+		if not row then
+			local made = template:Clone()
+			made.Name = name
+			made.Visible = true
+			made.Parent = rows
+			made.Activated:Connect(function()
+				local detail = made:FindFirstChild("Detail") :: TextLabel
+				detail.Visible = not detail.Visible
+			end)
+			made.MouseEnter:Connect(function()
+				Motion.tween(made, { BackgroundTransparency = HOVER })
+			end)
+			made.MouseLeave:Connect(function()
+				Motion.tween(made, { BackgroundTransparency = 1 })
+			end)
+			row = made
+		end
+		local r = row :: GuiButton
+		keep[r] = true
+		r.LayoutOrder = i
+		local top = r:FindFirstChild("Top") :: Instance
+		local icon = top:FindFirstChild("Icon") :: ImageLabel
+		-- the class glyph in its colour, as the Inventory's Dao sections
+		SlotArt.setIcon(icon, SlotArt.classGlyph(classId))
+		icon.ImageColor3 = SlotArt.classColor(classId)
+		local nameLabel = top:FindFirstChild("NameLabel") :: TextLabel
+		nameLabel.Text = if class then class.dao else `{classId} Dao`
+		nameLabel.TextColor3 = if classId == held then DAO_EQUIPPED else NAME_COLOR;
+		local progress = if level >= Weapons.MAX_LEVEL then 1 else math.clamp(xp / Weapons.xpToNext(level), 0, 1);
+		(top:FindFirstChild("Right") :: TextLabel).Text = if level >= Weapons.MAX_LEVEL
+			then `Lv {level}`
+			else `Lv {level} · {math.floor(progress * 100)}%`
+		local rightLabel = top:FindFirstChild("Right") :: TextLabel
+		local rightWidth = TextService:GetTextSize(rightLabel.Text, rightLabel.TextSize, Enum.Font.BuilderSansBold, Vector2.new(1000, 100)).X + 8
+		nameLabel.Size = UDim2.new(1, -24 - rightWidth, 1, 0) -- past the glyph, short of the level
+		local fillFrame = ((r:FindFirstChild("Bar") :: Instance):FindFirstChild("Trough") :: Instance):FindFirstChild("Fill") :: Frame
+		local lines = {}
+		if level >= Weapons.MAX_LEVEL then
+			fillFrame.Size = UDim2.fromScale(1, 1)
+			fillFrame.Visible = true
+			table.insert(lines, "Mastered")
+			table.insert(lines, daoDamage(level))
+		else
+			local need = Weapons.xpToNext(level)
+			Motion.ease(fillFrame, { Size = UDim2.fromScale(math.clamp(xp / need, 0, 1), 1) })
+			fillFrame.Visible = xp > 0
+			table.insert(lines, `{math.floor(xp)} / {need} Dao XP`)
+			table.insert(lines, daoDamage(level))
+			table.insert(lines, `Next level: {daoDamage(level + 1)}`)
+		end
+		(r:FindFirstChild("Detail") :: TextLabel).Text = table.concat(lines, "\n")
+	end
+	for _, child in rows:GetChildren() do
+		if child:IsA("GuiButton") and child ~= template and not keep[child] then
+			child:Destroy()
+		end
+	end
+end
+
+local function renderPath(root: Roots.Root)
+	renderRoot(root)
+	renderMethod()
+	renderDao()
+end
+
+local function renderAll(root: Roots.Root)
+	renderSelf()
+	renderCultivation()
+	renderPath(root)
+end
+
+-- Layout -------------------------------------------------------------------------------
+
+-- Phone tabs: one page at a time, the chosen tab in gold.
+local function showPage(name: string)
+	page = name
+	local phone = window:FindFirstChild("Phone") :: Instance
+	local pages = phone:FindFirstChild("Pages") :: Instance
+	local tabs = phone:FindFirstChild("Tabs") :: Instance
+	for _, id in PAGES do
+		(pages:FindFirstChild(id) :: GuiObject).Visible = id == name
+		local tab = tabs:FindFirstChild(id .. "Tab") :: ImageButton
+		local style = if id == name then TAB_ON else TAB_OFF
+		tab.Image = style.image;
+		(tab:FindFirstChild("Label") :: TextLabel).TextColor3 = style.text
+	end
+end
+
+-- The layout for this session's screen (decided once by UiScale.isPhone).
+local function chooseLayout()
+	local phone = UiScale.isPhone()
+	local desktop = window:FindFirstChild("Desktop") :: GuiObject
+	local phoneRoot = window:FindFirstChild("Phone") :: GuiObject
+	desktop.Visible = not phone
+	phoneRoot.Visible = phone;
+	(window:FindFirstChild("TitlePlaque") :: GuiObject).Visible = not phone
+	body = if phone then phoneRoot else desktop
+	if phone then
+		showPage(page)
+	end
+end
+
+-- Tap to expand: every section with detail, in both layouts.
+local function bindSections(root: Instance)
+	for _, d in root:GetDescendants() do
+		if d:IsA("TextButton") and d:FindFirstChild("Kind") and d:FindFirstChild("Detail") then
+			local section = d
+			section.Activated:Connect(function()
+				if not section.Active then
+					return
+				end
+				local detail = section:FindFirstChild("Detail") :: TextLabel
+				detail.Visible = not detail.Visible;
+				((section:FindFirstChild("Kind") :: Instance):FindFirstChild("More") :: TextLabel).Text = if detail.Visible then "–" else "+"
+			end)
+			section.MouseEnter:Connect(function()
+				if section.Active then
+					Motion.tween(section, { BackgroundTransparency = HOVER })
+				end
+			end)
+			section.MouseLeave:Connect(function()
+				Motion.tween(section, { BackgroundTransparency = 1 })
+			end)
+		end
+	end
+end
+
+-- Open fresh: details folded, every list at its top.
+local function foldAll()
+	for _, d in body:GetDescendants() do
+		if d:IsA("TextLabel") and d.Name == "Detail" then
+			d.Visible = false
+		elseif d:IsA("TextLabel") and d.Name == "More" then
+			d.Text = "+"
+		elseif d:IsA("ScrollingFrame") then
+			d.CanvasPosition = Vector2.zero
+		end
+	end
 end
 
 local function render()
@@ -632,17 +974,20 @@ local function render()
 		return
 	end
 	if window.Visible then
-		renderRows(root)
+		renderAll(root)
 	end
 end
 
 function SelfCard.open()
-	if not currentRoot() then
+	local root = currentRoot()
+	if not root then
 		return
 	end
+	chooseLayout()
+	foldAll()
 	-- fill before showing so it never opens with stale text
-	renderRows(currentRoot() :: Roots.Root)
-	selfPage.CanvasPosition = Vector2.zero
+	renderAll(root)
+	renderAvatar()
 	seenOnce = true
 	newDot.Visible = false
 	Menus.open(window)
@@ -677,9 +1022,8 @@ function SelfCard.announce()
 end
 
 function SelfCard.init(gui: ScreenGui)
-	hud = gui
 	window = gui:FindFirstChild("SelfCard") :: Frame
-	selfPage = ((window:FindFirstChild("Body") :: Instance):FindFirstChild("Pages") :: Instance):FindFirstChild("Self") :: ScrollingFrame
+	body = window:FindFirstChild("Desktop") :: GuiObject
 	crest = gui:FindFirstChild("Crest", true) :: GuiObject
 	openButton = crest:FindFirstChild("Open") :: GuiButton
 	tile = (gui:FindFirstChild("Buttons") :: Instance):FindFirstChild("SelfButton") :: GuiButton
@@ -687,6 +1031,13 @@ function SelfCard.init(gui: ScreenGui)
 
 	Menus.register(window)
 	ListWindow.bindClose(window)
+	bindSections(window)
+	local tabs = (window:FindFirstChild("Phone") :: Instance):FindFirstChild("Tabs") :: Instance
+	for _, id in PAGES do
+		(tabs:FindFirstChild(id .. "Tab") :: GuiButton).Activated:Connect(function()
+			showPage(id)
+		end)
+	end
 
 	-- the crest itself gives the press feedback (the button over it is invisible)
 	local scale = crest:FindFirstChild("Motion") :: UIScale?
@@ -707,16 +1058,18 @@ function SelfCard.init(gui: ScreenGui)
 	-- the tile gets its press feedback from Motion.buttons, like the other tiles
 	tile.Activated:Connect(SelfCard.toggle)
 
-	local layout = selfPage:FindFirstChildOfClass("UIListLayout") :: UIListLayout
-	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitList)
-	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitList)
-
 	State.onChanged(function()
 		render()
 	end)
-	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method", "RawQi", "DantianCap", "Race", "RaceVariant", "Traits" } do
+	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "BreakthroughReady", "Weapon", "Method", "RawQi", "DantianCap", "Race", "RaceVariant", "Traits", "Surname", "FirstName" } do
 		player:GetAttributeChangedSignal(attr):Connect(render)
 	end
+	player.CharacterAppearanceLoaded:Connect(function()
+		if window.Visible then
+			renderAvatar()
+			render()
+		end
+	end)
 	render()
 end
 

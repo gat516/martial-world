@@ -100,7 +100,8 @@ there was nothing to temper.
 Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at }`.
 `note` is the heart line the player keeps, from the first two answers: "You walked the
 blade's road, and remembered every beast you slew. The demon was calmed." Sent in
-`PlayerState.heartDemon.trials` for the Self card (not shown yet).
+`PlayerState.heartDemon.trials`; the Self card's Heart demon section shows the latest
+note and every trial's in its detail ([character window](../character/character-window.md)).
 
 ## Data
 - `data.stats` counters the trial reads, all at 0 for old profiles through the
@@ -161,7 +162,6 @@ pills, seclusion).
 - UI: the speaker uses the generic `unnamed` gray silhouette and the ruby name tab. A
   heart-demon silhouette of its own (uploaded and added to `Dialogue` `PORTRAITS`) and
   the crimson demon tab (Codex sheet A7) are ui-designer work. No sound or vfx cue.
-- The Self card doesn't show the heart notes yet.
 - A cracked foundation doesn't make the trial harder (roadmap open question).
 - Counters start at the commit that added them, so a veteran's first trial undercounts
   spills, surges, building and pills from before.

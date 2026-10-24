@@ -53,6 +53,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Methods = require(ReplicatedStorage.Shared.Methods)
+local Roots = require(ReplicatedStorage.Shared.Roots)
 local TechniqueVFX = require(script.Parent.TechniqueVFX)
 
 local MethodAura = {}
@@ -78,6 +79,10 @@ local FRESH = 2 -- an aura starting this soon after Meditating/Method changed ig
 -- replicates.
 local SEAT_BLEND = 0.2 -- Meditation.luau's BLEND
 local SEAT_TIMEOUT = 2.6
+-- A rare spirit root (Roots.Elements `rare`: Lightning, Wind, Ice) tints every
+-- aura with a glow of its element's colour, so others can tell it at a glance
+-- (user, 2026-10-24; docs/character/spirit-root.md)
+local RARE_GLOW = { brightness = 1.6, range = 14 }
 local PUNCH = 1.2 -- seconds a pulse's surge takes to settle
 local BURST_GAP = NumberRange.new(0.5, 2.6) -- "burst" rhythm: seconds between bursts
 local BURST_DECAY = 0.16 -- seconds for a burst to fall to ~37%
@@ -790,6 +795,19 @@ local function start(key: any, root: BasePart, methodId: string, fresh: boolean,
 		pivot = CFrame.new(),
 		yaw = CFrame.identity,
 	}
+	if typeof(key) == "Instance" and key:IsA("Player") then
+		local element = Roots.Elements[key:GetAttribute("Root") :: any]
+		if element and element.rare then
+			local glow = Instance.new("PointLight")
+			glow.Name = "RareRootGlow"
+			glow.Color = element.color
+			glow.Brightness = RARE_GLOW.brightness
+			glow.Range = RARE_GLOW.range
+			glow.Shadows = false
+			glow.Parent = root
+			table.insert(aura.owned, glow)
+		end
+	end
 	collectPieces(aura, grade.glow)
 	collectShell(aura, grade.glow)
 	collectLimbs(aura)
@@ -823,6 +841,11 @@ local function stop(key: any)
 	end
 	for _, e in aura.limbEmitters do
 		e.Enabled = false
+	end
+	for _, inst in aura.owned do
+		if inst:IsA("PointLight") and inst.Name == "RareRootGlow" then
+			inst.Enabled = false
+		end
 	end
 	table.insert(dying, aura)
 end

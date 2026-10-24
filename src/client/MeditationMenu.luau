@@ -359,6 +359,28 @@ local function pillRows(root: Roots.Root): number
 	return n
 end
 
+-- Pity fragments held toward each root pill (Pacing.Roots.FRAGMENTS), once one is in.
+local function fragmentRows(root: Roots.Root): number
+	local n = 0
+	for i, id in PILLS do
+		local have, per = Roots.fragments(root, id)
+		if have > 0 then
+			n += 1
+			local def = Items.Defs[id]
+			addRow(20 + i, {
+				icon = def.icon or "",
+				iconColor = Color3.fromRGB(170, 170, 170), -- a dimmed pill: only part of one
+				name = `{Roots.FragmentNames[id]}s`,
+				nameColor = Items.Rarities[def.rarity].color,
+				info = `{have}/{per}`,
+				sub = `{per} fuse into a {def.name} on their own. Bosses, heavenly treasures and the sect Pavilion give them.`,
+				blurb = "",
+			})
+		end
+	end
+	return n
+end
+
 local function rootRows(): number
 	local root = SelfCard.currentRoot()
 	if not root then
@@ -371,7 +393,7 @@ local function rootRows(): number
 	-- washing progress shows once a pill has gone in (until then the pill row says it)
 	local done = Roots.washed(root)
 	rootRow(1, root.element, root.grade, "", { note = if done > 0 then washLine(root) else nil })
-	return 1 + pillRows(root)
+	return 1 + pillRows(root) + fragmentRows(root)
 end
 
 -- A reformed element is waiting for the player's choice.

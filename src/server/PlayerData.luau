@@ -67,6 +67,7 @@ export type Sect = {
 	tracked: string,
 	ring: { [string]: number },
 	bought: { [string]: number },
+	weekBought: { [string]: number }, -- Pavilion stock with a weekly limit bought this week (root pill fragments), by pill id
 }
 
 export type Data = {
@@ -251,7 +252,7 @@ local function default(): Data
 			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0,
 			contribution = 0, dailies = 0, gathered = 0 },
 		heartDemon = { trials = {}, declined = {} },
-		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {} },
+		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},
 		items = {},

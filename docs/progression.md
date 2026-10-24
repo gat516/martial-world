@@ -173,6 +173,10 @@ Gorge" (QC5-9) and a small Pavilion; the rest below comes later.
   out into the world ("a cultivator's cave lies past the ruined bridge").
 
 ## Tribulations (heaven-defying only)
+
+Players see the flag as **Defier of Heaven** (`Pacing.HeavenDefying.TITLE`; user,
+2026-10-24), never "heaven-defying", so it can't be confused with a Heaven-grade
+spirit root.
 Normal players break through with a bar and a quiet ceremony.
 A weak foundation grade makes the tribulation harder, never impossible.
 - **Who:** a player whose bloodline or spirit root is flagged `heavenDefying`.

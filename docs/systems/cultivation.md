@@ -35,7 +35,7 @@ felt in fights.
   breakthrough (QC9, QR9); everyone else breaks through quietly on a full bar. A
   heaven-defier's every bar is `Pacing.HeavenDefying.BAR` (1.5x) longer
   (`Cultivation.stage` returns `Realms.forPlayer`'s copy), and they resist half of
-  realm suppression when hitting upward. Nothing sets the flag yet: a heaven-defying bloodline or root will.
+  realm suppression when hitting upward. Nothing sets the flag yet: a heaven-defying bloodline or root will. Player-facing text calls it **Defier of Heaven** (`Pacing.HeavenDefying.TITLE`), never "heaven-defying" (it would read like a Heaven-grade root).
 - **Walls are the bar, never a boss.** A wall stage has the biggest bar of its
   chapter (plus the tribulation for heaven-defiers); nothing else gates a breakthrough.
 - **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:

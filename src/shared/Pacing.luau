@@ -302,6 +302,9 @@ Pacing.Suppression = {
 Pacing.HeavenDefying = {
 	BAR = 1.5,
 	SUPPRESSION_RESIST = 0.5,
+	-- the player-facing name for the flag (user, 2026-10-24): never "heaven-defying"
+	-- in UI text, so it can't be mixed up with a Heaven-grade spirit root
+	TITLE = "Defier of Heaven",
 }
 
 -- PER-STAGE CORRECTIONS, by stage key. Empty by default: the curve is the design.
@@ -696,35 +699,57 @@ Pacing.Haul = {
 -- SPIRIT ROOTS (Roots.luau, server Roots; docs/character/spirit-root.md). A root's
 -- element is rolled once at the Testing Stone; its grade starts at STARTING_GRADE
 -- for everyone and is raised by rare items. Grade multiplies passive and refining
--- speed and the element's perk. Perks are kept small so no element is "the best".
+-- speed and the element's perks. Perks are kept small so no element is "the best",
+-- and the rare elements (4%, 3%, 3%) are worth at least as much as the common ones
+-- (user, 2026-10-24): a main perk plus a BONUS.
 Pacing.Roots = {
 	-- roll weights (percent)
 	ODDS = { Fire = 18, Water = 18, Wood = 18, Metal = 18, Earth = 18, Lightning = 4, Wind = 3, Ice = 3 } :: { [string]: number },
 	STARTING_GRADE = "Spirit",
-	-- per grade: cultivation speed (passive and refining) and perk strength
+	-- per grade: cultivation speed (passive and refining) and perk strength.
+	-- Immortal is the rare top step above Heaven (user, 2026-10-24: more steps,
+	-- Earth and Heaven keep their names)
 	GRADES = {
 		Spirit = { speed = 1.0, perk = 1.0 },
 		Earth = { speed = 1.1, perk = 1.5 },
 		Heaven = { speed = 1.25, perk = 2.0 },
+		Immortal = { speed = 1.4, perk = 2.5 },
 	} :: { [string]: { speed: number, perk: number } },
-	-- each element's perk at perk strength 1 (Roots.Elements says what kind it is)
+	-- each element's main perk at perk strength 1 (Roots.Elements says what kind it is)
 	PERKS = {
 		Fire = 0.08, -- share added to technique damage
 		Water = 0.02, -- share of max health healed per second out of combat
 		Wood = 0.25, -- share added to herb growth speed (while online)
 		Metal = 0.08, -- share added to weapon strike (M1) damage
 		Earth = 0.10, -- share added to max health
-		Lightning = 2, -- studs/s added to walk speed
-		Wind = 0.15, -- share added to jump height
-		Ice = 0.06, -- share cut from damage taken
+		Lightning = 3, -- studs/s added to walk speed
+		Wind = 0.20, -- share added to jump height
+		Ice = 0.08, -- share cut from damage taken
 	} :: { [string]: number },
+	-- the rare elements' second perk, by perk kind (Roots.Perk), at perk strength 1:
+	-- each rare root gets a common root's whole perk on top of its own
+	BONUS = {
+		Lightning = { technique = 0.06 }, -- a lightning strike: techniques hit harder
+		Wind = { strike = 0.06 }, -- a wind blade: weapon strikes hit harder
+		Ice = { health = 0.06 }, -- an ice shell: more health
+	} :: { [string]: { [string]: number } },
 	MATCH = 0.15, -- share added to techniques of your root's element
 	-- Marrow Washing Pills absorbed to reach each grade from the one below (kept
 	-- per element in root.washed). Pills are boss and treasure drops at a few
 	-- percent (Enemies drops, Items treasureWeight), so Earth is a long hunt and
 	-- Heaven (3 + 5 = 8 pills) is a Foundation-and-beyond goal (user, 2026-10-23:
-	-- "should be hard to get one")
-	WASH = { Earth = 3, Heaven = 5 } :: { [string]: number },
+	-- "should be hard to get one"); Immortal (8 more) is the rare top
+	WASH = { Earth = 3, Heaven = 5, Immortal = 8 } :: { [string]: number },
+	-- PITY FRAGMENTS (user, 2026-10-24; server Roots.fragment, root.fragments): a boss
+	-- kill (Enemies `boss`) or a claimed heavenly treasure that gives no root pill
+	-- gives one Marrow Washing fragment, and at REBIRTH_CHANCE a Root Rebirth
+	-- fragment too. PER_PILL fragments of a kind combine into its pill on their own.
+	-- The Sect Pavilion also sells them (Pacing.Sect.FRAGMENTS). Never for Robux.
+	FRAGMENTS = {
+		PER_PILL = 10,
+		REBIRTH_CHANCE = 0.25,
+		PILLS = { "MarrowWashingPill", "RootRebirthPill" },
+	},
 }
 
 -- BEAST DANGER (client EnemyBars; docs/systems/enemies.md). A regular demon
@@ -892,7 +917,8 @@ Pacing.HeartDemon = {
 -- Contribution is earned by dailies, chain steps and promotions and spent at the
 -- Pavilion; rank goes by contribution EARNED (lifetime), so shopping never costs a
 -- promotion. The weekly cap applies to dailies only (the chain and promotions are
--- finite). Never qi, never root pills (roadmap 3).
+-- finite). Never qi, never whole root pills (roadmap 3): root pill fragments only,
+-- a few a week (FRAGMENTS).
 Pacing.Sect = {
 	OPENS = "QC5", -- the board's dailies and the chain start here (the Board lesson); the testbed opens it at any realm
 	-- ranks in order: the realm and lifetime contribution a promotion needs, and what it pays
@@ -935,6 +961,14 @@ Pacing.Sect = {
 	RING_SLOT = { QiCondensation = 200, QiRefining = 500, Foundation = 1200 } :: { [string]: number },
 	MANUALS = { FireSeal = 60, SwordQiWave = 100, IronSkin = 150, MoonflashDraw = 200, PalmStrike = 250 } :: { [string]: number },
 	MANUAL_ORDER = { "FireSeal", "SwordQiWave", "IronSkin", "MoonflashDraw", "PalmStrike" },
+	-- root pill fragments (Pacing.Roots.FRAGMENTS; user, 2026-10-24: the gardener's road
+	-- to a better root): contribution each, at most `week` of each kind a week (Monday
+	-- 00:00 UTC, the dailies' week). 3 Marrow a week is about 300 of the ~700 a week of
+	-- dailies pay, and a pill every ~3.5 weeks from the Pavilion alone
+	FRAGMENTS = {
+		MarrowWashingPill = { cost = 100, week = 3 },
+		RootRebirthPill = { cost = 80, week = 2 },
+	} :: { [string]: { cost: number, week: number } },
 }
 
 return Pacing

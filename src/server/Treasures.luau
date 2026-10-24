@@ -21,6 +21,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local EventGrounds = require(script.Parent.EventGrounds)
 local Inventory = require(script.Parent.Inventory)
+local Foundation = require(script.Parent.Foundation)
 local WeatherService = require(script.Parent.WeatherService)
 
 local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
@@ -136,6 +137,7 @@ local function spawnOne(weatherId: string): boolean
 			return
 		end
 		claimed = true
+		Foundation.world(player, `treasure:{weatherId}`) -- a World foundation experience, once per weather
 		Inventory.grant(player, item.id, 1, spot)
 		notifyRemote:FireAllClients(`{player.DisplayName} claimed a heavenly treasure: {item.name}!`)
 		fadeOut(record)

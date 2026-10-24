@@ -25,6 +25,10 @@ export type Snapshot = {
 	root: { element: string, grade: string, pending: string, grades: { [string]: string } }?, -- spirit root (Shared.Roots); element "" = not tested, pending = a reformed element awaiting keep/return ("" = none), grades = other elements' own grades
 	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
 	daoPracticeReady: number?, -- os.time() when the next Practice Dao drill opens (server DaoPractice)
+	-- the current stage's foundation (server Foundation.state; docs/ui/cultivation.md):
+	-- count/target experiences, the grade it would get now, past grades by stage key,
+	-- the summed bonus share, and up to 5 open experiences { category, text }
+	foundation: { count: number, target: number, grade: string, grades: { [string]: string }, bonus: number, hints: { { category: string, text: string } } }?,
 }
 
 local State = {}

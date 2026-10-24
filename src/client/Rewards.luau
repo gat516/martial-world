@@ -846,7 +846,7 @@ function Rewards.preview(tier: string?, kind: string?)
 				tier = "card",
 				kind = "milestone",
 				title = "Breakthrough",
-				subtitle = "Qi Condensation 4",
+				subtitle = "Qi Condensation 4  ·  Solid foundation",
 				stats = { { name = "Health", from = 140, to = 165 }, { name = "Power", from = "1.20", to = "1.32" } },
 				unlock = "New: the Inner Wilds array is open",
 				flavour = "Your qi settles at a new depth.",

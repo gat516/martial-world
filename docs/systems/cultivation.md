@@ -7,8 +7,8 @@ felt in fights.
 
 ## Design intent
 - **Phase A (decided 2026-10-23):** insight is deleted (built: the walls are the bar,
-  techniques gate on weapon Dao, see [combat](combat.md)). Not built yet: breakthroughs get a
-  foundation grade (a permanent stat bonus from what you experienced that stage), death
+  techniques gate on weapon Dao, see [combat](combat.md)) and breakthroughs get a
+  foundation grade (built, see "Foundation grade" below). Not built yet: death
   spills half of the unbanked haul (raw qi, herbs, stones; a spirit ring keeps some
   safe), and the forced breakthrough becomes the qi surge (a mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
   page is the code as it stands.
@@ -71,8 +71,9 @@ felt in fights.
   (`src/client/Events/TribulationView.luau`, [world events UI](../ui/world-events.md)).
 - `src/server/Progression.luau`: technique manuals from kills (kept until their
   weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
-  break a technique's bottleneck). First kills and boss kills are tracked but grant
-  nothing: they're the hooks for Phase A's foundation experiences.
+  break a technique's bottleneck). First kills and boss kills feed `Foundation.kill`.
+- `src/server/Foundation.luau`: foundation experiences, grades, the stat bonus and
+  the open-experience hints (see "Foundation grade").
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, weapon Dao XP.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
@@ -96,7 +97,7 @@ felt in fights.
    `Cultivation.add`, which stops there). Refining refuses to start at the cap.
 4. Breakthrough: `CultivationAction "breakthrough"` -> `Cultivation.breakthrough`
    checks the method, seat, bar; a major one calls `Tribulation.start`. `advance`
-   moves the realm (carrying the excess past the old bar, capped at
+   grades the stage being left (`Foundation.seal`), moves the realm (carrying the excess past the old bar, capped at
    `CARRY_SHARE` of the new one; a forced one starts in debt instead), heals, fires `Breakthrough` to everyone and the
    `onBreakthrough` hooks (analytics, peak tier).
 5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `CultivationCap`,
@@ -104,6 +105,48 @@ felt in fights.
    every second and the `PlayerState` snapshot on change. Seated, `SeatBars`
    shows the bar, the overflow past it and the dantian; standing, a ready player
    gets a toast once and then now and then while idle ([ui](ui.md)).
+
+## Foundation grade
+Built 2026-10-23 (Phase A, untuned, untested in play). What the player experiences
+at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
+- **Experiences** are one-time keys, once ever per profile (`data.foundation.seen`),
+  weighted by category (`Pacing.Foundation.WEIGHTS`) into `data.foundation.count`:
+  Hunt `hunt:<enemy>` (first kill of a beast type, `Progression.onKill`), Boss
+  `boss:<enemy>` (counts 2), Home `home:tier:<n>` (first harvest of a herb tier) and
+  `home:mut:<id>` (a harvest with a mutation of bonus >= `MUTATION_BONUS`: Golden,
+  Thunderstruck, Auspicious, Rainbow, Heavenlit; `Garden.harvest`), Dao
+  `dao:<class>:<level>` (each weapon Dao level reached, `Weapons.onLevelUp`), Discover
+  `discover:<cache id>` (`WorldCaches` claim), World `world:<event id>` (within
+  `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated
+  one such as the Beast Surge; `WorldEvents`) and `world:treasure:<weather>` (claiming a
+  heavenly treasure). Earning one gives no toast; it shows in the state push.
+- **Grade:** at `Cultivation.advance` (seated or forced), `Foundation.seal` grades the
+  stage being left: count / `TARGET[stage]` (default `DEFAULT_TARGET`) reaching
+  `GRADES` shares 0 / 0.34 / 0.67 / 1 gives Cracked / Steady / Solid / Deep, stored in
+  `data.foundation.grades[stageKey]`; the count and the toast flag reset. Profiles
+  from before this have no grades (no bonus, nothing retro).
+- **Bonus:** the sum of every graded stage's `BONUS` (Cracked 0, Steady 2%, Solid 4%,
+  Deep 7%) multiplies max health (`applyStats`) and power (`Combat.power`, so
+  knockback too) as its own factor on top of `Pacing.Curve`.
+- **Shown:** the card subtitle "<stage>  ·  <grade> foundation" (grade sent as the
+  Breakthrough remote's 4th arg); one toast per stage when the bar first fills with
+  a breakthrough open and the pending grade below Solid ("Your foundation is
+  unsteady. The world still has things to teach you.", `data.foundation.warned`);
+  `PlayerState.foundation` for the Self card (shape in [remotes](../remotes.md), UI
+  note in [cultivation UI](../ui/cultivation.md#foundation-line-in-the-self-card-ready-to-wire)).
+- **Hints** (`Foundation.hints`, up to `HINTS`): unearned beasts from `HINT_BELOW`
+  stages below to `HINT_ABOVE` above (two first), the lowest unharvested herb tier
+  (else the mildest rare mutation not yet harvested), the equipped class's next Dao
+  level, a cache, a world event if any is left, a third beast, and a boss in range as
+  "The fast road: defeat the <boss>" (always shown when one is open, replacing the last line).
+- **Tribulation:** a heaven-defier's strikes deal `TRIBULATION_DAMAGE` x more by the
+  pending grade (Cracked 1.25, Steady 1.1).
+- **Gaps:** the pools are global and small (five beast types, three herb tiers, a
+  handful of caches and events), so past QC they run thin and the Dao levels carry
+  the grade. Per-region (and per-realm) pools are needed as regions arrive. Not built:
+  tempering old grades, the heart-demon trial, the Cultivate-window line (the Self
+  card will read `PlayerState.foundation`). The Discover hint shows even when no
+  cache is left. Numbers are first guesses.
 
 ## Player attributes (set every second by `Cultivation.publish`)
 - `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`
@@ -134,6 +177,9 @@ felt in fights.
   meditation multipliers, forced-breakthrough thresholds, the overflow cap past
   the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), manuals (boss and milestones),
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
+- **Pacing.Foundation**: experience weights, per-stage targets, grade shares,
+  grade bonuses, the tribulation damage per grade, the rare-mutation line, the
+  world-event radius and the hint count and range.
 - **Pacing.Comprehension**: the weapon Dao to learn a technique (`CLASS_SKILL_DAO`) and
   to break each bottleneck (`DAO_PER_BOTTLENECK`), and the stones each bottleneck costs.
 - **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,

@@ -323,9 +323,9 @@ Pacing.CombatQi = {
 	COST_PER_COOLDOWN = 2.5,
 }
 
--- KILL CREDIT AND MANUALS (Progression.luau). First kills, boss kills and kill
--- milestones are tracked; they grant only manuals (they become foundation
--- experiences in Phase A, docs/roadmap.md).
+-- KILL CREDIT AND MANUALS (Progression.luau). Kill milestones and the first boss
+-- kill grant manuals; first kills of each beast and boss are foundation
+-- experiences (Pacing.Foundation).
 Pacing.Rewards = {
 	-- a player is credited with a kill (qi, stones, drops) only if they
 	-- dealt at least this share of the beast's max health; a boss asks more, so
@@ -497,6 +497,39 @@ Pacing.Danger = {
 	ABOVE_AT = 2,
 	FAR_AT = 4,
 	DEADLY_AT = 6,
+}
+
+-- FOUNDATION GRADES (server Foundation; docs/systems/cultivation.md "Foundation
+-- grade"). One-time experiences earned while at a stage (each key once ever per
+-- profile) are weighed against the stage's TARGET at the breakthrough out of it:
+-- the share of the target reached picks the grade (GRADES, lowest first). Every
+-- graded stage adds its grade's BONUS to max health and to power, summed over all
+-- stages and applied as its own multiplier on top of Pacing.Curve. Time fills the
+-- bar, not the grade. Untuned first guesses (roadmap open questions).
+export type FoundationGrade = "Cracked" | "Steady" | "Solid" | "Deep"
+Pacing.Foundation = {
+	-- what one experience of each category counts for
+	WEIGHTS = { Hunt = 1, Boss = 2, Home = 1, Dao = 1, Discover = 1, World = 1 } :: { [string]: number },
+	-- experiences per stage for a Deep grade; a stage missing here gets DEFAULT_TARGET
+	TARGET = { QC1 = 2, QC2 = 3, QC3 = 3, QC4 = 4, QC5 = 4, QC6 = 4, QC7 = 4, QC8 = 4, QC9 = 5 } :: { [string]: number },
+	DEFAULT_TARGET = 5, -- Qi Refining and Foundation (pools there are thin until their regions exist)
+	-- the share of the target that reaches each grade, lowest first (Cracked below Steady's)
+	GRADES = {
+		{ name = "Cracked", share = 0 },
+		{ name = "Steady", share = 0.34 },
+		{ name = "Solid", share = 0.67 },
+		{ name = "Deep", share = 1 },
+	} :: { { name: FoundationGrade, share: number } },
+	SOLID = "Solid", -- grades below this get the unsteady toast and a harder tribulation
+	-- share added to max health and power per stage graded so
+	BONUS = { Cracked = 0, Steady = 0.02, Solid = 0.04, Deep = 0.07 } :: { [string]: number },
+	-- a heaven-defier's tribulation strike damage, by the grade the stage would get now
+	TRIBULATION_DAMAGE = { Cracked = 1.25, Steady = 1.1 } :: { [string]: number },
+	MUTATION_BONUS = 1, -- a harvest mutation counts as rare (Home) from this Herbs.Mutations bonus up
+	EVENT_RADIUS = 150, -- studs from a located world event that count as taking part
+	HINTS = 5, -- open experiences listed in the PlayerState push
+	HINT_BELOW = 3, -- beasts suggested from this many stages below the player...
+	HINT_ABOVE = 2, -- ...to this many above (bosses too, as "the fast road")
 }
 
 return Pacing

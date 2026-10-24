@@ -23,6 +23,7 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Cultivation = require(script.Parent.Cultivation)
 local EnemyService = require(script.Parent.EnemyService)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Travel = require(script.Parent.Travel)
 
 local remotes = ReplicatedStorage.Remotes
@@ -211,10 +212,13 @@ function Tribulation.start(player: Player): (boolean, string?)
 	if not humanoid then
 		return false, "You can't face the heavens right now."
 	end
-	local def = data and Cultivation.stage(data).tribulation
-	if not def then
+	local base = data and Cultivation.stage(data).tribulation
+	if not (data and base) then
 		return false, "The heavens are silent."
 	end
+	-- a foundation below Solid makes the heavens strike harder (Pacing.Foundation)
+	local def = table.clone(base)
+	def.damageShare *= Foundation.tribulationDamage(data)
 	current = { player = player, def = def, endsAt = os.clock() + def.seconds + def.windupStart }
 	waiting[player] = nil
 	humanoid.Health = humanoid.MaxHealth

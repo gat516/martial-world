@@ -109,8 +109,9 @@ end
 
 -- The local player's moment: the milestone card (Rewards), with what changed from
 -- the stage before (health, power, combat qi, passive cultivation) and any travel
--- array the new stage opens.
-local function milestoneCard(stageName: string, major: boolean)
+-- array the new stage opens. The subtitle also carries the foundation grade the
+-- stage just left earned (Cracked/Steady/Solid/Deep, server Foundation).
+local function milestoneCard(stageName: string, major: boolean, grade: string?)
 	local stage = Realms.byName(stageName)
 	local before: Realms.Stage? = nil
 	if stage then
@@ -142,7 +143,7 @@ local function milestoneCard(stageName: string, major: boolean)
 		tier = "card",
 		kind = "milestone",
 		title = if major then "Major Breakthrough" else "Breakthrough",
-		subtitle = stageName,
+		subtitle = if type(grade) == "string" then `{stageName}  ·  {grade} foundation` else stageName,
 		stats = stats,
 		unlock = unlock,
 		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
@@ -234,10 +235,10 @@ function BreakthroughView.init(gui: ScreenGui)
 	nudges()
 
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
-	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
+	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean, grade: string?)
 		playEffect(who, major)
 		if who == player then
-			milestoneCard(stageName, major)
+			milestoneCard(stageName, major, grade)
 		elseif major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)
 		end

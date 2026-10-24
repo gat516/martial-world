@@ -48,7 +48,9 @@ Replaces the solidity meter and the insight gate. No new HUD meter: the phone HU
 has no room, so the grade rides on toasts and the breakthrough card, and the surge
 button only appears while it's ready.
 
-**Foundation grade (per breakthrough).**
+**Foundation grade (per breakthrough). Built 2026-10-23 (untuned), see
+[cultivation](systems/cultivation.md#foundation-grade); per-region pools, tempering,
+the heart-demon trial and the Cultivate-window line are not.**
 - Every breakthrough is graded **Cracked, Steady, Solid or Deep** by what the
   player experienced during that stage. Hunt (first kills of the region's beasts),
   Boss (counts double, the fast road), Home (first harvest of a herb tier, a rare
@@ -109,7 +111,7 @@ button only appears while it's ready.
 plus the tribulation for heaven-defiers) and no longer pays for comprehension.
 Its sources (first kills, bosses, milestones) become foundation experiences.
 Technique gating moves to weapon Dao (section 4). First kills and boss kills are
-still tracked as hooks but grant nothing until foundation experiences land.
+foundation experiences (built).
 
 **Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
 prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge

@@ -21,6 +21,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Progression = require(script.Parent.Progression)
 local Weapons = require(script.Parent.Weapons)
 local Methods = require(script.Parent.Methods)
@@ -81,6 +82,7 @@ local function claim(player: Player, anchor: BasePart, tag: string)
 		return
 	end
 	data.caches[id] = true
+	Foundation.discover(player, id)
 	if manualDef then
 		if data.techniques.owned[manualDef.id] then
 			-- already known: the study still deepens its Dao

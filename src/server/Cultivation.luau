@@ -22,6 +22,7 @@ local Registry = require(ReplicatedStorage.Shared.Identity.Registry) -- race, va
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local StarterPlayer = game:GetService("StarterPlayer")
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local WeatherService = require(script.Parent.WeatherService)
 
 local remotes = ReplicatedStorage.Remotes
@@ -205,11 +206,13 @@ function Cultivation.pushState(player: Player)
 		root = data.root,
 		methods = data.methods,
 		daoPracticeReady = data.daoPracticeReadyUnix,
+		foundation = Foundation.state(data),
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)
 	end
 end
+Foundation.onChanged = Cultivation.pushState
 
 function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
@@ -220,7 +223,12 @@ function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 		local jump = 1 + Roots.perk(data.root, "jump") + Registry.stat(data, "jump")
 		humanoid.JumpHeight = StarterPlayer.CharacterJumpHeight * jump
 		humanoid.JumpPower = StarterPlayer.CharacterJumpPower * jump
-		local maxHealth = math.floor(Cultivation.stage(data).health * (1 + Roots.perk(data.root, "health") + Registry.stat(data, "health")) + 0.5)
+		local maxHealth = math.floor(
+			Cultivation.stage(data).health
+				* (1 + Roots.perk(data.root, "health") + Registry.stat(data, "health"))
+				* Foundation.multiplier(data) -- graded foundations (Pacing.Foundation)
+				+ 0.5
+		)
 		if humanoid.MaxHealth ~= maxHealth then
 			local fraction = humanoid.Health / humanoid.MaxHealth
 			humanoid.MaxHealth = maxHealth
@@ -275,7 +283,7 @@ Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 -- Move the player up to the next stage, starting `debt` cultivation in the hole
 -- (a forced breakthrough), or else with the excess past the old bar carried over
 -- (at most Pacing.Breakthrough.CARRY_SHARE of the new bar). Major breakthroughs
--- are announced to everyone.
+-- are announced to everyone. The stage being left gets its foundation grade.
 function Cultivation.advance(player: Player, debt: number?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -287,6 +295,7 @@ function Cultivation.advance(player: Player, debt: number?)
 		return
 	end
 	local major = nextStage.major ~= stage.major
+	local grade = Foundation.seal(data) -- grades the stage being left, resets the count
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
 	if debt then
 		data.cultivation = -debt
@@ -305,7 +314,7 @@ function Cultivation.advance(player: Player, debt: number?)
 		humanoid.Health = humanoid.MaxHealth
 	end
 	Cultivation.pushState(player)
-	breakthroughRemote:FireAllClients(player, nextStage.name, major)
+	breakthroughRemote:FireAllClients(player, nextStage.name, major, grade)
 	for _, fn in Cultivation.onBreakthrough do
 		task.spawn(fn, player, nextStage, major)
 	end
@@ -470,10 +479,17 @@ task.spawn(function()
 				publish(player, data)
 				local s = session(player)
 				if os.clock() - s.lastWarned >= Config.WARN_INTERVAL or (data.cultivation >= bar and not s.fullNoticed) then
+					local firstFull = data.cultivation >= bar and not s.fullNoticed
 					local message = warning(player, data, rate)
 					if message then
 						s.lastWarned = os.clock()
 						Cultivation.notify(player, message)
+					end
+					-- once per stage: the bar filled before the world taught enough
+					if firstFull and Cultivation.block(data) == "" and not data.foundation.warned
+						and Foundation.unsteady(Foundation.pending(data)) then
+						data.foundation.warned = true
+						task.delay(4, Cultivation.notify, player, "Your foundation is unsteady. The world still has things to teach you.")
 					end
 				end
 				if expired then

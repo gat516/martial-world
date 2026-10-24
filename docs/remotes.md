@@ -15,8 +15,8 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync; "guard" raises/lowers the guard) | CombatController |
 | Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "manual", "weapon", "method", "boss", "reward" (a `Rewards.show` spec table: tier, kind, title...), "used", "bolt", "tribulationStart" (to all: player, center, strikes), "tribulationEnd", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md), "died" (`Combat.died` from Humanoid.Died: `{ cause = "enemy"/"fall"/"tribulation"/"unknown", source = enemy def id?, poisoned, respawn = seconds, hub }`; see ui/death-screen.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX, DeathScreen |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land: shape, seconds, enemy or nil, attack name, server start time) | Telegraphs, EnemyFX |
-| PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
-| Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |
+| PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot; `foundation` = `Foundation.state`: `count`, `target`, `grade` (what the stage would get now), `grades` (by stage key), `bonus` (summed share), `hints` (up to 5 `{ category, text }`), see [cultivation](systems/cultivation.md#foundation-grade)) | State (everything reads State) |
+| Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major, foundation grade of the stage left) | BreakthroughView |
 | Notify | Event | S->C | toasts from everywhere | Hud |
 | QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |

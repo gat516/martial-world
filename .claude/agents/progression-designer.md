@@ -60,6 +60,35 @@ write the rules every other agent must follow.
 - **Few currencies:** stones, contribution and raw qi are the spending currencies;
   don't add another without a strong case.
 
+## Lessons from the first model run (2026-10-24; detail in pacing-model.md)
+- **The curve is fine; the extras aren't in it.** With every extra off, players take
+  34-37 h to FE9; with today's extras every profile is 3-4x faster than the targets
+  (a regular finishes FE9 in about 8 active hours). Always model with extras on.
+- **About ten modest levers multiply.** Check stacks, not single levers: herbs, cores,
+  buffs, offline, meditation on peak, peak score, garden aura, root, method, party.
+- **Shares of the dantian scale too well.** Anything that pays a share of the dantian
+  or the bar (herb qi, lesser core 25% of the dantian, greater core 35% of the bar)
+  outgrows kill qi as realms rise; low-tier herbs eaten at high realms and QC8 cores
+  farmed by QR/FE players were the worst offenders. Prefer "worth N kills at the
+  eater's stage" or floors by band.
+- **Caps must be per day, not per event.** The 12 h offline cap was per absence, so
+  two logins a day earned 24 h. Herb buffs stacked uncapped (+470% at FE).
+- **The garden aura was too weak and misplaced** for the owner's intent: rarity added
+  nothing and it applied everywhere. Proposed: by tier x rarity, capped by peak tier,
+  multiplying meditation on your own peak only.
+- **The stone economy is a hidden brake.** A regular earns ~4,000 stones by FE9, so
+  the garden and building arrive late; model purchases with income, never assume
+  everything is bought.
+- **Acquisition gaps:** tier III-IV seeds only come from mutations and seclusion while
+  the Deep Wilds and Far Reaches aren't map regions; tier V never drops; the Herbalist
+  has no stock limit. With variants off, QR/FE have no same-realm beasts, so hunts and
+  hunt deeds vanish there (re-run when variants ship).
+- **Foundation:** pools are front-loaded per band (FE1-3 and FE6-8 sit near 50%);
+  profiles didn't separate until targets rose and experiences past the cap carried
+  into the next stage. Casual players seal slept-through stages at 5-12%.
+- **The model reproduces the header** with a bare fighter run (2.4 / 7.1 / 19.8 h):
+  keep that self-check passing after every change.
+
 ## Hard rules you enforce (write them into progression-rules.md)
 - Every faucet has a sink; every new reward names both.
 - Every multiplier has a cap and appears in the model.

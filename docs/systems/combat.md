@@ -75,7 +75,8 @@ scales all player damage.
   playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
-- `src/client/Strafe.luau`: `Animations/Strafe/Left` and `Right` (user, 2026-10-24) while walking
+- `src/client/Strafe.luau`: `Animations/Strafe/Left`, `Right` and `Back` (the back walk,
+  104669778380585; user, 2026-10-24) while walking backwards or
   sideways under shift lock only (mouse at the centre, not first person; user,
   2026-10-24). Blended, not switched: each side's weight follows how sideways
   the move is (none below `LATERAL_START` 0.35, full from `LATERAL_FULL` 0.85,

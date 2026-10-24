@@ -1,6 +1,6 @@
 --!strict
--- Strafe clips (ReplicatedStorage.Animations.Strafe.Left / .Right, user
--- 2026-10-24) while the local character walks sideways under shift lock (the
+-- Strafe clips (ReplicatedStorage.Animations.Strafe.Left / .Right / .Back, user
+-- 2026-10-24) while the local character walks sideways, or backwards, under shift lock (the
 -- mouse held at the centre, not first person). Only then (user, 2026-10-24):
 -- without shift lock the body turns to face the way it walks, so there's nothing
 -- to strafe, and turning off shift lock fades any strafe out.
@@ -59,7 +59,7 @@ local function onCharacter(character: Model)
 	if player.Character ~= character or not folder then
 		return
 	end
-	for _, name in { "Left", "Right" } do
+	for _, name in { "Left", "Right", "Back" } do
 		local animation = folder:FindFirstChild(name)
 		if animation and animation:IsA("Animation") and animation.AnimationId ~= "" then
 			local track = animator:LoadAnimation(animation)
@@ -72,7 +72,7 @@ local function onCharacter(character: Model)
 	humanoid = h
 end
 
--- The side being strafed to (its clip mostly in), or nil.
+-- The direction being strafed ("Left" | "Right" | "Back", its clip mostly in), or nil.
 function Strafe.side(): string?
 	return side
 end
@@ -88,7 +88,7 @@ end
 local function step(dt: number)
 	local h = humanoid
 	local root = h and h.RootPart
-	local want: { [string]: number } = { Left = 0, Right = 0 }
+	local want: { [string]: number } = { Left = 0, Right = 0, Back = 0 }
 	local speed = 0
 	if h and root and h.Parent == player.Character and h.Health > 0 then
 		speed = (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude
@@ -97,6 +97,10 @@ local function step(dt: number)
 		if shiftLocked() and grounded and speed > 1 and move.Magnitude > 0.1 and not Sprint.isRunning() then
 			local share = math.clamp((math.abs(move.X) / move.Magnitude - LATERAL_START) / (LATERAL_FULL - LATERAL_START), 0, 1)
 			want[if move.X > 0 then "Right" else "Left"] = share * share * (3 - 2 * share)
+			-- walking backwards (+Z in facing space) blends the back walk the same way,
+			-- so a diagonal back-left mixes Back with Left
+			local back = math.clamp((move.Z / move.Magnitude - LATERAL_START) / (LATERAL_FULL - LATERAL_START), 0, 1)
+			want.Back = back * back * (3 - 2 * back)
 		end
 	end
 	local alpha = 1 - math.exp(-WEIGHT_RATE * math.min(dt, 0.1))

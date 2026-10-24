@@ -89,6 +89,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Death cost: spill share, spill time, rarity line that banks on pickup, spirit ring slots | `src/shared/Pacing.luau` `Haul` ([haul](systems/haul.md)) |
 | Parties: size, invite lapse, nearby radius, helper qi share, group bonus; the testbed's safe-zone radius | `src/shared/Pacing.luau` `Party`, `SafeZone` ([party](systems/party.md)) |
 | Objective rewards (every onboarding beat and lesson, by id) | `src/shared/Pacing.luau` `Quests` ([onboarding](systems/onboarding.md)) |
+| Titles: names, how-to-earn lines, rarities, what grants each | `src/shared/Titles.luau` ([titles](systems/titles.md)) |
 | Combat qi (technique mana): pool size per stage, regen, regen delay, default cost; per-technique cost | `src/shared/Pacing.luau` `CombatQi`; `qiCost` in `src/shared/Techniques.luau` ([combat](systems/combat.md#combat-qi-technique-mana)) |
 | Cultivation past the bar: overflow cap and how much carries over a breakthrough | `src/shared/Pacing.luau` `Breakthrough.OVERFLOW_CAP`, `CARRY_SHARE` ([cultivation](systems/cultivation.md)) |
 | Qi surge: when it's ready, length, heal, raw-qi cost, once per fight | `src/shared/Pacing.luau` `Breakthrough.FORCE_*`, `Surge` ([cultivation](systems/cultivation.md#qi-surge)) |
@@ -142,6 +143,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Character creator (join screen: outfit, skin, hair, race and last name, first name) | [character-creator](systems/character-creator.md) | CharacterIdentity, TestbedDummy (testbed stand-in) | CharacterCreator/* | CharacterCreator/* |
 | Save slots (slot screen: Play, New, Edit look, Delete; one account of separate characters) | [save-slots](systems/save-slots.md) | Slots, PlayerData, CharacterIdentity, Receipts | Config.Slots | CharacterCreator/Controller, Modals |
 | Races, Beast Folk variants and traits (config-driven; availability in one file; admin trait tools) | [identity](systems/identity.md) | Traits, CharacterIdentity, Admin (trait*) | Identity/* (Races, Variants/, Traits/, Availability, Requirements, Registry) | CharacterCreator (race row, odds card), AdminPanel |
+| Titles (earned once, one worn; granted from the profile's record after each state push; the heart-demon trial picks a Dao heart) | [titles](systems/titles.md) | Titles (wired in Main: `Cultivation.onPush`, CultivationAction "title"), HeartDemon (path answer `title`) | Titles | none yet (the picker is ui-designer work; Nameplates shows the worn one) |
 | Nameplates (namecard and title over every other player's head; your own name isn't shown to you) | [nameplates](systems/nameplates.md) | - (reads player attributes) | CharacterCreator.Surnames | Nameplates (template `ReplicatedStorage.Nameplate`, `assets/Nameplate.rbxmx`) |
 
 ## Remotes, attributes and hooks

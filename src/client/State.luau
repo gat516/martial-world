@@ -41,11 +41,14 @@ export type Snapshot = {
 		name: string?,
 		atPeak: boolean,
 		snoozed: boolean,
-		trials: { [string]: { calm: boolean, denials: number, tempered: number, note: string, at: number } },
+		trials: { [string]: { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string? } }, -- title: the Dao heart it picked (Shared.Titles id)
 	}?,
 	-- the Herbarium's record (server Herbarium): per herb id n harvested, l largest
 	-- size, m mutations seen; tiers whose page is complete ("1".."5")
 	herbarium: { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }?,
+	-- titles (server Titles; defs, names and how-to lines in Shared.Titles): earned ids ->
+	-- os.time() earned, and the worn one ("" = none)
+	titles: { owned: { [string]: number }, equipped: string }?,
 }
 
 local State = {}

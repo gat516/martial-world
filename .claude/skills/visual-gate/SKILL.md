@@ -109,6 +109,8 @@ the critic's pairwise pick (step 3), record the three and the pick, and go on.
 ## 2. Lint to zero FAIL
 
 Run your discipline's checks before any capture. A FAIL is fixed, not explained.
+System Python has no Pillow: run the Python lints, sheets and pixel probes with
+`uv run --with pillow python3 ...`.
 
 | Discipline | Lint | Sheet (one or two images) |
 |---|---|---|

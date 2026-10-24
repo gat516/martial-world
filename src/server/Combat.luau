@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage.Shared.Config).Combat
 local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
@@ -18,9 +19,11 @@ local Cultivation = require(script.Parent.Cultivation)
 local CombatQi = require(script.Parent.CombatQi)
 local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
+local Foundation = require(script.Parent.Foundation)
 local Movement = require(script.Parent.Movement)
 local PlayerStun = require(script.Parent.PlayerStun)
 local Guard = require(script.Parent.Guard)
+local Shelter = require(script.Parent.Shelter)
 local Weapons = require(script.Parent.Weapons)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
@@ -145,7 +148,8 @@ local function livingRoot(player: Player): (BasePart?, Humanoid?)
 	return nil, nil
 end
 
--- Damage an enemy on a player's behalf. Every player-caused hit goes through here.
+-- Damage an enemy on a player's behalf. Every player-caused hit goes through here,
+-- so realm suppression (Realms.suppression, through the party shelter) is applied here.
 -- EnemyService owns enemy health and applies it (Combat.onEnemyDamaged); `push`,
 -- if any, knocks it back.
 function Combat.damageEnemy(player: Player, model: Model, amount: number, push: Vector3?)
@@ -158,7 +162,14 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number, push: 
 		amount = math.max(amount * (1 - (model:GetAttribute("GuardReduction") or 0.8)), 1)
 		push = nil
 	end
-	amount = math.floor(amount + 0.5)
+	-- realm suppression: a lower major realm barely scratches a higher one, unless a
+	-- stronger party member nearby shelters the player (Shelter.hit)
+	local data = PlayerData.get(player)
+	local beast = Realms.byName(model:GetAttribute("Realm"))
+	if data and beast then
+		amount *= Shelter.hit(player, data, beast)
+	end
+	amount = math.max(math.floor(amount + 0.5), if amount > 0 then 1 else 0)
 	model:SetAttribute("LastHitBy", player.UserId)
 	state(player).lastDealt = os.clock()
 	markCombat(player)
@@ -171,7 +182,9 @@ end
 
 function Combat.power(player: Player): number
 	local data = PlayerData.get(player)
-	return if data then Cultivation.stage(data).power else 1
+	-- the realm's power (the next stage's during a qi surge), then the graded
+	-- foundations' bonus as its own multiplier (Foundation)
+	return if data then Cultivation.fightStage(player, data).power * Foundation.multiplier(data) else 1
 end
 
 -- The player's spirit root perk of `kind` (Roots.perk) plus their race, variant

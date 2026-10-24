@@ -21,10 +21,10 @@
 -- }
 -- Task = {
 --   id = string,
---   kind = "daily" | "weekly" | "chapter" | "torn",
+--   kind = "daily" | "weekly" | "chapter" | "torn" | "promotion" | "pavilion" | "bonus" (the last three: the daily seal with 升 / 阁 / 赏),
 --   title = string,            -- not shown on a torn notice
 --   body = string,             -- one or two short lines (about 60 characters)
---   glyph = string?,           -- "fight" | "harvest" | "plant" | "give" | "quest" | "chest"
+--   glyph = string?,           -- "fight" | "harvest" | "plant" | "give" | "quest" | "chest" | "qi" | "bow"
 --   reward = number?,          -- contribution
 --   progress = number?, goal = number?,
 --   state = "offered" | "taken" | "done" | "claimed",
@@ -57,7 +57,7 @@ export type Board = {
 	onSelect: ((task: Task) -> ())?,
 }
 
-local KIND_CHAR = { daily = "日", weekly = "周" } -- day, week: live text in the seal's empty face
+local KIND_CHAR = { daily = "日", weekly = "周", promotion = "升", pavilion = "阁", bonus = "赏" } -- day, week, rise, pavilion, bounty: live text in the seal's empty face
 local DIMMED = Color3.fromRGB(205, 198, 184) -- a claimed notice's paper
 local INK_CREAM = Color3.fromRGB(250, 236, 195)
 

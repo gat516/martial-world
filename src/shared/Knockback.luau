@@ -5,16 +5,17 @@
 --   distance = base * (playerPower / beastPower) ^ REALM_EXPONENT / weight
 -- where power is each realm's Realms.luau `power`, capped at MAX_DISTANCE.
 -- Anything under MIN_DISTANCE doesn't move the beast at all, so a Qi Condensation fist can't shift the
--- Elder Wolf King, Foundation Establishment nudges it, and higher realms throw
--- it further. A hit that moves a beast also staggers it (stops chasing, a
+-- Elder Wolf King and a Qi Refining one throws it. A hit that moves a beast also staggers it (stops chasing, a
 -- flinch pose) unless it was staggered moments ago; a beast winding up or
 -- dashing only flinches from a hit of at least ARMOR_BREAK studs, which also
 -- cancels that attack.
 --
+-- Power grows about 1.1x a minor stage and 2.25x at a major (Pacing.Curve), so a
+-- major realm up throws anything and a major down moves nothing.
 -- Worked examples (fist finisher, base 8):
 --   QC1 player vs Spirit Wolf (QC2, weight 1):     ~6 studs
 --   QC9 player vs Elder Wolf King (QC9, weight 7): 1.1 -> none
---   FE1 player vs Elder Wolf King:                  ~3.2 studs
+--   QR1 player vs Elder Wolf King:                  8 studs (the cap)
 
 local Realms = require(script.Parent.Realms)
 

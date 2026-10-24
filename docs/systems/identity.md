@@ -21,7 +21,8 @@ screen it extends ([character creator](character-creator.md)).
   variants the same way.
 - **Variants carry traits, looks are free** (user, 2026-10-23). A variant with
   traits or stats (Beast Folk Wolf, Tiger...) is rolled with the race and
-  rerolled for Robux. A purely cosmetic choice inside a race (Spirit Fox's tail
+  rerolled for Robux (gated off by `Config.PAID_REROLLS` for now, user
+  2026-10-24: paid random rolls that carry stats; bloodlines will replace them). A purely cosmetic choice inside a race (Spirit Fox's tail
   and ears, Stone Spirit's style) is a `Looks` slot on the race: the player picks it with arrows on the
   creator's Fate step, free, and can change it whenever they edit the look.
 - **Availability is one file.** Release, hide or switch off any race, variant
@@ -163,7 +164,9 @@ Every action toasts the server's message and reloads the target (`traitInfo`),
 which also reloads when the target's Race/Traits attributes change.
 
 ## Character screen
-The creator's Fate step shows the race row as "Beast Folk (Wolf)" in the
+The first-character page shows the drawn race and clan with each rarity beside
+its value ("Spirit Fox Rare"); the looks wait for Edit look. The creator's Fate
+step (Edit look) shows the race row as "Beast Folk (Wolf)" in the
 variant's rarity, then an arrow picker per `Looks` slot of the race ("Tail:
 Plume 1 / 3"; none when it has no looks), then the clan; so do the nameplate under the preview and the slot cards
 (`Registry.label`). The odds card lists the rollable races

@@ -6,7 +6,8 @@
 --   - The hotbar (Hotbar.luau) is nine free-form slots of techniques and items;
 --     a newly gained item goes into the first empty slot.
 --   - Items come from beasts (EnemyService drops), heavenly treasures
---     (Treasures.luau) and the garden.
+--     (Treasures.luau) and the garden. Bosses and treasures that give no root
+--     pill give root pill fragments (Inventory.pity; 10 fuse into the pill).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,16 +16,29 @@ local ServerStorage = game:GetService("ServerStorage")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Realms = require(ReplicatedStorage.Shared.Realms)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
+local Haul = require(script.Parent.Haul)
+local HeartDemon = require(script.Parent.HeartDemon)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Roots = require(script.Parent.Roots)
+local Weapons = require(script.Parent.Weapons)
+local Analytics = require(script.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
 
 local Inventory = {}
+
+-- Set by Seclusion (which requires this module): why a tempering item can't be
+-- absorbed now (nil: it can), and absorbing one (Pacing.Tempering).
+Inventory.cantAbsorb = nil :: ((Player, PlayerData.Data, string) -> string?)?
+Inventory.absorb = nil :: ((Player, PlayerData.Data, string) -> ())?
 
 local tools: { [Player]: { [string]: Tool } } = {}
 local nextUse: { [Player]: number } = {}
@@ -135,9 +149,45 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	local use = item.use
 	local stage = Cultivation.stage(data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	local qi = (use.qi or 0) + stage.dantian * (use.qiShare or 0)
+	local qi = use.qi or 0
+	if Herbs.Defs[item.id] then
+		-- herbs: the tier's share, or only the floor once the eater is past its band (Herbs.eatQi)
+		local share, floor = Herbs.eatQi(item.id, stage)
+		if share > 0 or floor > 0 then
+			qi += math.max(stage.dantian * share, floor)
+		end
+	elseif use.qiShare then
+		qi += math.max(stage.dantian * use.qiShare, use.qiFloor or 0)
+	end
+	if use.qiKills then
+		qi += use.qiKills * Realms.enemyQi(Pacing.Income.CORE_KILL_QIDROP, stage)
+	end
+	-- tempering (Pacing.Tempering): the pill only in seclusion; a tempering herb eaten in
+	-- seclusion tempers too (refused when it can't, so it isn't wasted), elsewhere it's a herb
+	local tempers = false
+	if Pacing.Tempering.POINTS[item.id] then
+		local secluded = Cultivation.secluded and Cultivation.secluded(player)
+		if use.temper or secluded then
+			local why = if Inventory.cantAbsorb then Inventory.cantAbsorb(player, data, item.id) else "Absorb it in seclusion."
+			if why then
+				return false, why
+			end
+			tempers = true
+		end
+	elseif use.temper then
+		return false, "It can't temper anything."
+	end
+	if use.heartClear then
+		if not (Cultivation.meditation and Cultivation.meditation(player)) then
+			return false, "Sit and meditate to absorb it."
+		end
+		local why = HeartDemon.cantClear(data)
+		if why then
+			return false, why
+		end
+	end
 	local onlyQi = qi > 0
-		and not (use.buffs or use.cultivationShare or use.insight or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
+		and not (tempers or use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
 	if onlyQi and data.rawQi >= stage.dantian then
 		return false, "Your dantian is already full."
 	end
@@ -153,7 +203,9 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	nextUse[player] = now + (if item.category == "Herb" then Items.HERB_EAT_SECONDS else Items.USE_COOLDOWN)
 	take(data, item.id)
 
+	local before = data.rawQi
 	data.rawQi = math.min(stage.dantian, data.rawQi + qi)
+	Analytics.qi(player, "source", data.rawQi - before, data.rawQi, "Gameplay", item.category == "Herb" and "HerbEaten" or "ItemUsed")
 	if use.cultivationShare then
 		Cultivation.add(data, stage.bar * use.cultivationShare)
 	end
@@ -163,18 +215,27 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	for _, b in use.buffs or {} do
 		Cultivation.addBuff(data, item.id, b.kind, b.amount, b.seconds)
 	end
-	if use.insight then
-		Progression.grantInsight(player, use.insight, item.name)
+	if use.daoXp then
+		Weapons.addXp(player, Weapons.class(player), use.daoXp)
 	end
 	if use.rootGrade then
-		Roots.raiseGrade(player)
+		Roots.wash(player) -- several pills per grade (Pacing.Roots.WASH)
 	end
 	if use.rootReroll then
 		Roots.reroll(player)
 	end
+	if tempers and Inventory.absorb then
+		Inventory.absorb(player, data, item.id)
+	end
+	if use.heartClear then
+		HeartDemon.clear(player, data)
+	end
 	Cultivation.markActive(player)
 	Cultivation.applyStats(player, data)
 	Cultivation.pushState(player)
+	if item.category == "Herb" then
+		data.lessons.HerbEaten = true -- the Herbs lesson (Quests)
+	end
 	if item.category == "Herb" and player.Character then
 		effectRemote:FireAllClients("herbEat", player.Character, item.id, workspace:GetServerTimeNow())
 	end
@@ -182,12 +243,66 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	return true, `{item.name}: {item.blurb}`
 end
 
--- EnemyService.onKill: roll the beast's drops for this player.
+--[[ Root pill fragments ]]
+
+local ROOT_PILLS = Pacing.Roots.FRAGMENTS.PILLS
+
+-- Add `count` pity fragments toward root pill `pill` (Pacing.Roots.FRAGMENTS).
+-- Every PER_PILL of them combine into the pill on their own (granted like a drop).
+function Inventory.fragment(player: Player, pill: string, count: number, from: Vector3?)
+	local data = PlayerData.get(player)
+	local name = RootDefs.FragmentNames[pill]
+	if not (data and name and Items.Defs[pill]) or count <= 0 then
+		return
+	end
+	local fragments = data.root.fragments or {}
+	data.root.fragments = fragments
+	local have = (fragments[pill] or 0) + count
+	local per = Pacing.Roots.FRAGMENTS.PER_PILL
+	local made = have // per
+	fragments[pill] = have - made * per
+	if made > 0 then
+		Inventory.grant(player, pill, made, from)
+		Cultivation.notify(player, `{per} {name}s fuse into a {Items.Defs[pill].name}!`)
+	else
+		Cultivation.notify(player, `+{count} {name} ({fragments[pill]}/{per}). {per} make a {Items.Defs[pill].name}.`)
+		Cultivation.pushState(player)
+	end
+end
+
+-- The pity road (Pacing.Roots.FRAGMENTS): a boss kill or a heavenly treasure that
+-- gave no root pill gives a Marrow Washing fragment, and sometimes a Rebirth one.
+function Inventory.pity(player: Player, gotPill: boolean, from: Vector3?)
+	if gotPill then
+		return
+	end
+	Inventory.fragment(player, "MarrowWashingPill", 1, from)
+	if math.random() < Pacing.Roots.FRAGMENTS.REBIRTH_CHANCE then
+		Inventory.fragment(player, "RootRebirthPill", 1, from)
+	end
+end
+
+-- EnemyService.onKill: roll the beast's drops for this player; a boss that drops
+-- no root pill gives pity fragments instead.
 function Inventory.onKill(player: Player, def: Enemies.Def, model: Model)
 	local at = model:GetPivot().Position
+	local gotPill = false
 	for _, drop in def.drops or {} do
 		if math.random() < drop.chance then
 			Inventory.grant(player, drop.item, 1, at)
+			if table.find(ROOT_PILLS, drop.item) then
+				gotPill = true
+			end
+		end
+	end
+	if def.boss then
+		Inventory.pity(player, gotPill, at)
+		-- the realm-neutral pills every boss may give (docs/systems/progression-rules.md)
+		if math.random() < Pacing.Tempering.BOSS_CHANCE then
+			Inventory.grant(player, "TemperingPill", 1, at)
+		end
+		if math.random() < Pacing.HeartDemon.CLEAR_BOSS_CHANCE then
+			Inventory.grant(player, "ClearHeartPill", 1, at)
 		end
 	end
 end
@@ -200,7 +315,7 @@ local VIEW_SORTS = { New = true, Grade = true, Alphabetical = true }
 
 -- Whether the player has any of this item, art or weapon right now.
 local function holds(data: PlayerData.Data, id: string): boolean
-	if data.techniques.owned[id] then
+	if data.techniques.owned[id] or data.techniques.manuals[id] then
 		return true
 	elseif Items.Defs[id] then
 		return Items.count(data, id) > 0
@@ -252,6 +367,8 @@ end
 --   ("comprehend", techniqueId) break its bottleneck (Progression.comprehend)
 --   ("seen", { id })          the Inventory showed these: they stop being NEW
 --   ("view", tab, sort, filter) remember the Inventory's sort and filter for a tab
+--   ("ring", itemId, inRing)  put a whole stack in the spirit ring (true) or take it out (false)
+--   ("storeAll")              bank the whole haul at a bank point (Haul.storeAll)
 function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -262,6 +379,13 @@ function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): 
 		return Inventory.use(player, a)
 	elseif action == "comprehend" then
 		return Progression.comprehend(player, a)
+	elseif action == "storeAll" then
+		return Haul.storeAll(player)
+	elseif action == "ring" then
+		ok, message = Haul.setRing(player, a, b)
+		if not ok then
+			return ok, message
+		end
 	elseif action == "slot" then
 		if type(a) ~= "string" or not owns(data, a) or (b ~= nil and not validSlot(b)) then
 			return false, "You can't place that"

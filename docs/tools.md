@@ -6,11 +6,13 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - Serving a worktree (`serve.sh`): no args starts the shared servers (8767 `art/enemies/`, 8768 repo root, whichever session owns them). `tools/serve.sh <port> [dir]` serves `dir` (default: the repo root of the checkout the script lives in, so your worktree) on that loopback port, refuses a busy port and names the pid holding it, prints the base URL and logs to `tools/frag/serve-<port>.log`. In Studio set `_G.SERVE_BASE = "http://127.0.0.1:<port>/"` once: `push_src`, `anim_filmstrip`, `review_stage`, `motion_audit` and the `art/enemies` build / rig / preview / QA scripts read from it (repo-root relative; the `art/enemies` scripts add `art/enemies/` themselves) and fall back to the old ports when it is unset. The `8766` receiver (`ui_lint`, `export_check`, VFX exports) is a separate server, not affected.
 - `sandbox.sh` (disposable agent Studio built from `test.project.json`: `open`/`close <name>`, `list` with ages, `prune <hours>` for leftovers, `tile`). Windows are laid out by `sandbox_windows.ps1`: a grid on the second monitor, a new one opens minimised if the rest are, and a background watcher minimises and restores them together; the user's own Studios are never touched
 - `check_testbed.py` (test.project.json maps what default.project.json does)
+- `build_self_card.luau` (`_G.buildSelfCard{ style }`: rebuilds `Hud.SelfCard` in a sandbox with sample text; "open" is shipped, "wells" and "hero" were the other directions; delete the `__PRow*` sample rows before exporting)
 - rbxmx export/receive (`export_rbxmx.luau` writes attributes too; `export_check.luau` + `export_check.py`: the round-trip check after every export, docs/ui/slicing.md)
 - motion audit summary (`art/enemies/motion_audit.luau`, `_G.AUDIT.summary = true`): returns one table row per move (chain body / tail, stops, worst step, antic, land dip, lowest) instead of the full probe text, so a before/after is one call; docs/enemies/animating.md
 - UI lint (`ui_lint.luau` dumps every GUI at four sizes, `ui_lint.py` checks clip, edge margin, slices, oversize, text, text under caps: the gate for UI work, docs/ui/slicing.md)
 - UI edge-margin fixer (`ui_margin.py` + `ui_margin.luau`: margined display-sized copies and element compensation from the lint's findings)
 - UI cutter (`ui_assemble.py`: Codex sheets to cuts; `--sized` display-sized copies with clear margins from `art/ui/sized/sized.json`)
+- UI glyph from a cut (`ui_glyph_silhouette.py`: a kit ornament's own alpha filled white, to tint in game; e.g. the shelter shield)
 - rbxm export (keeps attributes, for VFX)
 - VFX library search + index (`vfx_library.luau`, `vfx_library.json`)
 - animation marker reader (`anim_markers.luau`)
@@ -39,3 +41,4 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - duplicate finder
 - POI tour and labels (`poi_tour.luau`, Studio copy `ServerStorage._EditorTools.PoiTour`)
 - modeling checks ([modeling-checks](enemies/modeling-checks.md)): `model_shot.luau` (standard grey-box shots and capture presets, the 40-stud view, a four-view sheet), `fidelity_check.py` (silhouette IoU against a reference image, with a composite for a critic), `parts_audit.luau` (loose, kissing, hidden and z-fighting parts, part budget); Blender side `art/rig/silhouette_render.py`
+- Pixal3D image-to-3D generator (`pixal3d.sh`, sources and install notes in `pixal3d/`: image to textured GLB on the Windows GPU at `D:\pixal3d`, with a RAM/VRAM preflight that refuses to run unless `--force`)

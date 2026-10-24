@@ -21,10 +21,15 @@
 --
 -- Input: a click or tap on the panel, Space, Enter, E or gamepad A finishes the
 -- typing, then moves to the next line. Once the responses show: click or tap one;
--- or move the focus (lit art) with Up/Down, W/S, the d-pad or left stick and pick
--- with Enter, Space, E or A; or press 1-4 (shown on keyboards only). The dialogue
--- is a menu (Menus): opening it closes any other window and hides the HUD and the
--- world prompts, and it holds the keys it uses while open (so Space doesn't jump).
+-- or move the focus (lit art) with Up/Down or the d-pad and pick with Enter, Space,
+-- E or A; or press 1-4 (shown on keyboards only). The dialogue is a menu (Menus):
+-- opening it closes any other window and hides the HUD and the world prompts, and
+-- it holds the keys it uses while open (so Space doesn't jump). WASD and the left
+-- stick stay free: with `near`, walking more than `range` studs from it ends the
+-- conversation (open() returns nil). On a touch phone (the phone layout on a touch
+-- screen) Roblox's touch controls are hidden while it's open, so the bar and
+-- responses get the bottom-left; the player leaves by a response (or a tap when
+-- there are none, or when every response is disabled).
 --
 -- Layouts: a bar centred along the bottom of the screen (Menus hides the HUD while
 -- it's open), the responses in a column to its right with the bar's top and bottom.
@@ -35,6 +40,7 @@
 -- is split into pages at word breaks (each a click or tap).
 
 local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -62,6 +68,8 @@ export type Options = {
 	lines: { string },
 	responses: { Response }?,
 	speed: number?, -- characters per second (default CHARS_PER_SECOND)
+	near: (PVInstance | Attachment)?, -- who's speaking: walking away from it closes the dialogue
+	range: number?, -- studs from `near` (default WALK_AWAY_RANGE)
 }
 
 -- Gray silhouettes (art/ui/codex/cut/portrait_*.png; never painted busts).
@@ -76,7 +84,7 @@ local PORTRAITS: { [string]: string } = {
 local CHARS_PER_SECOND = 48
 local MAX_RESPONSES = 4
 local REVEAL_STAGGER = 0.04 -- seconds between response buttons fading in
-local STICK_DEADZONE = 0.6
+local WALK_AWAY_RANGE = 14
 local ACTION = "DialogueInput"
 local CREAM = Color3.fromRGB(245, 236, 214)
 local DIM = Color3.fromRGB(150, 146, 136)
@@ -88,8 +96,8 @@ local CONFIRM_KEYS = {
 	[Enum.KeyCode.E] = true,
 	[Enum.KeyCode.ButtonA] = true,
 }
-local UP_KEYS = { [Enum.KeyCode.Up] = true, [Enum.KeyCode.W] = true, [Enum.KeyCode.DPadUp] = true }
-local DOWN_KEYS = { [Enum.KeyCode.Down] = true, [Enum.KeyCode.S] = true, [Enum.KeyCode.DPadDown] = true }
+local UP_KEYS = { [Enum.KeyCode.Up] = true, [Enum.KeyCode.DPadUp] = true }
+local DOWN_KEYS = { [Enum.KeyCode.Down] = true, [Enum.KeyCode.DPadDown] = true }
 local NUMBER_KEYS = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four }
 
 type Choice = {
@@ -111,6 +119,7 @@ type Session = {
 	waiter: thread?,
 	speed: number,
 	typeConn: RBXScriptConnection?,
+	rangeConn: RBXScriptConnection?,
 }
 
 local Dialogue = {}
@@ -132,7 +141,22 @@ local choiceShift = 0 -- ChoiceShift: home's offset from the centred bar (phone:
 local SLIDE = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local session: Session? = nil
-local stickHeld = false
+local hideStick = false -- a touch phone: Roblox's touch controls go while it's open
+local stickHidden = false -- we turned TouchControlsEnabled off and owe it back
+
+-- Hide Roblox's touch controls (thumbstick and jump) while a conversation is up on
+-- a touch phone, and give them back on every way it ends (finish runs for all).
+local function setStick(hidden: boolean)
+	if hidden then
+		if hideStick and not stickHidden and GuiService.TouchControlsEnabled then
+			stickHidden = true
+			GuiService.TouchControlsEnabled = false
+		end
+	elseif stickHidden then
+		stickHidden = false
+		GuiService.TouchControlsEnabled = true
+	end
+end
 
 local function toChoice(r: Response): Choice
 	if type(r) == "string" then
@@ -190,8 +214,11 @@ local function finish(s: Session, result: number?)
 	if s.typeConn then
 		s.typeConn:Disconnect()
 	end
+	if s.rangeConn then
+		s.rangeConn:Disconnect()
+	end
 	ContextActionService:UnbindAction(ACTION)
-	ContextActionService:UnbindAction(ACTION .. "Stick")
+	setStick(false)
 	-- the buttons go once the window has shrunk away
 	local buttons = {}
 	for _, c in s.choices do
@@ -223,12 +250,18 @@ local function pick(s: Session, index: number)
 	finish(s, index)
 end
 
--- Keep a response's text on its plate: room for the number key when it shows,
--- then the authored size, shrunk to the label's MinTextSize attribute if the text
--- is too wide, then truncated (TextTruncate) past that.
-local function fitLabel(button: ImageButton, label: TextLabel, keyRoom: number)
+-- Keep a response's text on its plate: the authored label stops where the right
+-- cap starts (clear of its lit chevron and clouds); when the number key shows, it
+-- stops 4 px short of the key. Then the authored size, shrunk to the label's
+-- MinTextSize attribute if the text is too wide, then truncated (TextTruncate).
+local function fitLabel(button: ImageButton, label: TextLabel, key: TextLabel?)
 	local size = label.Size
-	label.Size = UDim2.new(size.X.Scale, size.X.Offset - keyRoom, size.Y.Scale, size.Y.Offset)
+	if key then
+		-- both hang off the right edge (X scale 1): compare their offsets
+		local keyLeft = key.Position.X.Offset - key.AnchorPoint.X * key.Size.X.Offset
+		local limit = keyLeft - 4 - label.Position.X.Offset
+		label.Size = UDim2.new(size.X.Scale, math.min(size.X.Offset, limit), size.Y.Scale, size.Y.Offset)
+	end
 	local max = label.TextSize
 	local min = label:GetAttribute("MinTextSize") :: number? or max
 	local width = button.Size.X.Offset
@@ -271,8 +304,6 @@ local function showResponses(s: Session)
 		local key = b:FindFirstChild("Key") :: TextLabel
 		key.Text = tostring(i)
 		key.Visible = keys and not c.disabled
-		-- measuring yields, and this can run inside an input callback
-		task.spawn(fitLabel, b, label, if key.Visible then key.Size.X.Offset + 4 else 0)
 		if c.disabled then
 			label.TextColor3 = DIM
 			icon.ImageColor3 = DIM
@@ -293,6 +324,9 @@ local function showResponses(s: Session)
 		end)
 		b.Visible = true
 		b.Parent = list
+		-- after parenting (a row takes the list's width); measuring yields, and this
+		-- can run inside an input callback
+		task.spawn(fitLabel, b, label, if key.Visible then key else nil)
 		c.button = b
 		task.delay((i - 1) * REVEAL_STAGGER, function()
 			if b.Parent then
@@ -366,6 +400,14 @@ end
 -- Skip the typing, or go on to the next line, or end a dialogue without responses.
 local function advance(s: Session)
 	if s.choosing then
+		-- every response disabled: a tap ends it (with the stick hidden there's no
+		-- walking away)
+		for _, c in s.choices do
+			if not c.disabled then
+				return
+			end
+		end
+		finish(s, nil)
 		return
 	end
 	if s.typing then
@@ -420,21 +462,6 @@ local function onInput(_: string, state: Enum.UserInputState, input: InputObject
 		end
 	elseif CONFIRM_KEYS[code] then
 		advance(s)
-	end
-	return Enum.ContextActionResult.Sink
-end
-
-local function onStick(_: string, _state: Enum.UserInputState, input: InputObject): Enum.ContextActionResult
-	local s = session
-	if not s or not s.choosing then
-		return Enum.ContextActionResult.Pass
-	end
-	local y = input.Position.Y
-	if math.abs(y) < STICK_DEADZONE then
-		stickHeld = false
-	elseif not stickHeld then
-		stickHeld = true
-		moveFocus(s, if y > 0 then -1 else 1)
 	end
 	return Enum.ContextActionResult.Sink
 end
@@ -507,6 +534,7 @@ function Dialogue.open(options: Options): number?
 		waiter = nil,
 		speed = options.speed or CHARS_PER_SECOND,
 		typeConn = nil,
+		rangeConn = nil,
 	}
 	session = s
 
@@ -523,7 +551,6 @@ function Dialogue.open(options: Options): number?
 
 	list.Visible = false
 	layout.Position = home - UDim2.fromOffset(choiceShift, 0)
-	stickHeld = false
 	ContextActionService:BindActionAtPriority(
 		ACTION,
 		onInput,
@@ -535,8 +562,6 @@ function Dialogue.open(options: Options): number?
 		Enum.KeyCode.E,
 		Enum.KeyCode.Up,
 		Enum.KeyCode.Down,
-		Enum.KeyCode.W,
-		Enum.KeyCode.S,
 		Enum.KeyCode.One,
 		Enum.KeyCode.Two,
 		Enum.KeyCode.Three,
@@ -546,8 +571,24 @@ function Dialogue.open(options: Options): number?
 		Enum.KeyCode.DPadUp,
 		Enum.KeyCode.DPadDown
 	)
-	ContextActionService:BindActionAtPriority(ACTION .. "Stick", onStick, false, Enum.ContextActionPriority.High.Value + 10, Enum.KeyCode.Thumbstick1)
+	local near = options.near
+	if near then
+		local range = options.range or WALK_AWAY_RANGE
+		s.rangeConn = RunService.Heartbeat:Connect(function()
+			local character = Players.LocalPlayer.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if not near.Parent then
+				finish(s, nil)
+			elseif root then
+				local at = if near:IsA("Attachment") then near.WorldPosition else near:GetPivot().Position
+				if (root.Position - at).Magnitude > range then
+					finish(s, nil)
+				end
+			end
+		end)
+	end
 	Menus.open(layout)
+	setStick(true)
 	showLine(s)
 
 	s.waiter = coroutine.running()
@@ -593,9 +634,29 @@ end
 function Dialogue.init()
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 	local gui = playerGui:WaitForChild("Dialogue") :: ScreenGui
+	if not gui.Enabled then
+		-- a disabled copy in the place (a review leftover) would open unseen while
+		-- Menus hid the HUD: everything gone and no dialogue
+		warn(`Dialogue: {gui:GetFullName()} was disabled; enabling it (check StarterGui for a stale copy)`)
+		gui.Enabled = true
+	end
+	local copies = 0
+	for _, child in playerGui:GetChildren() do
+		if child.Name == "Dialogue" then
+			copies += 1
+		end
+	end
+	if copies > 1 then
+		warn(`Dialogue: {copies} Dialogue ScreenGuis in PlayerGui; StarterGui has a stale copy beside Rojo's`)
+	end
 	local canvas = gui:WaitForChild("Canvas") :: Frame
-	UiScale.fit(canvas)
 	local phone = UiScale.isPhone()
+	-- the phone layout on a touch screen (a tablet gets the desktop layout, which
+	-- clears the stick, and keeps walking away)
+	hideStick = phone and Platform.isTouch()
+	-- fitted at the layout's own baseline; the phone layout never grows past 1x (a
+	-- short PC window, under 600 px, gets it and blew it up to about 1.3x)
+	UiScale.fit(canvas, if phone then { base = UiScale.PHONE, max = 1 } else { base = UiScale.DESKTOP })
 	local desktopLayout = canvas:WaitForChild("Desktop") :: Frame
 	local phoneLayout = canvas:WaitForChild("Phone") :: Frame
 	layout = if phone then phoneLayout else desktopLayout
@@ -628,6 +689,18 @@ function Dialogue.init()
 			advance(s)
 		end
 	end)
+	-- dying or respawning ends the conversation (and gives the stick back)
+	Players.LocalPlayer.CharacterRemoving:Connect(Dialogue.close)
+	local function watch(character: Model)
+		local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
+		if humanoid then
+			humanoid.Died:Connect(Dialogue.close)
+		end
+	end
+	if Players.LocalPlayer.Character then
+		task.spawn(watch, Players.LocalPlayer.Character)
+	end
+	Players.LocalPlayer.CharacterAdded:Connect(watch)
 	Menus.register(layout, { close = function()
 		Motion.close(layout)
 		local s = session

@@ -24,13 +24,18 @@ local Travel = require(script.Parent.Travel)
 local QiNodes = require(script.Parent.QiNodes)
 local EnemyService = require(script.Parent.EnemyService)
 local Spawner = require(script.Parent.Spawner)
+local Shelter = require(script.Parent.Shelter)
 local Progression = require(script.Parent.Progression)
 local Tribulation = require(script.Parent.Tribulation)
+local QiSurge = require(script.Parent.QiSurge)
 local Quests = require(script.Parent.Quests)
+local Sect = require(script.Parent.Sect)
 local Analytics = require(script.Parent.Analytics)
 local WeatherService = require(script.Parent.WeatherService)
 local Meditation = require(script.Parent.Meditation)
+local Seclusion = require(script.Parent.Seclusion)
 local Inventory = require(script.Parent.Inventory)
+local Haul = require(script.Parent.Haul)
 local Admin = require(script.Parent.Admin)
 local WorldEvents = require(script.Parent.WorldEvents)
 local Treasures = require(script.Parent.Treasures)
@@ -43,9 +48,13 @@ local CharacterIdentity = require(script.Parent.CharacterIdentity)
 local Slots = require(script.Parent.Slots)
 local TestbedDummy = require(script.Parent.TestbedDummy)
 local Traits = require(script.Parent.Traits)
+local Party = require(script.Parent.Party)
+local SafeZone = require(script.Parent.SafeZone)
+local Titles = require(script.Parent.Titles)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
+local joinedUnix: { [Player]: number } = {} -- os.time() at PlayerAdded (a fresh slot's firstJoinUnix)
 local lastBreakthroughAt: { [Player]: number } = {}
 
 local remotes = ReplicatedStorage.Remotes
@@ -74,10 +83,15 @@ end
 
 -- Studio playtests and the testbed: top every herb, seed, item and Spirit Stones up to the test-kit
 -- amount, and fill the dantian (never above that, so repeated sessions don't inflate a saved
--- profile). The testbed also skips onboarding and owns every technique and weapon.
+-- profile). The testbed's ready "Tester" (Slots.seedTestbed) also skips onboarding and owns
+-- every technique and weapon; a character made in the creator there gets no kit at all, so
+-- the first session plays as a new player's would (docs/systems/onboarding.md).
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
 	if not (kit.ENABLED and (RunService:IsStudio() or Config.TESTBED)) then
+		return
+	end
+	if Config.TESTBED and not data.lessons.Tester then
 		return
 	end
 	if Config.TESTBED then
@@ -129,7 +143,12 @@ local function onPlayerAdded(player: Player)
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		humanoid.Died:Connect(function()
 			player:SetAttribute("Died", true)
+			local profile = PlayerData.get(player)
+			if profile then
+				profile.stats.deaths += 1 -- the heart-demon trial asks about fear
+			end
 			Analytics.event(player, "Death", 1, Combat.lastHurtBy(player))
+			task.spawn(Haul.died, player, character) -- spill half the unbanked haul where they fell (an error can't stop the death screen)
 			Combat.died(player, character, Players.RespawnTime, Config.Spawn.RESPAWN_AT_HUB and not Config.TESTBED)
 		end)
 	end)
@@ -139,6 +158,19 @@ local function onPlayerAdded(player: Player)
 	Cultivation.watch(player)
 
 	PlayerData.load(player)
+	joinedUnix[player] = os.time()
+	-- a new player (no slot with any progress) walks the front-door funnel steps
+	local account = PlayerData.account(player)
+	local fresh = account ~= nil
+	for _, slot in (if account then account.slots else {}) :: { [string]: PlayerData.Data } do
+		if next(slot.beats) ~= nil or slot.stats.circulationRuns > 0 then
+			fresh = false
+		end
+	end
+	if fresh then
+		Analytics.markNew(player)
+		Analytics.front(player, "Joined")
+	end
 	-- the slot screen: the join waits until a slot is played (slots off: slot 1 at once)
 	local data = Slots.awaitPlay(player)
 	if not data or player.Parent == nil then
@@ -148,10 +180,13 @@ local function onPlayerAdded(player: Player)
 	end
 	applyTestKit(data)
 	local offline = Cultivation.claimLogin(player, data)
+	Seclusion.resume(player, data) -- a seclusion left running at logout settles and ends (its card)
 	joinedAt[player] = os.clock()
 	lastBreakthroughAt[player] = os.clock()
 	if next(data.beats) == nil and data.stats.circulationRuns == 0 then
-		Analytics.funnel(player, 1)
+		if data.firstJoinUnix == 0 then
+			data.firstJoinUnix = joinedUnix[player] or os.time()
+		end
 		Analytics.progression(player, "start", 1, Realms.Stages[1].name)
 	end
 	if offline > 0 then
@@ -181,6 +216,7 @@ local function onPlayerAdded(player: Player)
 		-- the played slot's identity and look; spawns the character (test place)
 		CharacterIdentity.enter(player, PlayerData.active(player) :: string, data)
 	end
+	task.spawn(Party.entered, player) -- "<friend> is on this mountain" nudges (IsFriendsWith yields)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -193,18 +229,24 @@ Players.PlayerRemoving:Connect(function(player)
 		Analytics.event(player, "SessionLength", math.floor(os.clock() - joinedAt[player]))
 	end
 	joinedAt[player] = nil
+	joinedUnix[player] = nil
 	lastBreakthroughAt[player] = nil
+	Haul.leaving(player) -- combat-tagged: the haul's share is lost, before the save
 	PlayerData.release(player)
 	Peaks.release(player)
 	Build.forget(player)
 	Circulation.forget(player)
 	Combat.forget(player)
 	Travel.forget(player)
+	Party.forget(player)
 	QiNodes.forget(player)
 	EnemyService.forget(player)
 	Spawner.forget(player)
 	Tribulation.forget(player)
+	QiSurge.forget(player)
 	Quests.forget(player)
+	Sect.forget(player)
+	Titles.forget(player)
 	Meditation.forget(player)
 	Inventory.forget(player)
 	CharacterIdentity.forget(player)
@@ -224,7 +266,16 @@ local function guarded(fn: (Player, ...any) -> (boolean, any))
 end
 
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
-(remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(Circulation.handle);
+-- "sect" goes to the sect board, Pavilion and quest log (Sect.handle), "title" to the title
+-- picker (Titles.handle); the rest is cultivation
+(remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(function(player: Player, action: any, ...: any): (boolean, any)
+	if action == "sect" then
+		return Sect.handle(player, ...)
+	elseif action == "title" then
+		return Titles.handle(player, ...) -- "equip" id, "unequip" (docs/systems/titles.md)
+	end
+	return Circulation.handle(player, action, ...)
+end);
 (remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.action);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
@@ -232,12 +283,39 @@ HeadLookServer.start(); -- everyone sees where each player is looking (cosmetic)
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
 (remotes.WeaponAction :: RemoteFunction).OnServerInvoke = guarded(Weapons.handle);
+(remotes.PartyAction :: RemoteFunction).OnServerInvoke = guarded(Party.handle);
 
 QiNodes.start()
+-- titles: every state push checks the record for newly earned ones (docs/systems/titles.md)
+table.insert(Cultivation.onPush, Titles.check)
+Titles.onChanged = Cultivation.pushState
+SafeZone.start()
+Party.start()
+Shelter.start() -- the party shelter's ShelteredBy attribute (Shelter.luau)
+table.insert(Shelter.onCredit, Sect.onShelter) -- a patron's sect contribution per sheltered kill
+EnemyService.partyOf = Party.members -- nearby members share kills and the group bonus
 table.insert(EnemyService.onKill, Progression.onKill)
 table.insert(EnemyService.onKill, Inventory.onKill)
-table.insert(Quests.onBeat, function(player, index)
-	Analytics.funnel(player, index + 1)
+table.insert(EnemyService.onKill, Sect.onKill) -- hunt dailies and the chain's kill paths
+table.insert(Quests.onBeat, Analytics.beat)
+-- time-to-milestone events (seconds since the slot's first join)
+table.insert(EnemyService.onKill, function(player)
+	local data = PlayerData.get(player)
+	if data and data.stats.kills == 1 then
+		Analytics.timeTo(player, "TimeToFirstKill", data.firstJoinUnix)
+	end
+end)
+table.insert(Cultivation.onBreakthrough, function(player, stage)
+	local data = PlayerData.get(player)
+	if data and stage.major == "QiCondensation" and (stage.minor == 2 or stage.minor == 4) then
+		Analytics.timeTo(player, `TimeToQC{stage.minor}`, data.firstJoinUnix)
+	end
+end)
+-- Store all: what it banked (the haul's own economy is the sources it came from)
+table.insert(Haul.onBanked, function(player, amounts, how)
+	if how == "store" then
+		Analytics.event(player, "StoreAll", amounts.stones)
+	end
 end)
 table.insert(Quests.onClaimed, function(player, id)
 	Analytics.event(player, "QuestClaimed", 1, id)
@@ -272,9 +350,6 @@ table.insert(Cultivation.onBreakthrough, function(player, stage)
 	end
 	Analytics.progression(player, "start", index, stage.name)
 end)
-table.insert(Cultivation.onInsightBlocked, function(player, stage)
-	Analytics.event(player, "InsightBlocked", Realms.index(stage.major, stage.minor), stage.name)
-end)
 table.insert(Cultivation.onBreakthrough, function(player)
 	local data = PlayerData.get(player)
 	if data then
@@ -284,11 +359,13 @@ end)
 EnemyService.start()
 Spawner.start()
 Quests.start()
+Sect.start() -- the board's dailies, the chain, rank and the Pavilion (docs/systems/sect.md)
 Roots.start()
 table.insert(Roots.onTested, function(player, element)
 	Analytics.event(player, "RootTested", 1, element)
 end)
 Inventory.start()
+Haul.start()
 Treasures.start()
 WorldCaches.start()
 WeatherService.start()

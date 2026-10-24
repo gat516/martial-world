@@ -18,9 +18,11 @@ in AGENTS.md (Branches) and [orchestration](../agents/orchestration.md#test-buil
 - **Only what you trigger happens.** No timed world events, no rolled weather
   (forced weather clears back to Clear and stays there), no ambient encounters.
   Events tied to weather still fire when the admin dashboard forces that weather.
-- **Ready to test on join.** Onboarding is skipped (every beat marked done, so
-  the HUD is never dimmed or guided), and every player gets the Studio test kit
-  plus every technique and weapon, published or not. Joining lands on the slot
+- **Ready to test on join.** The ready "Tester" skips onboarding (every beat
+  marked done, so the HUD is never dimmed or guided) and gets the Studio test kit
+  plus every technique and weapon, published or not. A character made in the
+  creator (the empty slot) gets no kit and plays the real first session, which is
+  how onboarding is tested here ([onboarding](onboarding.md) "The first session"). Joining lands on the slot
   screen with a ready "Tester" (one tap to Play) and an empty slot to try the
   creator ([save slots](save-slots.md)); the Workspace attribute `QuickPlay`
   (off by default in `test.project.json`) skips straight into the world.
@@ -63,7 +65,9 @@ on the baseplate unchanged.
   test the second bestiary wave behind `NEW_SERPENT` / `NEW_TORTOISE` / `NEW_SHADOW_MANE`.
   The third wave has `CentipedeSolo` (180, 0), `RavenSolo` (-180, -160),
   and `BatSwarm` (4 bats, 180, -160), behind
-  `NEW_CENTIPEDE` / `NEW_RAVEN` / `NEW_BAT`.
+  `NEW_CENTIPEDE` / `NEW_RAVEN` / `NEW_BAT`. `WolfTiers` (4 Spirit Wolves at (-200, 648.6, 60),
+  realms QC1-QC8 rolled per wolf: young, adult, elite and apex mixed) tests realm variants
+  (`VARIANTS`); the admin panel's "Beast tier" chips set the tier every spawn chip uses.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,
   testbed-only defs included), and they land right in front of the player, just clear of their body.
@@ -71,7 +75,8 @@ on the baseplate unchanged.
   on the arena floor, centred on the spawn pad: an invisible `Plateau` at
   (0, 648.6, 40) (the build radius is measured from it), an empty `Placed` folder and
   `Owner` "". The first player to join gets it, so build mode and on-peak
-  meditation work there. No terrain, starter pieces, stele, array or spawn of its
+  meditation work there. It always gets its tier's build radius (`BuildRadius`;
+  the real map waits for a tier look with `Ground`). No terrain, starter pieces, stele, array or spawn of its
   own (everyone still spawns on the pad).
 - `Workspace.Arena.TribulationPlatform`: a 72-stud slab at (0, 649, 240); in the testbed `Config.Tribulation.CENTER` points at it, since the main peak's platform isn't there. Jump with the admin actions `realm` (`"QC9"`) and `tribulation`.
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs

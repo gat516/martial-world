@@ -1,6 +1,7 @@
 <roblox version="4">
  <Item class="ScreenGui" referent="RBX1"><Properties>
   <string name="Name">Dialogue</string>
+  <bool name="Enabled">true</bool>
   <bool name="ResetOnSpawn">false</bool>
   <token name="ZIndexBehavior">1</token>
   <bool name="IgnoreGuiInset">true</bool>
@@ -597,7 +598,7 @@
        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <UDim2 name="Position"><XS>0</XS><XO>70</XO><YS>0.552</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-120</XO><YS>0.7</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-133</XO><YS>0.7</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">I have completed it.</string>
        <Color3 name="TextColor3"><R>0.960784</R><G>0.92549</G><B>0.839216</B></Color3>
@@ -641,10 +642,10 @@
     <string name="Name">Phone</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>-155</XO><YS>1</YS><YO>-8</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>-163</XO><YS>1</YS><YO>-8</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>486</XO><YS>0</YS><YO>196</YO></UDim2>
     <bool name="Visible">false</bool>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABDaG9pY2VTaGlmdAYAAAAAAGBjwA==</BinaryString>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABDaG9pY2VTaGlmdAYAAAAAAGBkwA==</BinaryString>
    </Properties>
     <Item class="UIScale" referent="RBX70"><Properties>
      <string name="Name">Motion</string>
@@ -1121,8 +1122,8 @@
      <string name="Name">Responses</string>
      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>1</XS><XO>10</XO><YS>1</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0</XS><XO>300</XO><YS>0</YS><YO>172</YO></UDim2>
+     <UDim2 name="Position"><XS>1</XS><XO>8</XO><YS>1</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>318</XO><YS>0</YS><YO>172</YO></UDim2>
      <bool name="Visible">false</bool>
     </Properties>
      <Item class="ImageButton" referent="RBX120"><Properties>
@@ -1216,7 +1217,7 @@
        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <UDim2 name="Position"><XS>0</XS><XO>61</XO><YS>0.552</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-105</XO><YS>0.7</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-116</XO><YS>0.7</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">I have completed it.</string>
        <Color3 name="TextColor3"><R>0.960784</R><G>0.92549</G><B>0.839216</B></Color3>

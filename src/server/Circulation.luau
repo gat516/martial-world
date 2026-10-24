@@ -21,10 +21,12 @@ local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local Methods = require(script.Parent.Methods)
 local DaoPractice = require(script.Parent.DaoPractice)
+local HeartDemon = require(script.Parent.HeartDemon)
 local RootService = require(script.Parent.Roots)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local WeatherService = require(script.Parent.WeatherService)
+local Analytics = require(script.Parent.Analytics)
 
 type Run = { id: string, started: number, levels: number, duration: number, impurities: number, stageIndex: number }
 
@@ -41,7 +43,13 @@ local function fullRunQi(stage: Realms.Stage): number
 end
 
 -- A weighted pick from Config.Games, avoiding the player's last game when another can run.
-local function pickGame(player: Player): string
+-- Below QC4 (the hook) it's always the Maze, the game the elder explains; the others
+-- are met from QC4 on (docs/design-reviews/first-session.md, rec 2).
+local MAZE_ONLY_BELOW = 4 -- Realms index of QC4
+local function pickGame(player: Player, stageIndex: number): string
+	if stageIndex < MAZE_ONLY_BELOW then
+		return Config.FIRST_RUN_GAME
+	end
 	local total, pool = 0, {}
 	for name, def in Config.Games do
 		if def.weight > 0 and name ~= lastGame[player] then
@@ -88,6 +96,11 @@ local function atRefiningSpot(player: Player): boolean
 end
 
 -- Whether the dantian holds enough raw qi to start a run (Refine.MIN_RUN_FRACTION).
+-- The raw qi a run needs at the player's stage (Refine.MIN_RUN_FRACTION of a full run).
+function Circulation.qiForRun(data: PlayerData.Data): number
+	return math.ceil(fullRunQi(Cultivation.stage(data)) * Refine.MIN_RUN_FRACTION)
+end
+
 function Circulation.enoughQi(data: PlayerData.Data): boolean
 	return data.rawQi >= fullRunQi(Cultivation.stage(data)) * Refine.MIN_RUN_FRACTION
 end
@@ -119,7 +132,7 @@ function Circulation.start(player: Player): (boolean, any)
 	local index = Realms.index(data.realm.major, data.realm.minor)
 	local levels = stage.levels
 	local difficulty = stage.difficulty
-	local minigame = pickGame(player)
+	local minigame = pickGame(player, index)
 	if data.stats.circulationRuns == 0 then
 		-- the onboarding run: short, forgiving, and the game the elder explains
 		levels = Config.FIRST_RUN_LEVELS
@@ -184,13 +197,19 @@ function Circulation.finish(player: Player, id: any, cleared: any, accuracy: any
 	local bonus = if allCleared then 1 + Refine.FULL_CLEAR_BONUS else 1
 	local qi = math.min(data.rawQi, fullRunQi(stage) * levels / run.levels)
 	local gain = math.min(qi * efficiency * bonus, Cultivation.cap(data) - data.cultivation)
+	-- the onboarding's first run always fills the bar (a weak score still breaks through)
+	local firstRun = data.stats.circulationRuns == 0 and Config.FIRST_RUN_FILLS_BAR
+	if firstRun then
+		gain = math.max(gain, math.min(stage.bar, Cultivation.cap(data)) - data.cultivation)
+	end
 	efficiency *= bonus
-	local spent = math.ceil(gain / efficiency)
+	local spent = math.min(math.ceil(gain / efficiency), math.ceil(qi))
 	data.rawQi = math.max(0, data.rawQi - spent)
+	Analytics.qi(player, "sink", spent, data.rawQi, "Gameplay", "Refine")
 	Cultivation.add(data, gain)
 	data.stats.circulationRuns += 1
 
-	local deviation = score < Refine.DEVIATION_SCORE
+	local deviation = score < Refine.DEVIATION_SCORE and not firstRun
 	if deviation then
 		Cultivation.deviate(player, Refine.DEVIATION_SECONDS)
 	end
@@ -224,8 +243,19 @@ end
 
 Circulation.atRefiningSpot = atRefiningSpot
 
+-- Seated actions a secluded player can't take (they rise to leave seclusion first).
+local NOT_SECLUDED = { start = true, practiceStart = true, heartDemon = true, method = true, root = true }
+
 function Circulation.handle(player: Player, action: any, ...: any): (boolean, any)
-	if action == "start" then
+	if Cultivation.secluded and Cultivation.secluded(player) and NOT_SECLUDED[action] then
+		return false, "You are in seclusion. Rise to leave it first."
+	end
+	if action == "seclusion" then
+		if Cultivation.enterSeclusion then
+			return Cultivation.enterSeclusion(player)
+		end
+		return false, nil
+	elseif action == "start" then
 		return Circulation.start(player)
 	elseif action == "finish" then
 		return Circulation.finish(player, ...)
@@ -233,6 +263,11 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 		return Circulation.cancel(player, ...)
 	elseif action == "breakthrough" then
 		return Cultivation.breakthrough(player)
+	elseif action == "surge" then
+		if Cultivation.surge then
+			return Cultivation.surge(player)
+		end
+		return false, nil
 	elseif action == "method" then
 		return Methods.switch(player, ...)
 	elseif action == "root" then
@@ -243,6 +278,12 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 		return DaoPractice.finish(player, ...)
 	elseif action == "practiceCancel" then
 		return DaoPractice.cancel(player, ...)
+	elseif action == "heartDemon" then
+		return HeartDemon.start(player)
+	elseif action == "heartDemonAnswer" then
+		return HeartDemon.answer(player, ...)
+	elseif action == "heartDemonDecline" then
+		return HeartDemon.decline(player)
 	end
 	return false, "Unknown action"
 end
@@ -250,6 +291,7 @@ end
 function Circulation.forget(player: Player)
 	runs[player] = nil
 	DaoPractice.forget(player)
+	HeartDemon.forget(player)
 	lastGame[player] = nil
 end
 

@@ -22,6 +22,12 @@ Dao comprehension per weapon class that grows as you fight with it.
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
   Level 2 is neutral (x1.0); untrained (0) is x0.8 and mastery x1.3. A new
   player's Fist and Sword start at 2, so starting power is unchanged.
+- **Dao gates techniques:** a class skill is learned only at its rung of that
+  class's Dao (2, 5 or 8, the more spectacular the higher; today's skills are 5 or
+  8), and each comprehension bottleneck needs more (learn + 2 per bottleneck). A manual
+  found too early waits in Arts reading "Requires Saber Dao 8" and is learned on
+  the level-up that reaches it ([combat](combat.md)). Any-weapon arts count the
+  highest class Dao.
 - Starting kit: a Mortal Iron Jian, equipped (new profiles and the v5 migration).
 
 ## Key files
@@ -43,9 +49,10 @@ Dao comprehension per weapon class that grows as you fight with it.
 ## Class techniques
 Each technique names its `weapon` (a class or "Any"); a class technique needs
 that class equipped and scales with its grade and Dao. One weapon skill per
-class (Twin Phoenix Cannon, Moonflash Draw, Rampaging Tiger Cleave,
-Heaven-Splitting Descent, Crescent Moon Sweep, Dragon-Piercing Thrust, Great
-Sage Awakening); see [combat](combat.md) for their shapes and numbers.
+class (Dao 5: Twin Phoenix Cannon, Moonflash Draw, Crescent Moon Sweep,
+Dragon-Piercing Thrust; Dao 8: Rampaging Tiger Cleave, Heaven-Splitting Descent,
+Great Sage Awakening); see [combat](combat.md) for their shapes and numbers. Each
+class still needs a plain Dao 2 first skill (pending, [roadmap](../roadmap.md) 4.1).
 Many more techniques are planned. Each one is a manual found in the world, gets
 its own comprehension bottlenecks for free, and needs four visual tiers
 (`<Id>_T1..T4`; it can launch with T1 and grow the rest).
@@ -53,16 +60,20 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 ## Where techniques and weapons come from (v1)
 | Source | What |
 |---|---|
-| Start | Iron Jian (equipped), Lightning Talisman (any weapon, so the starter works whatever you hold) |
+| Start | Iron Jian (equipped); no technique: the first is Fire Seal, the onboarding's 3-kill manual (any weapon) |
 | Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Fire Seal, 12 Sword Qi Wave, 30 Iron Skin, 60 Moonflash Draw, 100 Palm Strike (any-weapon manuals first: the 3-kill one is the onboarding's) |
-| First boss kill (`BOSS_FIRST_MANUAL`) | Twin Phoenix Cannon |
+| First boss kill (`Progression` `firstBossManual`) | one usable now: the most advanced unlearned art for the class in hand that its Dao reaches (Sword Qi Wave for a fresh Jian), else a starter art you lack (any-weapon first), else the class in hand's next art (waits in Arts), else `BOSS_FIRST_MANUAL` (Twin Phoenix Cannon) |
 | Boss pool (`Enemies.ElderWolfKing.bossDrops`) | one unowned entry of: Rampaging Tiger Cleave, Heaven-Splitting Descent, Crescent Moon Sweep, Great Sage Awakening, or a Spirit weapon of any class. Guaranteed on the first kill, then 25% a kill |
 | Manual caches (`ManualCache` anchors) | whatever manual/weapon the anchor names; meant for Dragon-Piercing Thrust and the other class manuals |
 | Sect weapon rack (`WeaponRack` anchors) | one free Mortal weapon of each class, once each |
 | Admin / test kit | `weapon`, `allWeapons`, `daoLevel`; `Config.TestKit.ALL_WEAPONS` |
 
 Learning a class manual grants that class `XP_MANUAL` Dao XP (re-studying a
-known one at a cache too). A gained weapon fires Effect `"weapon"` (weaponId).
+known one at a cache too). A manual kept for lack of Dao grants nothing until it
+is learned; every class skill needs Dao 5 or 8, so Moonflash Draw (60 kills) and
+the boss pool's arts wait in Arts until their class reaches Dao 5 or 8 (classes
+start at 2). The starter arts need no Dao.
+The Cloud-Pattern Jade treasure gives Dao XP to the class in hand. A gained weapon fires Effect `"weapon"` (weaponId).
 
 ### World anchors (placed by the map)
 - `ManualCache`: a BasePart tagged `ManualCache` in Workspace, attributes `Cache`
@@ -103,7 +114,7 @@ character and boolean and never uses the request to authorize combat.
 `Weapons.apply` combines Tool occupancy, `WeaponControlsLocked`, and
 `WeaponBreakthroughUntil` into the replicated character `WeaponStowed`
 attribute. Releasing one reason cannot override another. The breakthrough hook
-stows the weapon for the 1.6-second column effect, including forced breakthroughs;
+stows the weapon for the 1.6-second column effect (breakthroughs are seated only);
 the timer is scoped to that character and latest breakthrough. The next respawn
 gets fresh attributes and a new client report. Ordinary attack/cast/dodge movement
 restrictions (`ActionBusy` / zero action speed) do not stow the weapon.

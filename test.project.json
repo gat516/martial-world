@@ -16,6 +16,9 @@
       "Nameplate": {
         "$path": "assets/Nameplate.rbxmx"
       },
+      "PressureMarks": {
+        "$path": "assets/PressureMarks.rbxmx"
+      },
       "Animations": {
         "$path": "assets/Animations.rbxmx"
       },
@@ -42,6 +45,12 @@
       },
       "HerbMorsel": {
         "$path": "assets/HerbMorsel.rbxmx"
+      },
+      "HerbModelsExtra": {
+        "$path": "assets/HerbModelsExtra.rbxm"
+      },
+      "ItemModels": {
+        "$path": "assets/ItemModels.rbxm"
       },
       "BuildCatalog": {
         "$className": "Folder"
@@ -86,6 +95,9 @@
       },
       "Sect": {
         "$path": "assets/Sect.rbxmx"
+      },
+      "Social": {
+        "$path": "assets/Social.rbxmx"
       },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
@@ -586,6 +598,52 @@
                     0,
                     648.6,
                     140
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "WolfTiers": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "SpiritWolf",
+              "Count": 4,
+              "Radius": 14
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    -200,
+                    648.6,
+                    60
                   ],
                   "orientation": [
                     [

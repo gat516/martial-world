@@ -25,6 +25,12 @@ local TOAST_SECONDS = 3.2
 local TOAST_QUEUE_MAX = 4 -- older pending toasts are dropped past this
 local TOAST_GAP = 8 -- px kept from Roblox's buttons, the tiles, windows and the edges
 local TOAST_MAX_TEXT = 380 -- widest a toast's text runs before it wraps
+-- A touch phone's toast (user, 2026-10-23: "the toast is fkn TERRIBLE for mobile":
+-- a two-line plaque jammed against Roblox's chat button, as tall as the tiles): a
+-- slimmer plaque with no studs and 14 px text (contrast does the reading: cream with
+-- a near-black stroke), one line in the bar's free lane when it fits there, else
+-- just under the top band, clear of the tiles and the objective column.
+local PHONE_TOAST = { text = 14, padX = 20, padY = 6, slice = 0.3 }
 local BUFF_LABELS = { QiRate = "cultivation", WalkSpeed = "speed" }
 local TIP_SECONDS = 4 -- a tapped buff chip shows its words this long
 
@@ -42,17 +48,53 @@ local said: { [string]: number } = {} -- message -> os.clock() it was queued
 -- Centred on the screen when it fits, else slid clear of Roblox's buttons on the
 -- left and, while they show, the top-right tiles. Should an open window or the
 -- build banner still reach it, it goes below that, or above it.
+local function phone(): boolean
+	return Platform.isTouch() and Platform.isSmall()
+end
+
+-- Phone: the toast's text width on one line, unwrapped.
+local function lineWidth(message: TextLabel): number
+	local params = Instance.new("GetTextBoundsParams")
+	params.Text = message.Text
+	params.Font = message.FontFace
+	params.Size = message.TextSize
+	params.Width = 10000
+	local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
+	return if ok then math.ceil(bounds.X) + 1 else math.huge
+end
+
 local function placeToast(toast: GuiObject)
 	local message = toast:FindFirstChild("Message") :: TextLabel
 	local pad = toast:FindFirstChild("UIPadding") :: UIPadding
 	local padX = pad.PaddingLeft.Offset + pad.PaddingRight.Offset
+	local padY = pad.PaddingTop.Offset + pad.PaddingBottom.Offset
 	local origin = gui.AbsolutePosition
 	local barBottom, freeLeft = Platform.topbar(gui)
 	local left, right = freeLeft + TOAST_GAP, gui.AbsoluteSize.X - TOAST_GAP
 	local open = Menus.current()
 	local tiles = gui:FindFirstChild("Buttons") :: GuiObject?
-	if not open and tiles and tiles.Visible then
-		right = math.min(right, tiles.AbsolutePosition.X - origin.X - TOAST_GAP)
+	local tilesShown = not open and tiles ~= nil and tiles.Visible
+	if tilesShown then
+		right = math.min(right, (tiles :: GuiObject).AbsolutePosition.X - origin.X - TOAST_GAP)
+	end
+	local below: number? = nil -- phone: the toast's top when it drops under the top band
+	if phone() and not open then
+		local oneLine = lineWidth(message) + padX
+		if oneLine > right - left or message.TextSize + padY > barBottom then
+			-- no room in the bar's lane: under the tiles (or the bar), left of the
+			-- objective column when it shows
+			local top = barBottom
+			if tilesShown then
+				local t = tiles :: GuiObject
+				top = math.max(top, t.AbsolutePosition.Y - origin.Y + t.AbsoluteSize.Y)
+			end
+			below = top + TOAST_GAP
+			right = gui.AbsoluteSize.X - TOAST_GAP
+			local tracker = gui:FindFirstChild("Tracker", true) :: GuiObject?
+			if tracker and tracker.Visible and (tracker.Parent :: GuiObject).Visible then
+				right = math.min(right, tracker.AbsolutePosition.X - origin.X - TOAST_GAP)
+			end
+		end
 	end
 	-- the text's own size at the lane's width (one line when it fits, else wrapped)
 	local params = Instance.new("GetTextBoundsParams")
@@ -66,7 +108,9 @@ local function placeToast(toast: GuiObject)
 	end
 	local size = Vector2.new(message.Size.X.Offset + padX, message.Size.Y.Offset + pad.PaddingTop.Offset + pad.PaddingBottom.Offset)
 	local x = math.clamp(gui.AbsoluteSize.X / 2, left + size.X / 2, math.max(left + size.X / 2, right - size.X / 2))
-	local y = if barBottom >= size.Y then barBottom / 2 else (if barBottom > 0 then 4 else 10) + size.Y / 2
+	local y = if below then below + size.Y / 2
+		elseif barBottom >= size.Y then barBottom / 2
+		else (if barBottom > 0 then 4 else 10) + size.Y / 2
 	-- an open window, the build banner or a lifted boss bar in the way: go below it,
 	-- or above it
 	local banner = gui:FindFirstChild("BuildBanner") :: GuiObject?
@@ -88,7 +132,7 @@ local function placeToast(toast: GuiObject)
 end
 
 -- Toasts queue up instead of overwriting each other, so simultaneous news (an
--- insight and a manual from one kill) are all readable. Repeats are skipped.
+-- a manual and a weapon from one kill) are all readable. Repeats are skipped.
 function Hud.toast(message: string)
 	said[message] = os.clock()
 	if queue[#queue] == message then
@@ -188,6 +232,23 @@ end
 
 local spans: { [string]: number } = {} -- source -> longest remaining seen (buffs saved before `seconds`)
 
+-- The Suppressed status (docs/systems/combat.md "Realm pressure"): a chip first in
+-- the row while you trade blows with a beast of a higher major realm and no party
+-- member shelters you (the server's Suppressed attribute: the major gap, cleared a
+-- few seconds after the last such hit; ShelteredBy lifts it). A runtime clone of
+-- the buff chip: the kit's gold chevron pointing down (sized/ornament_chevron_h20,
+-- the cowed bar mark's glyph), warmed red, with a full red ring and no timer.
+local SUPPRESSED_ICON = "rbxassetid://99764920719361"
+local SUPPRESSED_TINT = Color3.fromRGB(255, 150, 130)
+local SUPPRESSED_RING = Color3.fromRGB(232, 96, 80)
+local SUPPRESSED_TEXT = "Suppressed: this beast's realm is above yours. Your blows barely land."
+local suppressedChip: ImageButton? = nil
+
+local function suppressed(): boolean
+	local gap = player:GetAttribute("Suppressed")
+	return type(gap) == "number" and gap > 0 and player:GetAttribute("ShelteredBy") == nil
+end
+
 local function renderBuffs()
 	local list = gui:FindFirstChild("Buffs", true) :: Frame
 	local template = list:FindFirstChild("BuffTemplate") :: ImageButton
@@ -195,6 +256,43 @@ local function renderBuffs()
 	local now = workspace:GetServerTimeNow()
 	local lines = {}
 	local live = {}
+	if suppressed() then
+		if not suppressedChip then
+			local made = template:Clone()
+			made.Name = "Suppressed"
+			made.Visible = true
+			made.LayoutOrder = 0
+			local icon = made:FindFirstChild("Icon") :: ImageLabel
+			SlotArt.setIcon(icon, SUPPRESSED_ICON)
+			icon.ImageColor3 = SUPPRESSED_TINT
+			local timer = made:FindFirstChild("Timer") :: Instance
+			for _, half in { "Right", "Left" } do
+				local ring = (timer:FindFirstChild(half) :: Instance):FindFirstChild("Ring") :: ImageLabel
+				ring.ImageColor3 = SUPPRESSED_RING
+			end
+			setRing(made, 1)
+			made.Activated:Connect(function()
+				tipUntil = if tip.Visible and tipUntil > os.clock() then 0 else os.clock() + TIP_SECONDS
+				renderBuffs()
+			end)
+			made.MouseEnter:Connect(function()
+				hovering += 1
+				renderBuffs()
+			end)
+			made.MouseLeave:Connect(function()
+				hovering = math.max(0, hovering - 1)
+				renderBuffs()
+			end)
+			made.Parent = list
+			suppressedChip = made
+		end
+		table.insert(lines, SUPPRESSED_TEXT)
+	elseif suppressedChip then
+		-- a chip destroyed under the mouse never fires MouseLeave
+		hovering = 0
+		suppressedChip:Destroy()
+		suppressedChip = nil
+	end
 	for i, g in buffGroups(now) do
 		live[g.source] = true
 		local chip = chips[g.source]
@@ -339,10 +437,12 @@ function Hud.init(screenGui: ScreenGui)
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
 	keepSlants(gui:FindFirstChild("Stack") :: Frame)
 
+	-- during a qi surge the plaque shows the stage the player fights at (SurgeRealm)
 	local function showRealm()
-		realmLabel.Text = player:GetAttribute("Realm") or ""
+		realmLabel.Text = player:GetAttribute("SurgeRealm") or player:GetAttribute("Realm") or ""
 	end
 	player:GetAttributeChangedSignal("Realm"):Connect(showRealm)
+	player:GetAttributeChangedSignal("SurgeRealm"):Connect(showRealm)
 	showRealm()
 
 	-- combat qi (Qi/QiMax; 0 until the server publishes them)
@@ -371,6 +471,21 @@ function Hud.init(screenGui: ScreenGui)
 		task.spawn(watchHealth, healthBar, healthText, player.Character)
 	end
 
+	if phone() then
+		local toast = gui:FindFirstChild("Toast") :: ImageLabel
+		local pad = toast:FindFirstChild("UIPadding") :: UIPadding
+		(toast:FindFirstChild("Message") :: TextLabel).TextSize = PHONE_TOAST.text
+		pad.PaddingLeft, pad.PaddingRight = UDim.new(0, PHONE_TOAST.padX), UDim.new(0, PHONE_TOAST.padX)
+		pad.PaddingTop, pad.PaddingBottom = UDim.new(0, PHONE_TOAST.padY), UDim.new(0, PHONE_TOAST.padY)
+		toast.SliceScale = PHONE_TOAST.slice
+		for _, stud in { "StudL", "StudR" } do
+			local s = toast:FindFirstChild(stud) :: GuiObject?
+			if s then
+				s.Visible = false
+			end
+		end
+	end
+
 	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
 	notifyRemote.OnClientEvent:Connect(Hud.toast)
 	-- a window opening or the top bar changing moves a toast that's up
@@ -388,6 +503,9 @@ function Hud.init(screenGui: ScreenGui)
 	State.onChanged(function()
 		renderBuffs()
 	end)
+	-- the Suppressed status chip (the server's attributes; a shelter lifts it)
+	player:GetAttributeChangedSignal("Suppressed"):Connect(renderBuffs)
+	player:GetAttributeChangedSignal("ShelteredBy"):Connect(renderBuffs)
 
 	task.spawn(function()
 		while true do

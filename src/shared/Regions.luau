@@ -11,6 +11,8 @@
 --   box      or a flat rectangle { x0, z0, x1, z1 } (a zone's bounds, growth band included)
 --   above    only at or above this height
 --   below    only below this height (the sect and its peaks sit far above the wilds)
+--   depth    { near, far } flat distance from the sect's centre over which an ambient pack's
+--            realm range (Spawns.Encounters `realm`) leans from its bottom to its top
 -- Regions are checked in order; the first that contains a point wins, and a
 -- point in none has no region (no banner change, no ambient beasts).
 --
@@ -29,6 +31,7 @@ export type Region = {
 	box: { number }?,
 	above: number?,
 	below: number?,
+	depth: { number }?,
 }
 
 local Regions = {}
@@ -61,6 +64,7 @@ Regions.List = {
 		packs = "Inner",
 		box = { -1020, 470, 1020, 1560 }, -- the walled valley and its growth band
 		below = 420,
+		depth = { 560, 1300 }, -- young beasts by the gate, stronger toward the border river
 	},
 	{
 		id = "MiddleWilds",
@@ -70,6 +74,7 @@ Regions.List = {
 		packs = "Middle",
 		box = { -320, 1560, 620, 2060 }, -- south of the border river
 		below = 420,
+		depth = { 1580, 2050 },
 	},
 	{
 		id = "OuterWilds",
@@ -79,6 +84,7 @@ Regions.List = {
 		packs = "Outer",
 		rings = { 1600, 2200 },
 		below = 420,
+		depth = { 1600, 2200 },
 	},
 } :: { Region }
 

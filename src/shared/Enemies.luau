@@ -159,6 +159,13 @@ export type Attack = {
 	-- into the windup and lands `flight` s later on the locked circle; a lane (lance) fires
 	-- at windup end at `speed`. `origin`: root-relative offset (the server has no body).
 	projectile: { cue: string, release: number?, radius: number, origin: Vector3, flight: number?, gravity: number?, speed: number?, range: number?, pierce: boolean?, data: { [string]: any }? }?,
+	-- REALM VARIANTS (Enemies.variant, Pacing.Variants): `minTier` keeps this attack out of
+	-- every variant below that tier ("adult", "elite", "apex"; a pool beast whose opener is
+	-- locked opens with its pool instead); `tiers` replaces fields at exactly that tier
+	-- (e.g. tiers = { elite = { followUp = "bite" } }; Enemies.NONE clears a field, so a
+	-- young howl with summons = NONE only rallies packmates and never calls reinforcements)
+	minTier: string?,
+	tiers: { [string]: { [string]: any } }?,
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -208,9 +215,19 @@ export type Def = {
 	startsBurrowed: boolean?, -- boss: spawns and resets with Burrowed = true (immune and hidden until its opener surfaces it)
 	shareTurns: boolean?, -- boss joins its summons' attack slots instead of overlapping their blows
 	resetOnEvade: boolean?, -- return home, heal/reset the fight and dismiss owned summons on losing the target
+	-- REALM VARIANTS: per-tier replacements for def fields (`pack` merges one level deep:
+	-- tiers = { young = { pack = { circle = {...} } } }). Set by Enemies.variant on the
+	-- built variant only: `tier` (its tier id), `stage` (its realm's stage key), `scale`
+	-- (its body size, the model's Scale attribute)
+	tiers: { [string]: { [string]: any } }?,
+	tier: string?,
+	stage: string?,
+	scale: number?,
 }
 
 local Wilds = require(script.Parent.Config).Wilds
+local Pacing = require(script.Parent.Pacing)
+local Realms = require(script.Parent.Realms)
 local NEW_WOLF = Wilds.NEW_WOLF
 local NEW_BOAR = Wilds.NEW_BOAR
 local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
@@ -225,6 +242,10 @@ local NEW_RAVEN = Wilds.NEW_RAVEN
 local NEW_BAT = Wilds.NEW_BAT
 
 local Enemies = {}
+
+-- In a `tiers` override, clears the field (Enemies.variant).
+local NONE = table.freeze({})
+Enemies.NONE = NONE
 
 -- The Stone Boar until its new fight ships (Config.Wilds.NEW_BOAR).
 local OLD_STONE_BOAR: Def = {
@@ -268,6 +289,8 @@ local BOAR_CHARGE: Attack = {
 	dashSpeed = 55,
 	stopPast = 3, -- skids to a stop just past you, so the gore can follow
 	followUp = "gore",
+	-- variants: a young boar's charge ends in a stop, not the gore (it still gores up close)
+	tiers = { young = { followUp = NONE } },
 }
 
 local BOAR_GORE: Attack = {
@@ -280,6 +303,9 @@ local BOAR_GORE: Attack = {
 	cooldown = 2.5,
 	radius = 7,
 	angle = 100,
+	-- variants: from elite, backing off after the gore draws a second charge (it waits up
+	-- to a second for you to clear its 12-stud minimum; stay close and it doesn't come)
+	tiers = { elite = { followUp = "charge" }, apex = { followUp = "charge" } },
 }
 
 -- The Spirit Wolf until the new fight ships (Config.Wilds.NEW_WOLF): one lunge,
@@ -360,6 +386,10 @@ Enemies.Defs = {
 				cooldown = 9,
 				radius = 5,
 				skid = true, -- leapSkid
+				-- variants: young wolves never leap; elite and apex leap sooner, and an apex
+				-- bites at once if you dodged the landing but stayed close
+				minTier = "adult",
+				tiers = { elite = { notBefore = 3 }, apex = { notBefore = 3, followUp = "bite" } },
 			},
 			{
 				kind = "lunge",
@@ -374,6 +404,8 @@ Enemies.Defs = {
 				width = 3.5,
 				dashSpeed = 40,
 				skid = true,
+				-- variants: from elite a pounce that lands close chains into the bite
+				tiers = { elite = { followUp = "bite" }, apex = { followUp = "bite" } },
 			},
 			{
 				kind = "cone",
@@ -391,8 +423,9 @@ Enemies.Defs = {
 		pack = {
 			-- rallies idle packmates within 30; with none, calls 1-3 Spirit Wolves from
 			-- 18-25 studs around the target (only 1, and only with no wolf near, while
-			-- the target is in onboarding). They pay full rewards and leave when the
-			-- fight ends.
+			-- the target is in onboarding). They pay qi only (no stones, drops or first
+			-- kills, at the untiered rate; full pay in onboarding: EnemyService `fullPay`)
+			-- and leave when the fight ends.
 			howl = {
 				kind = "howl",
 				name = "howl",
@@ -406,6 +439,13 @@ Enemies.Defs = {
 				count = 1,
 				countMax = 3,
 				maxAlive = 3,
+				-- variants (reinforcements come at the howler's realm): a young howl only
+				-- rallies wolves already there; elite calls 2-3, apex 2-4
+				tiers = {
+					young = { summons = NONE },
+					elite = { count = 2, countMax = 3 },
+					apex = { count = 2, countMax = 4, maxAlive = 4 },
+				},
 			},
 			hop = { distance = 7, seconds = 0.25, arc = 1.2, cooldown = 4, hits = 3, window = 2 },
 			circle = { radius = 10, speed = 8 },
@@ -480,8 +520,8 @@ Enemies.Defs = {
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.05 },
-			{ item = "RootRebirthPill", chance = 0.08 },
+			{ item = "MarrowWashingPill", chance = 0.02 },
+			{ item = "RootRebirthPill", chance = 0.03 },
 		},
 		bossDrops = {
 			manuals = { "RampagingTiger", "HeavenSplitter", "CrescentSweep", "GreatSageAwakening" },
@@ -689,10 +729,12 @@ if NEW_WOLF_KING then
 end
 
 -- THE THUNDER APE (Config.Wilds.NEW_THUNDER_APE, testbed only): a 30-stud storm
--- boss for Foundation 1 (player 500 HP, power 3). The body is 3.71x the old ape
+-- boss for Qi Refining 5, authored against Pacing.BeastBaseline QR5 (480 HP, power
+-- 2.84; rescaled 2026-10-23 from its first FE1 tuning vs a 500 HP, power 3 player,
+-- shares kept). The body is 3.71x the old ape
 -- (ThunderApeB, root box 14.8 x 14.8 x 16.3, body radius ~15), so every reach is
 -- measured from its centre and starts past ~15 studs: melee cones reach 30, the pound
--- lands 18 ahead. Shares of the player's health at FE1: club/backhand 10%, pound 22%
+-- lands 18 ahead. Shares of a QR5 player's health: club/backhand 10%, pound 22%
 -- (wave 11%), body slam 28%, skyfall 30% + sweep 11%, rush 22% + swipe 12%, boulder 14%,
 -- lance 24%, bolt 14%, judgment 38% + stun. Roars stagger. Chain: clubSwing -> backhand
 -- -> thunderPound. Arrivals (WEIGHTED_MOVES): thunderRush stops short of where you
@@ -706,38 +748,38 @@ if NEW_THUNDER_APE then
 		return a
 	end
 	local clubSwing = atk({
-		kind = "cone", name = "clubSwing", damage = 50, range = 26, windup = 0.80, recover = 0.45,
+		kind = "cone", name = "clubSwing", damage = 48, range = 26, windup = 0.80, recover = 0.45,
 		cooldown = 1.3, radius = 30, angle = 110, followUp = "backhand",
 	})
 	local backhand = atk({
-		kind = "cone", name = "backhand", damage = 50, range = 26, windup = 0.60, recover = 0.45,
+		kind = "cone", name = "backhand", damage = 48, range = 26, windup = 0.60, recover = 0.45,
 		cooldown = 1.1, radius = 30, angle = 120, chainOnly = true, followUp = "thunderPound",
 	})
 	local thunderPound = atk({
-		kind = "slam", name = "thunderPound", damage = 110, range = 28, windup = 0.85, recover = 1.30,
+		kind = "slam", name = "thunderPound", damage = 106, range = 28, windup = 0.85, recover = 1.30,
 		cooldown = 2.65, radius = 15, offset = Vector3.new(0, 0, -18), chainOnly = true,
 		wave = { radius = 34, delay = 0.45, scale = 0.5, phase = 2 },
 	})
 	local bodySlam = atk({
-		kind = "lunge", name = "bodySlam", telegraph = "heavy", damage = 140, range = 38, windup = 1.10, recover = 1.10,
+		kind = "lunge", name = "bodySlam", telegraph = "heavy", damage = 134, range = 38, windup = 1.10, recover = 1.10,
 		cooldown = 3.45, length = 34, width = 20, dashSpeed = 55, react = "stagger",
 	})
 	local skyfallSlam = atk({
-		kind = "leap", name = "skyfallSlam", telegraph = "heavy", damage = 150, range = 55, minRange = 22, windup = 1.20,
+		kind = "leap", name = "skyfallSlam", telegraph = "heavy", damage = 144, range = 55, minRange = 22, windup = 1.20,
 		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.6, radius = 20,
 	})
 	local thunderRush = atk({
-		kind = "charge", name = "thunderRush", damage = 110, range = 80, minRange = 24, windup = 1.20,
+		kind = "charge", name = "thunderRush", damage = 106, range = 80, minRange = 24, windup = 1.20,
 		recover = 0.90, cooldown = 3.4, length = 64, width = 14, dashSpeed = 95,
 		stopPast = -12, -- commits to the line and pulls up just short of you, for the swipe
 	})
 	-- the arrivals: short windups, since the rush or leap itself was the warning
 	local rushSwipe = atk({
-		kind = "cone", name = "rushSwipe", damage = 60, range = 32, windup = 0.40, recover = 0.90,
+		kind = "cone", name = "rushSwipe", damage = 58, range = 32, windup = 0.40, recover = 0.90,
 		cooldown = 0, radius = 30, angle = 110, chainOnly = true,
 	})
 	local skyfallSweep = atk({
-		kind = "cone", name = "skyfallSweep", damage = 55, range = 34, windup = 0.50, recover = 1.00,
+		kind = "cone", name = "skyfallSweep", damage = 53, range = 34, windup = 0.50, recover = 1.00,
 		cooldown = 0, radius = 32, angle = 140, chainOnly = true,
 	})
 	thunderRush.arrive, thunderRush.skid = rushSwipe, true
@@ -752,7 +794,7 @@ if NEW_THUNDER_APE then
 		},
 	})
 	local boulderHurl = atk({
-		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 45, windup = 1.70,
+		kind = "spit", name = "boulderHurl", damage = 67, range = 85, minRange = 45, windup = 1.70,
 		recover = 0.90, cooldown = 3.2, radius = 10,
 		projectile = {
 			cue = "boulder", release = 1.25, flight = 0.45, gravity = 160, radius = 5,
@@ -760,7 +802,7 @@ if NEW_THUNDER_APE then
 		},
 	})
 	local thunderLance = atk({
-		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.40,
+		kind = "lance", name = "thunderLance", damage = 115, range = 85, minRange = 20, windup = 1.40,
 		recover = 0.90, cooldown = 2.9, length = 90, width = 8, phase = 2,
 		projectile = {
 			cue = "thunderLance", radius = 2.5, speed = 150, range = 74, pierce = true,
@@ -772,12 +814,12 @@ if NEW_THUNDER_APE then
 		cooldown = 3.0, radius = 8, phase = 2, stun = { kind = "stagger", radius = 42, seconds = 0.9 },
 	})
 	local stormCall = atk({
-		kind = "storm", name = "stormCall", damage = 70, range = 90, windup = 1.20, recover = 3.0,
+		kind = "storm", name = "stormCall", damage = 67, range = 90, windup = 1.20, recover = 3.0,
 		cooldown = 4.8, phase = 2, bolts = 5, boltsP3 = 7, boltWindup = 0.9, boltInterval = 0.45,
 		boltRadius = 8,
 	})
 	local judgment = atk({
-		kind = "leap", name = "judgment", telegraph = "heavy", damage = 190, range = 70, minRange = 25, windup = 1.60,
+		kind = "leap", name = "judgment", telegraph = "heavy", damage = 182, range = 70, minRange = 25, windup = 1.60,
 		active = 1.00, arc = 48, recover = 1.80, cooldown = 5.0, radius = 28, phase = 3,
 		stun = { kind = "stun", radius = 0, seconds = 1.0, onHit = true },
 	})
@@ -794,10 +836,10 @@ if NEW_THUNDER_APE then
 	Enemies.Defs.ThunderApe = {
 		id = "ThunderApe",
 		name = "Thunder Ape",
-		realm = { "Foundation", 1 },
+		realm = { "QiRefining", 5 },
 		weight = 9,
 		boss = true,
-		health = 3000,
+		health = 2840,
 		walkSpeed = 8,
 		runSpeed = 22, -- the player walks at 16; phases add phaseSpeed
 		phaseSpeed = 1.09,
@@ -811,8 +853,8 @@ if NEW_THUNDER_APE then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.08 },
-			{ item = "RootRebirthPill", chance = 0.12 },
+			{ item = "MarrowWashingPill", chance = 0.04 },
+			{ item = "RootRebirthPill", chance = 0.05 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
@@ -947,8 +989,8 @@ if NEW_JIAO then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.06 },
-			{ item = "RootRebirthPill", chance = 0.10 },
+			{ item = "MarrowWashingPill", chance = 0.02 },
+			{ item = "RootRebirthPill", chance = 0.03 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
@@ -970,11 +1012,13 @@ if NEW_JIAO then
 	} :: Def
 end
 
--- THE NINE-TAILED FOX (Config.Wilds.NEW_NINE_TAIL_FOX, testbed only): an FE1 duelist
+-- THE NINE-TAILED FOX (Config.Wilds.NEW_NINE_TAIL_FOX, testbed only): a QR9 duelist
 -- boss with telescoping tails (NineTailFoxB at 2.13x: tails reach 8.7 studs at rest,
 -- 21.4 extended, so lances and sweeps are 18-20 studs, not the 30 first sketched).
 -- A random pool pick with spacing triggers (EnemyService foxAttack); phases at 66% and
--- 33% (veilBreak, `Phase` attribute); every hit is 8-25% of an FE1 player's 500 HP.
+-- 33% (veilBreak, `Phase` attribute); every hit is 6-15% of a QR9 player's health (the spiral's last circle 22%)
+-- (authored against Pacing.BeastBaseline QR9, 620 HP, power 3.40; rescaled 2026-10-23
+-- from its first FE1 tuning vs a 500 HP, power 3 player, shares kept).
 -- Cut for now, listed in enemies.md as later add-ons: snapBite, tailWhirl, crossLash,
 -- wispRain, phantomStep, mirrorVeil.
 if NEW_NINE_TAIL_FOX then
@@ -986,41 +1030,41 @@ if NEW_NINE_TAIL_FOX then
 		cooldown = 0, radius = 8, chainOnly = true,
 	})
 	local fangDance = atk({
-		kind = "barrage", barrage = "fangs", name = "fangDance", damage = 28, range = 18, windup = 0.65,
+		kind = "barrage", barrage = "fangs", name = "fangDance", damage = 35, range = 18, windup = 0.65,
 		recover = 1.2, cooldown = 3.0, radius = 20, angle = 80,
 	})
 	local tailSweep = atk({
-		kind = "cone", name = "tailSweep", damage = 55, range = 16, windup = 0.9, recover = 1.1,
+		kind = "cone", name = "tailSweep", damage = 68, range = 16, windup = 0.9, recover = 1.1,
 		cooldown = 3.5, radius = 18, angle = 200,
 	})
 	local tailLance = atk({
-		kind = "barrage", barrage = "lance", name = "tailLance", damage = 60, range = 24, minRange = 5,
+		kind = "barrage", barrage = "lance", name = "tailLance", damage = 74, range = 24, minRange = 5,
 		windup = 0.6, recover = 0.8, cooldown = 2.4, length = 20, width = 4,
 	})
 	local lanceFan = atk({
-		kind = "barrage", barrage = "lanceFan", name = "lanceFan", damage = 45, range = 24, minRange = 5,
+		kind = "barrage", barrage = "lanceFan", name = "lanceFan", damage = 56, range = 24, minRange = 5,
 		windup = 0.95, recover = 1.1, recoverP3 = 1.8, cooldown = 4.5, length = 20, width = 4,
 	})
 	local tailSnare = atk({
-		kind = "barrage", barrage = "snare", name = "tailSnare", damage = 40, range = 24, minRange = 8,
+		kind = "barrage", barrage = "snare", name = "tailSnare", damage = 50, range = 24, minRange = 8,
 		windup = 0.85, recover = 0.9, cooldown = 6.0, length = 20, width = 4,
 		pull = { distance = 11, seconds = 0.45 }, followUpOnHit = "fangDance",
 	})
 	local rendingPounce = atk({
-		kind = "lunge", name = "rendingPounce", damage = 75, range = 36, minRange = 18, windup = 0.75,
+		kind = "lunge", name = "rendingPounce", damage = 93, range = 36, minRange = 18, windup = 0.75,
 		recover = 1.0, cooldown = 4.0, length = 30, width = 8, dashSpeed = 55,
 	})
 	local foxfireVolley = atk({
-		kind = "barrage", barrage = "volley", name = "foxfireVolley", damage = 40, range = 70, minRange = 20,
+		kind = "barrage", barrage = "volley", name = "foxfireVolley", damage = 50, range = 70, minRange = 20,
 		windup = 1.1, recover = 1.0, recoverP3 = 1.8, cooldown = 6.5, length = 56, width = 4,
 	})
 	local rootfireEruption = atk({
-		kind = "barrage", barrage = "ringHeart", name = "rootfireEruption", damage = 55, range = 55, minRange = 8,
+		kind = "barrage", barrage = "ringHeart", name = "rootfireEruption", damage = 68, range = 55, minRange = 8,
 		windup = 1.5, recover = 1.6, cooldown = 8.0, radius = 5, ring = 11, heartRadius = 7, phase = 2,
 		hitStun = { kind = "stagger", seconds = 0.6 },
 	})
 	local moonLeap = atk({
-		kind = "retreat", name = "moonLeap", damage = 40, range = 200, windup = 0.4, active = 0.6, arc = 8,
+		kind = "retreat", name = "moonLeap", damage = 50, range = 200, windup = 0.4, active = 0.6, arc = 8,
 		recover = 0.4, cooldown = 7.0, distance = 34, width = 6, trailScale = 0.3, followUp = "foxfireVolley",
 	})
 	local mournfulScream = atk({
@@ -1028,7 +1072,7 @@ if NEW_NINE_TAIL_FOX then
 		cooldown = 14.0, radius = 8, phase = 2, stun = { kind = "stun", radius = 30, seconds = 1.2 },
 	})
 	local nineTailFall = atk({
-		kind = "barrage", barrage = "spiral", name = "nineTailFall", telegraph = "heavy", damage = 55, range = 45, windup = 1.8,
+		kind = "barrage", barrage = "spiral", name = "nineTailFall", telegraph = "heavy", damage = 68, range = 45, windup = 1.8,
 		recover = 2.0, cooldown = 12.0, radius = 7, finalRadius = 20, phase = 3,
 		hitStun = { kind = "stagger", seconds = 0.6 },
 	})
@@ -1044,10 +1088,10 @@ if NEW_NINE_TAIL_FOX then
 	Enemies.Defs.NineTailFox = {
 		id = "NineTailFox",
 		name = "Nine-Tailed Fox",
-		realm = { "Foundation", 1 },
+		realm = { "QiRefining", 9 },
 		weight = 7,
 		boss = true,
-		health = 2600,
+		health = 2950,
 		walkSpeed = 8,
 		runSpeed = 22, -- the player walks at 16
 		aggro = 70,
@@ -1059,8 +1103,8 @@ if NEW_NINE_TAIL_FOX then
 		drops = {
 			{ item = "GreaterSpiritCore", chance = 1 },
 			{ item = "LesserSpiritCore", chance = 1 },
-			{ item = "MarrowWashingPill", chance = 0.08 },
-			{ item = "RootRebirthPill", chance = 0.12 },
+			{ item = "MarrowWashingPill", chance = 0.04 },
+			{ item = "RootRebirthPill", chance = 0.05 },
 		},
 		-- placeholder pool until the user picks this boss's rewards (same as the King's)
 		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
@@ -1092,12 +1136,18 @@ if NEW_SERPENT then
 	local venomSpit: Attack = {
 		kind = "spit", name = "venomSpit", damage = 15, range = 32, minRange = 12, windup = 1.1,
 		recover = 0.6, cooldown = 2.6, radius = 5.5, poison = venom,
+		-- variants: elite and apex venom bites deeper (two stacks)
+		tiers = { elite = { poison = { stacks = 2, seconds = 4 } }, apex = { poison = { stacks = 2, seconds = 4 } } },
 	}
 	local hoodStrike: Attack = {
 		kind = "lunge", name = "hoodStrike", damage = 14, range = 12, minRange = 2, windup = 0.6,
 		recover = 0.8, cooldown = 3.2, length = 8, width = 3.5, dashSpeed = 32, poison = venom,
 		stopPast = -4, reach = 7, -- the muzzle leads the root by 7.1: the root stops 4 short, the head lands 3 past
 		skid = true, hopAfter = true, -- the backslide: pack.hop below
+		-- variants: a young serpent only spits (hug it); an apex spits again from the end of
+		-- its backslide (strike, slide back, spit)
+		minTier = "adult",
+		tiers = { apex = { poison = { stacks = 2, seconds = 4 }, followUp = "venomSpit" } },
 	}
 	Enemies.Defs.VenomSerpent = {
 		id = "VenomSerpent",
@@ -1139,6 +1189,8 @@ if NEW_TORTOISE then
 	local neckSnap: Attack = {
 		kind = "cone", name = "neckSnap", damage = 24, range = 13, windup = 0.7, recover = 0.9,
 		cooldown = 2.5, radius = 14, angle = 60,
+		-- variants: from elite, staying in front after the snap draws the stomp
+		tiers = { elite = { followUp = "quakeStomp" }, apex = { followUp = "quakeStomp" } },
 	}
 	local quakeStomp: Attack = {
 		kind = "slam", name = "quakeStomp", damage = 40, range = 13, windup = 1.2, recover = 1.4,
@@ -1147,6 +1199,7 @@ if NEW_TORTOISE then
 	local shellGuard: Attack = {
 		kind = "guard", name = "shellGuard", damage = 0, range = 16, notBefore = 5, windup = 0.5,
 		recover = 0.5, cooldown = 14, hold = 2.0, reduction = 0.8, arrive = shellSnap,
+		minTier = "adult", -- variants: a young tortoise never shells up
 	}
 	Enemies.Defs.StoneTortoise = {
 		id = "StoneTortoise",
@@ -1189,10 +1242,13 @@ if NEW_SHADOW_MANE then
 		kind = "cone", name = "maneRend", damage = 16, range = 11, windup = 0.6, recover = 1.0,
 		cooldown = 2.4, radius = 12, angle = 90, strikes = { { at = 0.35, radius = 12, angle = 90 } },
 		hopAfter = true, -- fadeBack: pack.hop
+		-- variants: from elite the fade back ends in a shadow step onto your flank
+		tiers = { elite = { followUp = "shadowStep" }, apex = { followUp = "shadowStep" } },
 	}
 	local maneLash: Attack = {
 		kind = "slam", name = "maneLash", damage = 20, range = 8, windup = 0.8, recover = 1.1,
 		cooldown = 6, radius = 12,
+		minTier = "adult", -- variants: a young mane wolf has no lash, so hugging it is safe
 	}
 	Enemies.Defs.ShadowManeWolf = {
 		id = "ShadowManeWolf",
@@ -1234,6 +1290,8 @@ if NEW_CENTIPEDE then
 	local pincerSnap: Attack = {
 		kind = "cone", name = "pincerSnap", damage = 18, range = 14, windup = 0.6, recover = 0.9,
 		cooldown = 2.2, radius = 11, angle = 60,
+		-- variants: from elite, staying close after the pincers draws the sweep
+		tiers = { elite = { followUp = "coilSweep" }, apex = { followUp = "coilSweep" } },
 	}
 	local coilSweep: Attack = {
 		kind = "cone", name = "coilSweep", damage = 22, range = 10, windup = 0.9, recover = 1.0,
@@ -1243,6 +1301,7 @@ if NEW_CENTIPEDE then
 		kind = "burrow", name = "burrowDive", damage = 0, range = 32, minRange = 8, windup = 0.5,
 		recover = 0.1, cooldown = 9, length = 30, width = 5, dashSpeed = 40, stopPast = 0,
 		followUp = "erupt",
+		minTier = "adult", -- variants: a young centipede never burrows
 	}
 	Enemies.Defs.BloodCentipede = {
 		id = "BloodCentipede",
@@ -1281,10 +1340,13 @@ if NEW_RAVEN then
 	local emberFan: Attack = {
 		kind = "barrage", barrage = "embers", name = "emberFan", damage = 18, range = 24, minRange = 8,
 		windup = 1.0, recover = 0.9, cooldown = 6, radius = 3.5, flank = 9,
+		minTier = "adult", -- variants: a young raven has no embers
 	}
 	local windGust: Attack = {
 		kind = "cone", name = "windGust", damage = 8, range = 9, windup = 0.5, recover = 0.7,
 		cooldown = 4, radius = 10, angle = 70, knock = 10, hopAfter = true,
+		-- variants: from elite the gust's hop back ends in the ember fan
+		tiers = { elite = { followUp = "emberFan" }, apex = { followUp = "emberFan" } },
 	}
 	Enemies.Defs.FlameRaven = {
 		id = "FlameRaven",
@@ -1319,10 +1381,13 @@ if NEW_BAT then
 		kind = "charge", name = "bloodDive", damage = 12, range = 16, minRange = 6, windup = 0.6,
 		recover = 0.8, cooldown = 3, length = 14, width = 2.5, dashSpeed = 30, leech = 0.5, skid = true,
 		hopAfter = true,
+		-- variants: elite and apex bats drink more of what they deal
+		tiers = { elite = { leech = 0.75 }, apex = { leech = 0.75 } },
 	}
 	local sonicShriek: Attack = {
 		kind = "howl", name = "sonicShriek", damage = 0, range = 10, windup = 1.0, recover = 0.8,
 		cooldown = 10, radius = 10, slot = true, stun = { kind = "stagger", radius = 10, seconds = 0.6 },
+		minTier = "adult", -- variants: young bats don't shriek
 	}
 	Enemies.Defs.BloodBat = {
 		id = "BloodBat",
@@ -1347,6 +1412,228 @@ if NEW_BAT then
 			closeOpener = true,
 		},
 	} :: Def
+end
+
+--[[ Realm variants (docs/systems/enemies.md "Realm variants"; knobs in Pacing.Variants) ]]
+
+local V = Pacing.Variants
+local TIER_RANK: { [string]: number } = {}
+for i, id in V.ORDER do
+	TIER_RANK[id] = i
+end
+
+-- attack fields that are distances, scaled with the body (reaches, areas, dash lines)
+local SIZE_FIELDS = {
+	"range", "minRange", "length", "width", "radius", "reach", "flankPoint", "ring", "heartRadius",
+	"finalRadius", "distance", "landMin", "landMax", "coilRadius", "boltRadius", "flank", "mouth",
+	"mouthHeight", "perch", "arc", "dashSpeed", "stopPast",
+}
+
+local function stageKey(realm: { any }): string
+	return Realms.get(realm[1], realm[2]).key
+end
+
+-- The tier a beast of `def` takes at stage `key` (Pacing.Variants: the stage gap picks it,
+-- and a higher major realm than the def's own is always apex).
+function Enemies.tierAt(def: Def, key: string): string
+	local base = Realms.get(def.realm[1], def.realm[2])
+	local stage = Realms.ByKey[key] or base
+	local gap = Realms.index(stage.major, stage.minor) - Realms.index(base.major, base.minor)
+	if Realms.majorIndex(stage.major) > Realms.majorIndex(base.major) then
+		return "apex"
+	end
+	local chosen = V.ORDER[1]
+	for _, id in V.ORDER do
+		if gap >= V.TIERS[id].at then
+			chosen = id
+		end
+	end
+	return chosen
+end
+
+-- The stage a tier sits at for `def` when only the tier is given (the admin panel, a
+-- zone with a Tier and no Realm): young one stage below its own, the others at their `at`.
+function Enemies.stageForTier(def: Def, tier: string): string
+	local t = V.TIERS[tier]
+	local offset = if not t then 0 elseif t.at == -math.huge then -1 else t.at
+	local base = Realms.index(def.realm[1], def.realm[2])
+	local stage = Realms.Stages[math.clamp(base + offset, 1, #Realms.Stages)]
+	return stage.key
+end
+
+local function merge(into: { [string]: any }, overrides: { [string]: any }?)
+	for k, v in overrides or {} do
+		into[k] = if v == NONE then nil else v
+	end
+end
+
+local cache: { [string]: Def } = {}
+
+-- The def as a beast spawned at stage `key` (e.g. "QC5"; nil: its own realm) and `tier`
+-- (nil: picked by Enemies.tierAt) fights: health and damage follow the curve from the def's
+-- realm to that stage, the tier's knobs scale size, speed, cadence and rewards, `minTier`
+-- attacks it hasn't reached are gone and `tiers` overrides for it applied. The base def
+-- itself at its own realm as an adult, and for bosses (they never take variants). Built
+-- once per (id, stage, tier) and shared by the server and every client (from the model's
+-- EnemyType, Stage and Tier attributes: Enemies.forModel), so both read the same numbers.
+function Enemies.variant(id: string, key: string?, tier: string?): Def?
+	local base = Enemies.Defs[id]
+	if not base or base.boss then
+		return base
+	end
+	local own = stageKey(base.realm)
+	local stageId = if key and Realms.ByKey[key] then key elseif tier then Enemies.stageForTier(base, tier) else own
+	local tierId = if tier and V.TIERS[tier] then tier else Enemies.tierAt(base, stageId)
+	if stageId == own and tierId == "adult" then
+		return base
+	end
+	local cacheKey = `{id}/{stageId}/{tierId}`
+	local cached = cache[cacheKey]
+	if cached then
+		return cached
+	end
+	local knobs = V.TIERS[tierId]
+	local rank = TIER_RANK[tierId]
+	local size, speed, cadence = knobs.size, knobs.speed, knobs.cadence
+	-- the curve from the def's realm to this one, as the baseline stats it was authored to
+	local B = Pacing.BeastBaseline
+	local hpScale = (B.power[stageId] or 1) / (B.power[own] or 1) * knobs.health
+	local dmgScale = (B.health[stageId] or 1) / (B.health[own] or 1) * knobs.damage
+
+	local copies: { [Attack]: Attack } = {}
+	local function copyAttack(a: Attack): Attack
+		local done = copies[a]
+		if done then
+			return done
+		end
+		local c = table.clone(a) :: any
+		copies[a] = c
+		merge(c, a.tiers and a.tiers[tierId])
+		c.tiers = nil
+		c.damage = (c.damage or 0) * dmgScale
+		if c.squeezeDamage then
+			c.squeezeDamage *= dmgScale
+		end
+		for _, field in SIZE_FIELDS do
+			if type(c[field]) == "number" then
+				c[field] *= size
+			end
+		end
+		if typeof(c.offset) == "Vector3" then
+			c.offset *= size
+		end
+		for _, field in { "stun", "wave", "patch" } do
+			local t = c[field]
+			if type(t) == "table" and type(t.radius) == "number" then
+				t = table.clone(t)
+				t.radius *= size
+				c[field] = t
+			end
+		end
+		if c.strikes then
+			local strikes = {}
+			for i, st in c.strikes do
+				strikes[i] = { at = st.at, radius = st.radius * size, angle = st.angle }
+			end
+			c.strikes = strikes
+		end
+		c.cooldown = (c.cooldown or 0) * cadence
+		if c.notBefore then
+			c.notBefore *= cadence
+		end
+		if c.arrive then
+			c.arrive = copyAttack(c.arrive)
+		end
+		return c :: Attack
+	end
+	local function allowed(a: Attack): boolean
+		return a.minTier == nil or rank >= (TIER_RANK[a.minTier] or 1)
+	end
+
+	local def = table.clone(base) :: any
+	local overrides = base.tiers and base.tiers[tierId]
+	if overrides and type(overrides.pack) == "table" and base.pack then
+		-- `pack` merges one level deep (circle, hop, howl, closeOpener)
+		local pack = table.clone(base.pack) :: any
+		merge(pack, overrides.pack)
+		overrides = table.clone(overrides)
+		overrides.pack = pack
+	end
+	merge(def, overrides)
+	def.tiers = nil
+	def.tier, def.stage, def.scale = tierId, stageId, size
+	local stage = Realms.ByKey[stageId]
+	def.realm = { stage.major, stage.minor }
+	def.name = if knobs.name ~= "" then `{knobs.name} {base.name}` else base.name
+	def.health = base.health * hpScale
+	def.walkSpeed *= speed
+	def.runSpeed *= speed
+	def.weight *= size
+	if def.keepAway then
+		def.keepAway *= size
+	end
+	if def.closeIn then
+		def.closeIn *= size
+	end
+	def.qiDrop = math.max(1, math.floor(base.qiDrop * knobs.reward + 0.5))
+	local lo = math.max(0, math.floor(base.stones[1] * knobs.reward + 0.5))
+	def.stones = { lo, math.max(lo, math.floor(base.stones[2] * knobs.reward + 0.5)) }
+
+	if base.attacks then
+		local pool = {}
+		for _, a in base.attacks do
+			if allowed(a) then
+				table.insert(pool, copyAttack(a))
+			end
+		end
+		def.attacks = pool
+	end
+	if allowed(base.attack) or not def.attacks then
+		def.attack = copyAttack(base.attack)
+	else
+		-- the opener isn't unlocked yet: open with the first pool move that can start alone
+		local opener = nil
+		for _, a in def.attacks do
+			if not a.chainOnly then
+				opener = a
+				break
+			end
+		end
+		def.attack = opener or copyAttack(base.attack)
+	end
+	local pack = def.pack
+	if pack then
+		pack = table.clone(pack)
+		if pack.howl then
+			pack.howl = copyAttack(pack.howl)
+		end
+		if pack.hop then
+			local hop = table.clone(pack.hop)
+			hop.distance *= size
+			hop.arc *= size
+			hop.cooldown *= cadence
+			pack.hop = hop
+		end
+		if pack.circle then
+			local circle = table.clone(pack.circle)
+			circle.radius *= size
+			circle.speed *= speed
+			pack.circle = circle
+		end
+		def.pack = pack
+	end
+	cache[cacheKey] = def
+	return def :: Def
+end
+
+-- The def a live enemy model fights with (its EnemyType, Stage and Tier attributes).
+function Enemies.forModel(model: Instance): Def?
+	local id = model:GetAttribute("EnemyType")
+	if type(id) ~= "string" then
+		return nil
+	end
+	local key, tier = model:GetAttribute("Stage"), model:GetAttribute("Tier")
+	return Enemies.variant(id, if type(key) == "string" then key else nil, if type(tier) == "string" then tier else nil)
 end
 
 return Enemies

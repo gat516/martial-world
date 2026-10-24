@@ -13,6 +13,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Cultivation = require(script.Parent.Parent.Cultivation)
 local EnemyService = require(script.Parent.Parent.EnemyService)
+local Herbarium = require(script.Parent.Parent.Herbarium)
 local Inventory = require(script.Parent.Parent.Inventory)
 local PlayerData = require(script.Parent.Parent.PlayerData)
 local Treasures = require(script.Parent.Parent.Treasures)
@@ -40,9 +41,12 @@ function GuardedHerb.start(run: any): boolean
 	local herbId: string = def.herb
 	local herb = Herbs.Defs[herbId]
 	local guardianDef = Enemies.Defs[def.guardian]
-	local template = herbModels:FindFirstChild(herbId) :: Model?
+	local plant, templateScale = Herbs.clone(herbModels, herbId)
 	local spot = Treasures.randomSpot()
-	if not (herb and guardianDef and template and spot) then
+	if not (herb and guardianDef and plant and spot) then
+		if plant then
+			plant:Destroy()
+		end
 		return false
 	end
 
@@ -54,8 +58,7 @@ function GuardedHerb.start(run: any): boolean
 	beacon:PivotTo(CFrame.new(spot) * beaconTemplate:GetPivot().Rotation)
 	tint(beacon, herb.color)
 	beacon.Parent = site
-	local plant = template:Clone()
-	plant:ScaleTo(template:GetScale() * herb.scale * def.giantScale)
+	plant:ScaleTo(templateScale * herb.scale * def.giantScale)
 	plant:PivotTo(CFrame.new(spot) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	plant.Parent = site
 
@@ -99,6 +102,7 @@ function GuardedHerb.start(run: any): boolean
 			return
 		end
 		data.seeds[herbId] = (data.seeds[herbId] or 0) + def.seeds
+		Herbarium.record(player, herbId, 1, 1, nil)
 		Inventory.grant(player, herbId, 1, spot) -- also pushes state
 		Cultivation.markActive(player)
 		run.announce(`{player.DisplayName} gathered the {herb.name}!`)

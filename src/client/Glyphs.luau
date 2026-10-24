@@ -46,6 +46,7 @@ local BY_WORD: { [string]: string } = {
 	open = "chest",
 	claim = "chest",
 	take = "bag",
+	store = "chest", -- the haul's Store all
 	study = "insight",
 	touch = "qi",
 	absorb = "qi",

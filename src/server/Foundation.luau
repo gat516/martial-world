@@ -1,0 +1,634 @@
+--!strict
+-- Foundation (docs/systems/cultivation.md "Foundation grade"). What a player
+-- experiences while at a stage builds the foundation of the breakthrough out of it,
+-- as a percent of the stage's target (Pacing.Foundation): 100% is full, more goes
+-- past it up to MAX_PERCENT (each percent past 100 costs OVER_COST times more), and every graded stage adds BONUS_TO_FULL by 100% and BONUS_PAST_FULL more by MAX_PERCENT
+-- to max health and power. Players see only the percent ("Foundation 86%"; owner,
+-- 2026-10-24): no grade words, no count or target.
+--
+-- Experiences are keys earned once per profile (data.foundation.seen). Most carry the
+-- pool they belong to, `@<band>`: the realm band's region (Herbs.Regions: InnerWilds
+-- QC1-4, MiddleWilds QC5-9, OuterWilds QR1-5, DeepWilds QR6-FE3, FarReaches FE4-9),
+-- so each band has its own fresh pool. A kill's band is the beast's own realm (a
+-- variant's spawn realm); everything else uses the player's realm (the testbed has no
+-- regions, and Deep Wilds and the Far Reaches aren't on the map yet).
+--   Hunt      "hunt:<enemy>:<tier>@<band>"  first kill of a beast at a tier in a band
+--   Boss      "boss:<enemy>@<band>"         first kill of a boss (counts double)
+--   Home      "home:tier:<n>@<band>"        first harvest of a herb tier at or over the band's
+--             "home:mut:<mutation>@<band>"  first harvest with a rare mutation (MUTATION_BONUS)
+--             "home:book:<tier>"            a tier's Herbarium page completed (server Herbarium)
+--   Dao       "dao:<class>:<level>"         a weapon Dao level reached
+--   Discover  "discover:<cache id>"         a world cache or weapon rack claimed
+--   World     "world:<event id>@<band>"     taking part in a world event
+--             "world:treasure:<weather>@<band>"  claiming a heavenly treasure
+--   Deed      Pacing.Foundation.DEEDS: once per stage (data.foundation.deeds, reset at
+--             the breakthrough): Hunter, Gardener, Haul, Daring
+-- A kill from a beast more than FIT_BELOW stages under the player earns nothing.
+-- The weighted count this stage (data.foundation.count) against TARGET gives the
+-- percent at the breakthrough (Cultivation.advance calls `seal`), stored by stage key
+-- in data.foundation.grades (a number; old profiles' words read as LEGACY). Experiences
+-- past what MAX_PERCENT needs carry into the next stage's count.
+-- `temper` raises old percents later, never past TEMPER_MAX (100%): the heart-demon
+-- trial (HeartDemon.luau) and seclusion's tempering items (Seclusion.luau).
+-- The hook stages (below Pacing.Foundation.FROM, QC4) have no foundation: nothing is
+-- earned there (the pools stay fresh for QC4), nothing is sealed or shown, and no
+-- unsteady toast fires (below UNSTEADY_BELOW percent). Each experience or deed earned
+-- pops a "+ Foundation" line (Effect "reward", a small Rewards line).
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local Realms = require(ReplicatedStorage.Shared.Realms)
+local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Spawns = require(ReplicatedStorage.Shared.Spawns)
+local Regions = require(ReplicatedStorage.Shared.Regions)
+local Weather = require(ReplicatedStorage.Shared.Weather)
+local Wilds = require(ReplicatedStorage.Shared.Config).Wilds
+local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
+local EventDefs = require(ReplicatedStorage.Shared.WorldEvents)
+local PlayerData = require(script.Parent.PlayerData)
+
+local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
+
+local Config = Pacing.Foundation
+local DEEDS = Config.DEEDS
+local ROMAN = { "I", "II", "III", "IV", "V" }
+
+local Foundation = {}
+
+export type Hint = { category: string, text: string }
+
+-- Set by Cultivation: pushes the PlayerState snapshot after an experience.
+Foundation.onChanged = nil :: ((Player) -> ())?
+
+-- Running world events with no location (a wilds-wide surge): any kill while one
+-- runs counts as taking part. Kept by WorldEvents.
+Foundation.unlocated = {} :: { [string]: boolean }
+
+-- The world's caches and racks (WorldCaches registers them): the Regions id each sits
+-- in ("" for none: the testbed) and the stage index it needs, for the Discover hint.
+local caches: { [string]: { region: string, need: number } } = {}
+
+local function stageOf(data: PlayerData.Data): Realms.Stage
+	return Realms.get(data.realm.major, data.realm.minor)
+end
+
+local function indexOf(data: PlayerData.Data): number
+	return Realms.index(data.realm.major, data.realm.minor)
+end
+
+local FROM_STAGE = Realms.ByKey[Config.FROM]
+local FROM = if FROM_STAGE then Realms.index(FROM_STAGE.major, FROM_STAGE.minor) else 1
+
+-- Whether the player's stage has a foundation (from Config.FROM on; the hook has none).
+function Foundation.active(data: PlayerData.Data): boolean
+	return indexOf(data) >= FROM
+end
+
+--[[ Bands ]]
+
+-- The realm band (a Herbs.Regions entry) a stage index belongs to.
+local function bandAt(at: number): Herbs.SeedRegion
+	local band = Herbs.Regions[1]
+	for _, r in Herbs.Regions do
+		if at >= Realms.index(r.from[1], r.from[2]) then
+			band = r
+		end
+	end
+	return band
+end
+Foundation.bandAt = bandAt
+
+local function bandOf(data: PlayerData.Data): Herbs.SeedRegion
+	return bandAt(indexOf(data))
+end
+
+--[[ Percent ]]
+
+function Foundation.target(stage: Realms.Stage): number
+	return Config.TARGET[stage.key] or Config.DEFAULT_TARGET
+end
+
+-- The percent `count` experiences make against `target`, 0..MAX_PERCENT.
+function Foundation.percentFor(count: number, target: number): number
+	if target <= 0 then
+		return 100
+	end
+	-- up to the target: 100%; past it each percent costs OVER_COST times as much
+	local share = math.min(count, target) / target + math.max(0, count - target) / (target * Config.OVER_COST)
+	return math.clamp(math.floor(share * 100 + 0.5), 0, Config.MAX_PERCENT)
+end
+
+-- A stored stage value as a percent (profiles from before percents hold a word).
+local function percentOf(value: any): number
+	if type(value) == "number" then
+		return value
+	end
+	return if type(value) == "string" then Config.LEGACY[value] or 0 else 0
+end
+Foundation.percentOf = percentOf
+
+-- The percent the current stage would get if the player broke through now.
+function Foundation.percent(data: PlayerData.Data): number
+	return Foundation.percentFor(data.foundation.count, Foundation.target(stageOf(data)))
+end
+
+export type Tempered = { key: string, fromPercent: number, toPercent: number }
+
+-- Old stages that tempering can still mend (under TEMPER_MAX), lowest percent first
+-- (ties: the earliest stage).
+local function temperable(data: PlayerData.Data): { { key: string, percent: number, at: number } }
+	local open = {}
+	for key, value in data.foundation.grades do
+		local stage = Realms.ByKey[key]
+		local percent = percentOf(value)
+		if stage and percent < Config.TEMPER_MAX then
+			table.insert(open, { key = key, percent = percent, at = Realms.index(stage.major, stage.minor) })
+		end
+	end
+	table.sort(open, function(a, b)
+		if a.percent ~= b.percent then
+			return a.percent < b.percent
+		end
+		return a.at < b.at
+	end)
+	return open
+end
+
+-- The old stage the next tempering would raise (nil: nothing left to mend).
+function Foundation.nextTemper(data: PlayerData.Data): string?
+	local open = temperable(data)
+	return if open[1] then open[1].key else nil
+end
+
+-- Raise up to `steps` old stages `points` each (default TEMPER_POINTS), the lowest
+-- percent first (ties: the earliest stage), never past TEMPER_MAX (100%: tempering
+-- mends, it never exceeds; past 100% is earned only, owner 2026-10-24). The heart-demon
+-- trial and seclusion's tempering items call it; the caller refreshes stats. Returns
+-- what changed.
+function Foundation.temper(data: PlayerData.Data, steps: number, points: number?): { Tempered }
+	local open = temperable(data)
+	local changed: { Tempered } = {}
+	for i = 1, math.min(steps, #open) do
+		local entry = open[i]
+		local to = math.min(Config.TEMPER_MAX, entry.percent + (points or Config.TEMPER_POINTS))
+		table.insert(changed, { key = entry.key, fromPercent = entry.percent, toPercent = to })
+		data.foundation.grades[entry.key] = to
+	end
+	return changed
+end
+
+-- Deepening (owner, 2026-10-24): what tempering may not do, raise an old stage past
+-- 100%, up to DEEPEN_MAX (only living through a stage reaches MAX_PERCENT). Raises one
+-- old stage `points`: the lowest one already at 100% or more and under DEEPEN_MAX
+-- (ties: the earliest stage), so it lifts a stage that was earned full but not deep.
+-- `reason` names the source, counted in data.foundation.deepened (later sources: "heartDemon" today; heaven-
+-- and-earth treasures and feats above your realm next). The caller refreshes stats.
+-- Returns the change, or nil when no stage qualifies.
+function Foundation.deepen(data: PlayerData.Data, points: number, reason: string): Tempered?
+	local best: { key: string, percent: number, at: number }? = nil
+	for key, value in data.foundation.grades do
+		local stage = Realms.ByKey[key]
+		local percent = percentOf(value)
+		if stage and percent >= 100 and percent < Config.DEEPEN_MAX then
+			local at = Realms.index(stage.major, stage.minor)
+			if not best or percent < best.percent or (percent == best.percent and at < best.at) then
+				best = { key = key, percent = percent, at = at }
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	local to = math.min(Config.DEEPEN_MAX, best.percent + points)
+	data.foundation.grades[best.key] = to
+	data.foundation.deepened[reason] = (data.foundation.deepened[reason] or 0) + 1
+	return { key = best.key, fromPercent = best.percent, toPercent = to }
+end
+
+-- Card stat rows for tempered stages (Rewards card `stats`): "QC5  60% -> 100%".
+function Foundation.temperStats(tempered: { Tempered }): { { name: string, from: string, to: string } }
+	local rows = {}
+	for _, t in tempered do
+		table.insert(rows, { name = t.key, from = `{t.fromPercent}%`, to = `{t.toPercent}%` })
+	end
+	return rows
+end
+
+-- Whether a percent is below UNSTEADY_BELOW (the unsteady toast, a harder tribulation).
+function Foundation.unsteady(percent: number): boolean
+	return percent < Config.UNSTEADY_BELOW
+end
+
+-- The summed bonus of every graded stage, as a multiplier (1 = none) on max
+-- health and power.
+function Foundation.multiplier(data: PlayerData.Data): number
+	local total = 0
+	for _, value in data.foundation.grades do
+		local p = percentOf(value)
+		total += Config.BONUS_TO_FULL * math.min(p, 100) / 100
+			+ Config.BONUS_PAST_FULL * math.max(0, p - 100) / (Config.MAX_PERCENT - 100)
+	end
+	return 1 + total
+end
+
+-- A heaven-defier's tribulation strike damage multiplier, from the pending percent.
+function Foundation.tribulationDamage(data: PlayerData.Data): number
+	return if Foundation.unsteady(Foundation.percent(data)) then Config.UNSTEADY_TRIBULATION else 1
+end
+
+-- Settle the stage being left and start the next one's count (with the carry) and deeds. Called by
+-- Cultivation.advance before the realm moves. Returns the sealed percent (nil for a
+-- hook stage, which has no foundation).
+function Foundation.seal(data: PlayerData.Data): number?
+	local stage = stageOf(data)
+	local active = Foundation.active(data)
+	local percent = Foundation.percent(data)
+	-- what's past MAX_PERCENT's need carries into the next stage (rebalance 2026-10-24)
+	local carry = 0
+	if active then
+		data.foundation.grades[stage.key] = percent
+		local target = Foundation.target(stage)
+		local full = target * (1 + (Config.MAX_PERCENT - 100) / 100 * Config.OVER_COST)
+		carry = math.max(0, data.foundation.count - full)
+	end
+	data.foundation.count = carry
+	data.foundation.warned = false
+	data.foundation.deeds = { kills = {}, herbs = {}, done = {} }
+	return if active then percent else nil
+end
+
+--[[ Earning ]]
+
+local function changed(player: Player)
+	if Foundation.onChanged then
+		task.spawn(Foundation.onChanged, player)
+	end
+end
+
+-- The earn pop: a small "+ Foundation" line (Rewards small tier).
+local EARN_COLOR = Color3.fromRGB(150, 220, 180)
+local function earned(player: Player)
+	effectRemote:FireClient(player, "reward", { tier = "small", text = "+ Foundation", color = EARN_COLOR })
+	changed(player)
+end
+
+-- Record experience `key` of `category` if it's new. Returns whether it counted.
+function Foundation.earn(player: Player, category: string, key: string): boolean
+	local data = PlayerData.get(player)
+	local weight = Config.WEIGHTS[category]
+	if not (data and weight) or data.foundation.seen[key] or not Foundation.active(data) then
+		return false
+	end
+	data.foundation.seen[key] = true
+	data.foundation.count += weight
+	earned(player)
+	return true
+end
+
+-- Finish deed `id` for this stage if it isn't yet.
+local function deed(player: Player, data: PlayerData.Data, id: string)
+	local done = data.foundation.deeds.done
+	if done[id] or not Foundation.active(data) then
+		return
+	end
+	done[id] = true
+	data.foundation.count += Config.WEIGHTS.Deed
+	earned(player)
+end
+
+-- Hunter progress: kills counted, each beast at most perKind.
+local function hunted(data: PlayerData.Data): number
+	local n = 0
+	for _, k in data.foundation.deeds.kills do
+		n += math.min(k, DEEDS.Hunter.perKind)
+	end
+	return n
+end
+
+local function countKeys(t: { [string]: any }): number
+	local n = 0
+	for _ in t do
+		n += 1
+	end
+	return n
+end
+
+--[[ Hooks the game calls ]]
+
+function Foundation.kill(player: Player, def: Enemies.Def)
+	local data = PlayerData.get(player)
+	if not data then
+		return
+	end
+	local here = indexOf(data)
+	local at = Realms.index(def.realm[1], def.realm[2])
+	if at >= here - Config.FIT_BELOW then
+		local band = bandAt(at).id
+		if def.boss then
+			Foundation.earn(player, "Boss", `boss:{def.id}@{band}`)
+		else
+			Foundation.earn(player, "Hunt", `hunt:{def.id}:{def.tier or "adult"}@{band}`)
+		end
+	end
+	local deeds = data.foundation.deeds
+	if not def.boss and at >= here - DEEDS.Hunter.below and not deeds.done.Hunter then
+		deeds.kills[def.id] = (deeds.kills[def.id] or 0) + 1
+		if hunted(data) >= DEEDS.Hunter.kills then
+			deed(player, data, "Hunter")
+		end
+	end
+	if at >= here + DEEDS.Daring.above then
+		deed(player, data, "Daring")
+	end
+	for id in Foundation.unlocated do
+		Foundation.world(player, id)
+	end
+end
+
+-- A harvest of herb `id` with its mutation ids (Garden.harvest).
+function Foundation.harvest(player: Player, id: string, mutations: { string }?)
+	local data = PlayerData.get(player)
+	local herb = Herbs.Defs[id]
+	if not (data and herb) then
+		return
+	end
+	local band = bandOf(data)
+	if herb.tier >= band.tier then
+		Foundation.earn(player, "Home", `home:tier:{herb.tier}@{band.id}`)
+	end
+	for _, m in mutations or {} do
+		local def = Herbs.Mutations[m]
+		if def and def.bonus >= Config.MUTATION_BONUS then
+			Foundation.earn(player, "Home", `home:mut:{m}@{band.id}`)
+		end
+	end
+	local herbs = data.foundation.deeds.herbs
+	herbs[id] = true
+	if countKeys(herbs) >= DEEDS.Gardener.kinds then
+		deed(player, data, "Gardener")
+	end
+end
+
+-- A Store all that banked `rawQi` raw qi (Haul.storeAll).
+function Foundation.stored(player: Player, rawQi: number)
+	local data = PlayerData.get(player)
+	if data and rawQi >= stageOf(data).dantian * DEEDS.Haul.share then
+		deed(player, data, "Haul")
+	end
+end
+
+function Foundation.dao(player: Player, class: string)
+	local data = PlayerData.get(player)
+	local entry = data and data.dao[class]
+	if entry then
+		Foundation.earn(player, "Dao", `dao:{class}:{entry.level}`)
+	end
+end
+
+-- A cache or rack the map placed (WorldCaches), for the Discover hint.
+function Foundation.registerCache(id: string, position: Vector3, need: string?)
+	local region = Regions.at(position)
+	local stage = need and Realms.ByKey[need]
+	caches[id] = {
+		region = if region then region.id else "",
+		need = if stage then Realms.index(stage.major, stage.minor) else 0,
+	}
+end
+
+function Foundation.discover(player: Player, cacheId: string)
+	Foundation.earn(player, "Discover", `discover:{cacheId}`)
+end
+
+-- A world event taken part in (`<event id>`) or a treasure claimed
+-- (`treasure:<weather>`), in the player's band.
+function Foundation.world(player: Player, key: string)
+	local data = PlayerData.get(player)
+	if data then
+		Foundation.earn(player, "World", `world:{key}@{bandOf(data).id}`)
+	end
+end
+
+--[[ Open experiences, for the Self card ]]
+
+local TIER_WORD = { young = "a young ", adult = "", elite = "an elite ", apex = "an apex " }
+
+local function article(name: string): string
+	return if string.find(name, "^[AEIOU]") then "an " else "a "
+end
+
+-- Beasts the player could meet in a stage-index range: every def at its own realm,
+-- and with realm variants on, every ambient pack's range at the tier it gives.
+local function candidates(lo: number, hi: number): { { def: Enemies.Def, at: number, tier: string } }
+	local list = {}
+	local function add(def: Enemies.Def?, at: number, tier: string)
+		if def and at >= lo and at <= hi then
+			table.insert(list, { def = def, at = at, tier = tier })
+		end
+	end
+	for _, def in Enemies.Defs do
+		add(def, Realms.index(def.realm[1], def.realm[2]), "adult")
+	end
+	if Wilds.VARIANTS then
+		for _, packs in Spawns.Encounters do
+			for _, pack in packs do
+				local a = pack.realm and Realms.ByKey[pack.realm[1]]
+				local b = pack.realm and Realms.ByKey[pack.realm[2]]
+				if a and b then
+					for i = math.max(lo, Realms.index(a.major, a.minor)), math.min(hi, Realms.index(b.major, b.minor)) do
+						for id in pack.beasts do
+							local def = Enemies.Defs[id]
+							if def and not def.boss then
+								add(def, i, Enemies.tierAt(def, Realms.Stages[i].key))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return list
+end
+
+-- The open deeds, with their progress, in DEED_ORDER.
+local function deedHints(data: PlayerData.Data): { Hint }
+	local deeds = data.foundation.deeds
+	local list = {}
+	for _, id in Config.DEED_ORDER do
+		if not deeds.done[id] then
+			local text, progress = nil, ""
+			if id == "Hunter" then
+				local d = DEEDS.Hunter
+				text = `Slay {d.kills} beasts near your realm, no more than {d.perKind} of a kind,`
+				progress = ` ({hunted(data)}/{d.kills})`
+			elseif id == "Gardener" then
+				text = `Harvest {DEEDS.Gardener.kinds} different herbs`
+				progress = ` ({countKeys(deeds.herbs)}/{DEEDS.Gardener.kinds})`
+			elseif id == "Haul" then
+				text = "Bring home a nearly full dantian of raw qi and store it"
+			elseif id == "Daring" then
+				text = `Defeat a beast {DEEDS.Daring.above} stages above you`
+			end
+			if text then
+				table.insert(list, { category = "Deed", text = `{text} this stage{progress}` })
+			end
+		end
+	end
+	return list
+end
+
+-- Up to Config.HINTS experiences the player hasn't earned, all from their own band
+-- (or a beast within HINT_BELOW..HINT_ABOVE stages): beasts near their realm first,
+-- a deed, home, Dao, discovery and the world, and a boss last, as the fast road.
+-- Server-built for the PlayerState push.
+function Foundation.hints(data: PlayerData.Data): { Hint }
+	local seen = data.foundation.seen
+	local here = indexOf(data)
+	local band = bandAt(here)
+	local hunts, bosses = {}, {}
+	local listed: { [string]: boolean } = {}
+	for _, c in candidates(math.max(1, here - Config.HINT_BELOW), here + Config.HINT_ABOVE) do
+		local def = c.def
+		local where = bandAt(c.at).id
+		local key = if def.boss then `boss:{def.id}@{where}` else `hunt:{def.id}:{c.tier}@{where}`
+		if not (seen[key] or listed[key]) then
+			listed[key] = true
+			local text = if def.boss
+				then `The fast road: defeat the {def.name}`
+				else `Slay {if c.tier == "adult" then article(def.name) else TIER_WORD[c.tier] or ""}{def.name}`
+			table.insert(if def.boss then bosses else hunts, { at = c.at, hint = { category = if def.boss then "Boss" else "Hunt", text = text } })
+		end
+	end
+	local function closest(a, b)
+		local ga, gb = math.abs(a.at - here), math.abs(b.at - here)
+		if ga ~= gb then
+			return ga < gb
+		end
+		if a.at ~= b.at then
+			return a.at < b.at
+		end
+		return a.hint.text < b.hint.text
+	end
+	table.sort(hunts, closest)
+	table.sort(bosses, closest)
+
+	local list: { Hint } = {}
+	local function add(hint: Hint?)
+		if hint and #list < Config.HINTS and not table.find(list, hint) then
+			table.insert(list, hint)
+		end
+	end
+	local deeds = deedHints(data)
+	add(hunts[1] and hunts[1].hint)
+	add(deeds[1])
+	-- home: the band's herb tier not yet harvested here, else a rare mutation, else
+	-- an open Herbarium page up to the band's tier
+	local tierLeft = false
+	for _, herb in Herbs.Defs do
+		if herb.tier == band.tier then
+			tierLeft = not seen[`home:tier:{band.tier}@{band.id}`]
+			break
+		end
+	end
+	if tierLeft then
+		add({ category = "Home", text = `Harvest a tier {ROMAN[band.tier] or band.tier} herb` })
+	else
+		local best: string? = nil
+		for id, m in Herbs.Mutations do
+			if m.bonus >= Config.MUTATION_BONUS and not seen[`home:mut:{id}@{band.id}`] then
+				if not best or m.bonus < Herbs.Mutations[best].bonus then
+					best = id
+				end
+			end
+		end
+		if best then
+			add({ category = "Home", text = `Harvest a {Herbs.Mutations[best].name} herb` })
+		else
+			for t = 1, math.min(band.tier, #ROMAN) do
+				if not seen[`home:book:{t}`] then
+					add({ category = "Home", text = `Complete the tier {ROMAN[t]} page of your Herbarium` })
+					break
+				end
+			end
+		end
+	end
+	add(hunts[2] and hunts[2].hint)
+	-- Dao: the next level of the equipped weapon's class
+	local class = WeaponDefs.classOf(data.weapons.equipped)
+	local entry = data.dao[class]
+	local level = if entry then entry.level else 0
+	local classDef = WeaponDefs.Classes[class]
+	if classDef and level < Pacing.Weapons.MAX_LEVEL then
+		add({ category = "Dao", text = `Raise your {classDef.dao} to {level + 1}` })
+	end
+	-- Discover: only when an unclaimed cache the player can open lies in their band's
+	-- region (or in no region: the testbed)
+	local inBand, anywhere = false, false
+	for id, c in caches do
+		if not (seen[`discover:{id}`] or data.caches[id]) and c.need <= here then
+			if c.region == band.id then
+				inBand = true
+			elseif c.region == "" then
+				anywhere = true
+			end
+		end
+	end
+	if inBand then
+		add({ category = "Discover", text = `Find a hidden cache in the {band.name}` })
+	elseif anywhere then
+		add({ category = "Discover", text = "Find a hidden cache or weapon rack" })
+	end
+	-- World: an event, else a heavenly treasure, not yet met in this band
+	local eventLeft = false
+	for id in EventDefs.Defs do
+		if not seen[`world:{id}@{band.id}`] then
+			eventLeft = true
+		end
+	end
+	if eventLeft then
+		add({ category = "World", text = "Take part in a world event" })
+	else
+		for id, w in Weather.Defs do
+			if (w.treasures or 0) > 0 and not seen[`world:treasure:{id}@{band.id}`] then
+				add({ category = "World", text = "Claim a heavenly treasure" })
+				break
+			end
+		end
+	end
+	add(deeds[2])
+	add(hunts[3] and hunts[3].hint)
+	add(deeds[3])
+	local boss = bosses[1] and bosses[1].hint
+	add(boss)
+	-- the fast road always shows when one is open: it replaces the last line
+	if boss and not table.find(list, boss) and #list > 0 then
+		list[#list] = boss
+	end
+	return list
+end
+
+-- The current stage's foundation, for the PlayerState push. A hook stage sends only
+-- `hidden` (the Self card hides the row) and the bonus.
+function Foundation.state(data: PlayerData.Data): { [string]: any }
+	if not Foundation.active(data) then
+		return { hidden = true, bonus = Foundation.multiplier(data) - 1 }
+	end
+	local percents = {}
+	for key, value in data.foundation.grades do
+		percents[key] = percentOf(value)
+	end
+	local percent = Foundation.percent(data)
+	return {
+		percent = percent,
+		max = Config.MAX_PERCENT,
+		percents = percents,
+		bonus = Foundation.multiplier(data) - 1,
+		-- past HIDDEN_FROM the hints go quiet; the Self card reads `veiled` as
+		-- "Beyond this, the Dao hides its lessons."
+		hints = if Foundation.percent(data) >= Config.HIDDEN_FROM then {} else Foundation.hints(data),
+		veiled = Foundation.percent(data) >= Config.HIDDEN_FROM,
+	}
+end
+
+return Foundation

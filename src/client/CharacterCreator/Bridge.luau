@@ -105,6 +105,12 @@ function Bridge.editSlot(id: string): (boolean, any)
 	return invoke("edit", id)
 end
 
+-- Edit look from the world: opens the creator on the played slot's look,
+-- { id, mode = "edit", look, firstName, played = true }
+function Bridge.editPlayed(): (boolean, any)
+	return invoke("editPlayed")
+end
+
 function Bridge.cancel(): (boolean, any)
 	return invoke("cancel")
 end

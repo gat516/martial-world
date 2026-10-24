@@ -33,9 +33,9 @@ Back until Codex sheet B6 ([codex-sheets](codex-sheets.md)) replaces them.
 ## Restyled screens (`assets/Hud.rbxmx`)
 | Piece | Path | Look |
 |---|---|---|
-| Seated tiles | `Stack.CultivatePrompt.*` | `tile_neutral` frame (Break Through: `tile_gold`, gold glyph and caption), glyph at 50 % centred on the tile (the frame art's hole is centred on the tile to 0.04 px), each icon cropped to its drawn area with `ImageRectOffset`/`ImageRectSize` (the Root icon's rect comes from `SelfCard.rootIconRect`) so its long side fills the box: 8.0/8.0/8.4/8.3 px to the hole (left/right/top/bottom; phone 7.4/7.5/7.8/7.7), caption under the tile (Builder Sans Bold 12, cream, ink stroke, no pill); the seal dot (`Badge`) is a `ruby_stud` on the top-right corner |
-| Calm lotus | `Stack.CalmToggle` | the HUD's round seal (`figma/hud_round_seal.png`) with `emblem_lotus`, centred on the tiles' centre line (`placeLotus` sets it from the row's offset and the tile height) |
-| Force Breakthrough | `Stack.BreakthroughButton` | `response_button_hi` sliced `Rect(200, 53, 860, 54)` at 0.374, the breakthrough glyph in its left ring, label centred between the ring and the chevron |
+| Seated tiles | `Stack.CultivatePrompt.*` | `hud/hud_tile.png` frame at the tile's size, the same as the top-right HUD buttons (user, 2026-10-24: the studded `tile_neutral`/`tile_gold` frames were "a little tacky"; Break Through keeps its gold glyph and caption), glyph at 50 % centred on the tile, each icon cropped to its drawn area with `ImageRectOffset`/`ImageRectSize` (the Root icon's rect comes from `SelfCard.rootIconRect`) so its long side fills the box, caption under the tile (Builder Sans Bold 12, cream, ink stroke, no pill); the seal dot (`Badge`) is a `ruby_stud` on the top-right corner |
+| Calm toggle (eye) | `Stack.CalmToggle` | `hud_tile` with the white eye glyph (`hud/hud_eye.png`, drawn by `art/ui/hud/draw_eye.py`, cream at 50 %; user 2026-10-24: hiding the HUD reads as an eye, not the lotus), centred on the tiles' centre line (`placeLotus` sets it from the row's offset and the tile height) |
+| Qi Surge pill (was Force Breakthrough; the label is set by code, see [HUD vitals](hud-vitals.md#qi-surge-button-and-notice)) | `Stack.BreakthroughButton` | `response_button_hi` sliced `Rect(200, 53, 860, 54)` at 0.374, the surge flame (`icon_surge`) in its left ring, label centred between the ring and the chevron (PC only; touch has `Play.SurgeButton`) |
 | Meditation panel | `MeditationPanel` | `meditation_card` backdrop (crest, cut corners, bottom point; `Backdrop` is the panel + 10 px wide and + 48 px tall, offset -9 so the crest rises above it); the gold title sits in the crest (136x23, centred on the crest's red field, `divider_cloud` hidden); `close_seal` with a live "×" over the top-right cut corner; rows: `crest_ring_plain` seal, `divider_diamond` rule under each row, actions on three-part `tag_jade` (suggested) and `tag_bronze` (the rest) ribbons fitted to their text (`Ribbon.fit`, styles `tag_jade`/`tag_bronze`). Content sits 15 px inside the rail's inner edge on all four sides (padding 12/18/18/18 plus the list's 6 px gap under the empty `Header`) |
 | Circulation overlay | `Circulation` | gold title; the Leave pill is `tag_crimson`; the result card is `window_small` |
 | Spirit-root reveal | `RootReveal` | `window_small` card, `rays_milestone` in the element's colour behind a `crest_ring_plain` seal, a gold `fx_shockwave` halo for rare roots (`Seal.Trim`) and a `tag_gold` "RARE!" tag |
@@ -44,8 +44,42 @@ Layout (PC 1616x784 Studio view, phone at 844x390): tiles are 54 px (phone: the 
 floor), 22 px apart, the row centred on the stack (row mid 808.0 = stack mid 808.0);
 the row's bottom is 20 px above the stack top (the realm crest's top), so the captions sit
 2 px under the tiles and their 14 px boxes end 4 px above the crest on every size (PC,
-844x390, 750x369, 600x300). The lotus is `LOTUS_GAP` 22 px past the last tile, the row's own
+844x390, 750x369, 600x300) on PC. On touch the tiles are icons alone (user, 2026-10-24:
+no letters on mobile buttons; at a phone's `TOUCH_SMALL_SHARE` the captions sat on the
+crest); only the Weapon Dao countdown shows there. On touch phones the Dantian line's box grows to 28 % of the seated bars' height
+(it scaled to 8 px text in its 9 px box; 12 px now, still centred on the dantian bar,
+clear of the hotbar). The eye toggle is `LOTUS_GAP` 22 px past the last tile, the row's own
 gap, and level with the tiles' centre.
+
+## Seclusion
+The AFK mode's screens ([seclusion](../systems/seclusion.md)), all from kit art (no new
+sheet). Built by `tools/seclusion_ui_build.luau` (sandbox; then export the ScreenGui).
+- **Secluded plaque** (`Canvas.Seclusion`, `SeclusionView.luau`): the toast's lacquer
+  plaque sliced taller (`toast_plaque`, Rect(48, 47, 464, 49), SliceScale 0.62, 58 px,
+  sized to its content) just under the toast (84 baseline px down on PC, 72 on a phone;
+  user, 2026-10-24: it sat too low at 18.5 %), centred: the lotus, the elapsed time
+  (Fredoka 32, the hero), a gold rule, then what has gathered, dimmer: finds and the
+  garden ("Tended", or the number of plants that mutated) once there are any. Under it,
+  on a soft dark backing (`fx_glow` tinted near black), the tempering line in the old
+  streak row's label ("Tempering Qi Condensation 5 · 2:41", "2 old foundations mended",
+  or "Absorb a herb or pill to temper"; the stones chip and the seven pips are hidden in
+  code since the streak and trickle were cut, 2026-10-24) and "Rise to leave". Shown
+  while `Secluded`, hidden while any window is open or the calm view is on; it fades
+  (`Motion.setShown`). Reads the `Seclusion*` player attributes the server publishes
+  ([seclusion](../systems/seclusion.md#ui) has the state shape). **Next:** the
+  ui-designer slims the plaque to that state (no stones chip, no pips).
+  Icons are margined display-sized copies (`art/ui/sized/*_h48/_h64`, edge-margin lint).
+  Phone (`Device` 0.62): 248x32 px at 844x390, 17 px under the top buttons; time 17.6 px,
+  the smallest text 11.0 px. Chosen over a frameless dark-shade column (twice the
+  height on a phone) by two critics, 2026-10-23.
+- **Seclusion card**: Rewards kind `seclusion` ([reward banners](rewards.md)): finds,
+  seeds and the garden as tiles, a stats row per stage mended, Cultivation, a flavour
+  line. No streak row any more (`Templates.SeclusionStreak` is unused on the card).
+- **Row icon**: the meditation panel's Seclusion row uses the kit's `emblem_peak`
+  (your own peak), untinted; the lotus stays the calm toggle's and the card's crest.
+
+Measured (Studio, phone 844x390 stand-in and PC 1920x1080): plaque, footer and every
+item centred (dx 0.00, item centre y = plaque centre y); card streak row centred 0.00.
 
 ## Breakthrough card
 Your own breakthrough shows the Rewards milestone card (`Rewards.show`, tier `card`, kind
@@ -67,7 +101,25 @@ Each has a `.preview()` callable from the client console in play, e.g.
 `require(game.Players.LocalPlayer.PlayerScripts.Client.DeathSave).preview()`. Nothing in
 the real flow calls them yet.
 
-### Foundation solidity meter (`FoundationMeter.luau`, roadmap 1)
+### Foundation in the Self card (built)
+The character window shows it in its Cultivation column (Cultivation tab on
+phones; [character window](../character/character-window.md), Foundation): the
+percentage of the stage's target on a 0-150 % bar that overfills past its 100 %
+mark. It reads
+`State.current.foundation` (server `Foundation.state`, every PlayerState push):
+`{ percent, max, percents = { [stageKey] = percent }, bonus, hints = { { category, text } } }`,
+only through `foundationOf()` in `SelfCard.luau`. `percent` is what the current stage would
+get now (100 = a full foundation, up to `max`, 200); players see only the percent, never a
+grade word or count/target (owner, 2026-10-24). `bonus` the summed health/power share from graded
+stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
+Dao, Discover, World, Deed). At QC1-3 the server sends only `{ hidden = true, bonus }` and
+the row hides (the hook has no foundation).
+- **Built (Self card v2):** the Foundation section reads "Foundation 86%" on a bar to 150% with marks at 50 and 100, overfill in paler gold.
+
+### Foundation solidity meter (`FoundationMeter.luau`, shelved)
+Shelved by Phase A (2026-10-23): there's no meter; the foundation percent shows on the
+breakthrough card instead ([roadmap](../roadmap.md) "Phase A"). Kept until that pass
+decides whether to delete it.
 - `FoundationMeter.set({ solidity = 0..1, cracks = 0..3, deep = bool })`.
 - A 28 px round meter on the HUD plate's bottom-right corner, the mirror of the Dash and
   Strike chips (`Stack` x 0.9006, y 0.5436), so the HUD doesn't grow. It is cloned from
@@ -80,7 +132,9 @@ the real flow calls them yet.
 - The system must provide: the stage's solidity share, a crack level, and the deep flag,
   whenever any changes (a State field is the natural route).
 
-### Death-save prompt (`DeathSave.luau`, roadmap 1)
+### Death-save prompt (`DeathSave.luau`, shelved)
+Shelved by Phase A: the qi surge fires from the realm plaque with no prompt or pause.
+The vignette may be reused for the surge.
 - `DeathSave.prompt({ seconds = 4, hold = 0.6, title?, hint? }, function(accepted) end)`,
   `DeathSave.cancel()`, `DeathSave.isOpen()`.
 - `Canvas.DeathSave`: `death_vignette` over the whole screen at 0.45 transparency (subtle),
@@ -108,12 +162,13 @@ the real flow calls them yet.
 - `CultivationMarks.preview()` lays every mark out in the middle of the screen for 8 s.
 
 ## Alignment (measured in Studio)
-- Tiles: icon, frame and caption centres on the tile centre (0.0 px); gaps 22.0 each;
-  lotus centre y = tile centre y (0.00), lotus gap 22.2.
+- Tiles (measured with the old `tile_neutral` frames; not re-measured with `hud_tile`):
+  icon, frame and caption centres on the tile centre (0.0 px); gaps 22.0 each;
+  toggle centre y = tile centre y (0.00), lotus gap 22.2.
 - Panel: title and divider on the panel centre (0.0); row seal 8 px from the row's left,
   action 8 px from its right; header 14 px from the top, last line about 16 px from the
   bottom; the close seal centred on the corner's ruby block (5, 5 in from the corner).
-- Force Breakthrough: label centre 128.0 against the ring-to-chevron middle 127.7; glyph in
+- Qi Surge pill (measured as Force Breakthrough): label centre 128.0 against the ring-to-chevron middle 127.7; glyph in
   the ring 21.0 against 21.5.
 - Result card: grade and detail centred (0.0), 28.1 top and 28.2 bottom.
 - Root reveal: seal, rays and every line centred (0.0).

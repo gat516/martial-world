@@ -32,6 +32,9 @@ local function watch(model: Instance)
 		return
 	end
 	local base = `Enemies/{kind}/`
+	-- a realm variant's voice follows its size: a bigger body cries lower (Scale, EnemyMotion)
+	local scale = model:GetAttribute("Scale")
+	local pitch = if type(scale) == "number" and scale > 0 then 1 / math.sqrt(scale) else 1
 	local lastAggro = -math.huge
 	local previous = model:GetAttribute("AIState")
 	model:GetAttributeChangedSignal("AIState"):Connect(function()
@@ -40,25 +43,25 @@ local function watch(model: Instance)
 			local now = os.clock()
 			if now - lastAggro >= AGGRO_GAP then
 				lastAggro = now
-				Sfx.play(base .. "Aggro", root)
+				Sfx.play(base .. "Aggro", root, nil, pitch)
 			end
 		elseif state == "windup" then
 			local attack = model:GetAttribute("Attack")
 			local played = false
 			if attack == "howl" then
-				played = Sfx.play(base .. "Howl", root) ~= nil
+				played = Sfx.play(base .. "Howl", root, nil, pitch) ~= nil
 			elseif type(attack) == "string" then
-				played = Sfx.play(base .. "Attack_" .. attack, root) ~= nil
+				played = Sfx.play(base .. "Attack_" .. attack, root, nil, pitch) ~= nil
 			end
 			if not played then
-				Sfx.play(base .. "Attack", root)
+				Sfx.play(base .. "Attack", root, nil, pitch)
 			end
 		elseif state == "stagger" then
-			Sfx.play(base .. "Hurt", root, 0.3)
+			Sfx.play(base .. "Hurt", root, 0.3, pitch)
 		end
 		local attack = model:GetAttribute("Attack")
 		if previous == "dash" and state ~= "dash" and (attack == "leap" or attack == "charge") then
-			Sfx.play(base .. "Land", root)
+			Sfx.play(base .. "Land", root, nil, pitch)
 		end
 		previous = state
 	end)
@@ -69,7 +72,7 @@ local function watch(model: Instance)
 		if not died and type(health) == "number" and health <= 0 then
 			died = true
 			-- from where it fell: the body may be removed before the cry ends
-			Sfx.play(base .. "Death", root.Position)
+			Sfx.play(base .. "Death", root.Position, nil, pitch)
 		end
 	end)
 end

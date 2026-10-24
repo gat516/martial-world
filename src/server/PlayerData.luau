@@ -33,7 +33,7 @@ local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 
 local Slots = require(ReplicatedStorage.Shared.Config).Slots
 
-local SCHEMA_VERSION = 11 -- one slot's profile (Data)
+local SCHEMA_VERSION = 12 -- one slot's profile (Data)
 local ACCOUNT_VERSION = 1 -- the slots wrapper (Account)
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
@@ -42,35 +42,157 @@ export type ActiveBuff = { source: string, kind: string, amount: number, expires
 export type Technique = { level: number, xp: number }
 -- weapon Dao comprehension of one class (Weapons.Classes), level 0..Pacing.Weapons.MAX_LEVEL
 export type Dao = { level: number, xp: number }
+export type HerbRecord = { n: number, l: number, m: { string } } -- one Herbarium entry
 -- Player preferences (the Settings window): volumes 0..1, and toggles
+-- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
+-- the heart line the player keeps (the Self card), and os.time()
+-- and the Dao-heart title its path answer picked (Shared.Titles id; nil before titles)
+-- retaken: faced again once through a Clear Heart Pill (only the better result counts)
+export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string?, retaken: boolean? }
+export type SeclusionTally = { cultivation: number, items: { [string]: number }, seeds: { [string]: number }, mutations: number, growth: number, tempered: { { key: string, fromPercent: number, toPercent: number } }? }
+export type Seclusion = {
+	since: number, counted: number, online: number, start: number, rolled: number, tally: SeclusionTally, first: boolean,
+	temper: string, temperAt: number, temperDay: number, temperDayN: number, temperWeek: number, temperWeekN: number,
+}
+
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
+export type SectTask = { goal: number, base: number, progress: number, tier: number?, claimed: boolean? }
+-- a bonus quest (Sect, Pacing.Sect.BONUS): kind, sheltered kills counted, done (an escort pays its juniors then)
+export type SectBonus = { kind: string, goal: number, progress: number, day: number, done: boolean? }
+export type Sect = {
+	rank: string,
+	contribution: number,
+	earned: number,
+	week: number,
+	weekId: number,
+	day: number,
+	offered: { string },
+	taken: { [string]: SectTask },
+	chain: number,
+	step: { [string]: SectTask }?,
+	tracked: string,
+	ring: { [string]: number },
+	bought: { [string]: number },
+	weekBought: { [string]: number }, -- Pavilion stock with a weekly limit bought this week (root pill fragments), by pill id
+	bonus: SectBonus?, -- the taken bonus quest (at most one; dropped at a new day)
+	bonusDay: { [string]: number }, -- by bonus kind: the day (os.time() // 86400) it was last claimed
+}
+
 export type Data = {
 	v: number,
 	realm: { major: string, minor: number },
 	cultivation: number, -- progress in the current realm bar
 	rawQi: number, -- held in the dantian, refined by circulation runs
 	stones: number, -- Spirit Stones, spent at the Spirit Market
-	insight: number, -- unspent insight (spent comprehending techniques)
-	insightEarned: number, -- every insight ever gained; breakthroughs check this
 	methods: { owned: { [string]: boolean }, active: string }, -- active "" = Sect Breathing
-	techniques: { owned: { [string]: Technique } },
+	-- owned: learned; manuals: found but its weapon Dao isn't there yet (learned when it is)
+	techniques: { owned: { [string]: Technique }, manuals: { [string]: boolean } },
 	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
+	-- foundation (server Foundation): experience keys earned (once ever), the weighted
+	-- count this stage, each stage's foundation percent by stage key (profiles from
+	-- before percents hold a grade word; Foundation.percentOf reads both), whether this
+	-- stage's "unsteady" toast was shown, and this stage's deeds (kills per beast id,
+	-- herb ids harvested, deed ids done; reset at each breakthrough)
+	foundation: {
+		seen: { [string]: boolean },
+		count: number,
+		grades: { [string]: any },
+		warned: boolean,
+		deeds: { kills: { [string]: number }, herbs: { [string]: boolean }, done: { [string]: boolean } },
+		deepened: { [string]: number }, -- old stages deepened past 100%, by source (Foundation.deepen)
+	},
+	-- the Herbarium (server Herbarium): per herb id, n harvested in all, l the largest
+	-- size seen, m the mutation ids seen; tiers: herb tiers whose page is complete
+	-- and rewarded, by tier numeral string ("1".."5")
+	herbarium: { herbs: { [string]: HerbRecord }, tiers: { [string]: boolean } },
 	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
 	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons), plus markers: RootPillUsed, Loop (the elder named the loop)
 	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
+	firstJoinUnix: number, -- os.time() the player joined for this slot's first play (Analytics timings; 0 = before it was recorded)
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
+	-- the day's offline/AFK budget (Pacing.Income.OFFLINE_MAX_HOURS a UTC day, shared by
+	-- every absence, AFK stretch and seclusion): the day it's for and seconds used
+	awayDay: number,
+	awayUsed: number,
+	-- the Herbalist's daily stock (Pacing.Herbs.STOCK): the UTC day and seeds bought by herb id
+	herbalist: { day: number, bought: { [string]: number } },
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
 	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
 	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
-	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
+	-- slain: kills by enemy id; harvests: plants harvested; deaths; seated: seconds
+	-- meditating; the rest below. The heart-demon trial reads them all.
+	stats: {
+		breakthroughs: number,
+		circulationRuns: number,
+		kills: number,
+		bossKills: number,
+		slain: { [string]: number },
+		harvests: number,
+		deaths: number,
+		seated: number,
+		forced: number, -- forced breakthroughs, removed (the qi surge replaced it); old profiles keep theirs
+		secluded: number, -- seconds in seclusion, online and offline (server Seclusion)
+		surges: number, -- qi surges fired (QiSurge)
+		spills: number, -- deaths that spilled a haul (Haul.died)
+		reclaimed: number, -- spills walked back to and gathered
+		fled: number, -- logouts mid-fight that cost a haul share (Haul.leaving)
+		stored: number, -- Store all uses that banked something (Haul.storeAll)
+		ringed: number, -- stacks put in the spirit ring (Haul.setRing)
+		placed: number, -- build pieces placed on the peak (Build "place")
+		peakBest: number, -- the highest peak score reached (Peaks.refreshScore, uncapped)
+		elites: number, -- elite-tier beasts slain (realm variants, Progression.onKill)
+		apexes: number, -- apex-tier beasts slain
+		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
+		tempered: number, -- old stages tempered in seclusion (Seclusion; the heart demon's not counted)
+		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
+		partied: number, -- seconds in a party with a member nearby (server Party)
+		sheltered: number, -- kills party members earned under this player's shelter (Shelter.credit)
+		leaned: number, -- kills this player earned sheltered by a stronger party member (Shelter.credit)
+		escorts: number, -- Escort a Junior bonus quests completed (Sect)
+		contribution: number, -- sect contribution earned, all time (Sect)
+		dailies: number, -- sect dailies claimed (Sect)
+		gathered: number, -- qi node gathers (QiNodes)
+	},
+	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
+	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
+	-- seconds of it spent online; start = cultivation when it began; rolled = hourly
+	-- find rolls made (one each Pacing.Seclusion FIND_SECONDS); tally = what this one has
+	-- earned so far (cultivation, finds by id, seeds by id, mutations, plants tended,
+	-- stages tempered); first = the onboarding's first seclusion is done; temper = the
+	-- tempering item absorbed and settling ("" none) and temperAt = the `counted` second
+	-- it settles; temperDay/temperDayN and temperWeek/temperWeekN = items absorbed that
+	-- UTC day / week (Pacing.Tempering PER_DAY, PER_WEEK)
+	seclusion: Seclusion,
+	-- heart-demon trials (server HeartDemon), by major id: the result, and when a
+	-- seat offer was last declined; clear = a Clear Heart Pill absorbed (forgives one
+	-- denial in the next trial); retake = the major whose faced trial may be faced again
+	-- ("" none)
+	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number }, clear: boolean, retake: string },
+	-- the sect (server Sect, docs/systems/sect.md): rank; contribution to spend and
+	-- earned all time; week = earned from dailies in week `weekId`; today's dailies
+	-- (day = os.time() // 86400 they were rolled, offered kinds, taken by kind:
+	-- goal, base counter, progress, tier, claimed); chain = chapter steps finished,
+	-- step = the current step's taken record; tracked quest id; ring = Pavilion ring
+	-- slots bought by major; bought = Pavilion purchases by stock id
+	sect: Sect,
+	-- titles (server Titles, docs/systems/titles.md): earned ones by Shared.Titles id ->
+	-- os.time() earned; the worn one ("" = none)
+	titles: { owned: { [string]: number }, equipped: string },
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
+	ring: { string }, -- the spirit ring: herb and item ids whose whole stack is banked even in the wilds (Haul.luau)
+	-- the unbanked haul left out when the last session logged off away from a bank point (Haul.luau)
+	haul: { rawQi: number, stones: number, herbs: { [string]: number }, items: { [string]: number }, seeds: { [string]: number } },
+	-- a spill left unclaimed at logout (a combat-leave's, or a death's): position as { x, y, z },
+	-- the amounts, and os.time() when saved; the next join within Pacing.Haul KEEP_SECONDS
+	-- gets it back where they fell (Haul.luau)
+	spill: { at: { number }, contents: { rawQi: number, stones: number, herbs: { [string]: number }, items: { [string]: number }, seeds: { [string]: number } }, saved: number }?,
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
 	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()
@@ -123,6 +245,10 @@ local function startingDao(): { [string]: Dao }
 	return dao
 end
 
+local function newTally(): SeclusionTally
+	return { cultivation = 0, items = {}, seeds = {}, mutations = 0, growth = 0, tempered = {} }
+end
+
 local function default(): Data
 	return {
 		v = SCHEMA_VERSION,
@@ -130,32 +256,47 @@ local function default(): Data
 		cultivation = 0,
 		rawQi = Income.STARTING_RAW_QI,
 		stones = Economy.STARTING_STONES,
-		insight = 0,
-		insightEarned = 0,
 		methods = { owned = {}, active = "" },
-		techniques = { owned = { LightningTalisman = { level = 1, xp = 0 } } }, -- any weapon
-		hotbar = Hotbar.empty({ "LightningTalisman" }),
+		-- no starting technique: the first one is the onboarding's 3-kill manual (Fire Seal),
+		-- taught in its own beat (docs/systems/onboarding.md)
+		techniques = { owned = {}, manuals = {} },
+		hotbar = Hotbar.empty(),
 		firstKills = {},
 		milestones = {},
+		foundation = { seen = {}, count = 0, grades = {}, warned = false, deepened = {}, deeds = { kills = {}, herbs = {}, done = {} } },
+		herbarium = { herbs = {}, tiers = {} },
 		beats = {},
 		lessons = {},
 		quests = {},
 		onboardingMark = 0,
 		lastLogoutUnix = 0,
+		firstJoinUnix = 0,
 		lastDailyDay = 0,
+		awayDay = 0,
+		awayUsed = 0,
+		herbalist = { day = 0, bought = {} },
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
-		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, tempered = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0, escorts = 0,
+			contribution = 0, dailies = 0, gathered = 0 },
+		heartDemon = { trials = {}, declined = {}, clear = false, retake = "" },
+		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {}, bonus = nil, bonusDay = {} },
+		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), first = false,
+			temper = "", temperAt = 0, temperDay = 0, temperDayN = 0, temperWeek = 0, temperWeekN = 0 },
+		titles = { owned = {}, equipped = "" },
 		herbs = {},
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
+		ring = {},
+		haul = { rawQi = 0, stones = 0, herbs = {}, items = {}, seeds = {} },
 		buffs = {},
 		decor = {},
 		receipts = {},
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
-		seen = { LightningTalisman = 0, [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
+		seen = { [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
 		inventoryView = {
 			Weapons = { sort = "New", filter = "All" },
 			Arts = { sort = "New", filter = "All" },
@@ -243,10 +384,8 @@ local migrations: { [number]: (any) -> () } = {
 		end
 		d.root = Roots.new()
 	end,
-	-- v6 never spent insight, so everything held so far was earned
-	[6] = function(d)
-		d.insightEarned = d.insight or 0
-	end,
+	-- v6 tracked insight separately from insight earned (insight is gone since v12)
+	[6] = function() end,
 	-- v7 counted onboarding beats by position; v8 keeps them by id, so beats
 	-- can be reordered or inserted. This is the v7 beat order.
 	[7] = function(d)
@@ -286,11 +425,16 @@ local migrations: { [number]: (any) -> () } = {
 	[10] = function(d)
 		d.character = {}
 	end,
+	-- v11 had insight (deleted in Phase A: walls are the bar, techniques gate on weapon Dao)
+	[11] = function(d)
+		d.insight = nil
+		d.insightEarned = nil
+	end,
 }
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect", "titles", "herbalist" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do
@@ -458,6 +602,7 @@ type Profile = {
 local profiles: { [Player]: Profile } = {}
 
 local PlayerData = {}
+PlayerData.newTally = newTally -- a fresh seclusion tally (server Seclusion)
 
 PlayerData.validSlot = validSlot
 -- Slot ids in order, "1".."MAX".

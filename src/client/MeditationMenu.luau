@@ -2,14 +2,19 @@
 -- The meditation menu's small panel (Hud.MeditationPanel), opened from the
 -- seated tiles (Meditation.luau). One page at a time, each a short list of rows
 -- cloned from List.RowTemplate (seal, name, two lines, a blurb, an action):
---   Comprehend  techniques at a bottleneck (Bottleneck), their cost in insight
---               and Spirit Stones, and a Comprehend button that names what's
+--   Comprehend  techniques at a bottleneck (Bottleneck), the weapon Dao they
+--               need and their Spirit Stones, and a Comprehend button that names what's
 --               missing while it can't run.
 --   Method      owned cultivation methods (Shared.Methods); Use switches
 --               (CultivationAction "method"), the active one reads "Active".
+--               Seated on your own peak, a Seclusion row comes first: Enter
+--               Seclusion (CultivationAction "seclusion", GuideKey "Seclusion";
+--               docs/systems/seclusion.md). With no method owned the page is
+--               only that row, titled Seclusion (the tile reads Seclusion too).
 --   Root        the spirit root's card and its exact numbers (Note), the same
 --               text as the Self card, then a row per root pill the player holds
---               (Marrow Washing raises the grade, Root Rebirth reforms the
+--               (Marrow Washing washes it toward the next grade, Pacing.Roots.WASH
+--               pills per grade, shown on the root row; Root Rebirth reforms the
 --               element; Absorb = InventoryAction "use", marked GuideKey
 --               "RootPill" for the onboarding guide). While a reformed
 --               element is pending it shows the old and the new root instead,
@@ -52,8 +57,10 @@ local COST_OK = "#F0D28C"
 local COST_SHORT = "#FF826E"
 local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method", Root = "Spirit Root" }
 local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
-local PILL_SUB = { MarrowWashingPill = "Raise your root one grade", RootRebirthPill = "Reform as another element" }
+local PILL_SUB = { RootRebirthPill = "Reform as another element" } -- MarrowWashingPill: its washing progress (washLine)
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
+local NAME_GAP = 6 -- px between a row's name and its button
+local SECLUSION_ICON = "rbxassetid://102118062177874" -- the kit's peak emblem (your own peak; the lotus is the calm toggle and the card crest)
 
 local MeditationMenu = {}
 
@@ -65,12 +72,22 @@ local note: TextLabel
 local page: Page = "Method"
 local switching = false -- a method switch, pill or root choice is on its way to the server
 
+function MeditationMenu.ownsMethod(): boolean
+	local methods = State.current.methods
+	return methods ~= nil and next(methods.owned) ~= nil
+end
+
+-- Seated on your own peak, where seclusion can begin (or already secluded).
+local function seclusionHere(): boolean
+	local spot = State.current.meditation
+	return (spot ~= nil and spot.own == true) or player:GetAttribute("Secluded") == true
+end
+
 -- Which tiles have something to show.
 function MeditationMenu.relevant(): { [Page]: boolean }
-	local methods = State.current.methods
 	return {
 		Comprehend = #Bottleneck.list() > 0,
-		Method = methods ~= nil and next(methods.owned) ~= nil,
+		Method = MeditationMenu.ownsMethod() or seclusionHere(),
 		Root = SelfCard.currentRoot() ~= nil,
 	}
 end
@@ -129,12 +146,14 @@ local function addRow(order: number, spec: RowSpec)
 	if spec.action then
 		local label = button:FindFirstChild("Label") :: TextLabel
 		local bright = spec.ready or spec.plain
-		Ribbon.fit(button, spec.action, {
+		local fit = Ribbon.fit(button, spec.action, {
 			style = if spec.ready then BUTTON_JADE else BUTTON_LACQUER,
 			label = "Label",
 			textSize = 13,
 			minMid = 0,
 		})
+		-- the name stops short of the button, however wide its caption made it
+		name.Size = UDim2.new(1, -(fit.width + NAME_GAP), 1, 0)
 		for _, piece in (button:FindFirstChild("Art") :: Frame):GetChildren() do
 			if piece:IsA("ImageLabel") then
 				piece.ImageTransparency = if bright then 0 else 0.3
@@ -157,9 +176,9 @@ local function comprehendRows(): number
 	for i, id in ids do
 		local def = Techniques.Defs[id] :: any
 		local owned = s.techniques.owned[id]
-		local gate = Bottleneck.gateOf(owned) :: Bottleneck.Gate
+		local gate = Bottleneck.gateOf(id, owned) :: Bottleneck.Gate
 		local short = Bottleneck.block(gate)
-		local insight, stones = s.insight or 0, Bottleneck.stones()
+		local stones = Bottleneck.stones()
 		addRow(i, {
 			icon = def.icon,
 			iconColor = def.color:Lerp(Color3.new(1, 1, 1), 0.35),
@@ -167,8 +186,8 @@ local function comprehendRows(): number
 			nameColor = LIGHT,
 			info = `Lv {owned.level} · bottleneck`,
 			infoColor = BOTTLENECK,
-			sub = `{cost(gate.insight, insight, "insight")} · {cost(gate.stones, stones, "Spirit Stones")}`,
-			blurb = `Into {NEXT_TIER[owned.level] or "the next tier"}. You have {insight} insight, {stones} stones.`,
+			sub = `<font color="{if gate.daoHave >= gate.dao then COST_OK else COST_SHORT}">{gate.daoText}</font> · {cost(gate.stones, stones, "Spirit Stones")}`,
+			blurb = `Into {NEXT_TIER[owned.level] or "the next tier"}. Your Dao is {gate.daoHave}; you have {stones} stones.`,
 			action = if short then short else "Comprehend",
 			ready = short == nil,
 			onAction = function()
@@ -196,12 +215,40 @@ local function switchTo(id: string)
 	send(cultivationRemote, false, "method", id)
 end
 
-local function methodRows(): number
-	local methods = State.current.methods
-	if not methods then
+-- The Seclusion row (on your own peak): enter it, or where it stands.
+local function seclusionRow(): number
+	if not seclusionHere() then
 		return 0
 	end
-	local n = 0
+	local secluded = player:GetAttribute("Secluded") == true
+	addRow(-1, {
+		icon = SECLUSION_ICON,
+		name = "Seclusion",
+		nameColor = LIGHT,
+		info = if secluded then "In seclusion" else "Shut out the world",
+		infoColor = if secluded then JADE else LIGHT,
+		sub = "Temper old foundations", -- one line, unwrapped; the blurb tells the rest
+		blurb = if secluded
+			then "Use a tempering herb or pill to mend an old foundation. Rise when you wish to return."
+			else "Work on yourself with what you've gathered: a Tempering Pill, Snowpeak Lotus or Nine-Leaf Lingzhi mends an old foundation in a few minutes. Your garden grows faster, rare finds turn up, and you cultivate at rest, even offline.",
+		action = if secluded then nil else "Enter", -- the row is named Seclusion; the guide still says "Enter Seclusion"
+		ready = true,
+		guideKey = "Seclusion",
+		guideSay = "Enter Seclusion",
+		onAction = function()
+			send(cultivationRemote, false, "seclusion")
+			MeditationMenu.close()
+		end,
+	})
+	return 1
+end
+
+local function methodRows(): number
+	local n = seclusionRow()
+	local methods = State.current.methods
+	if not methods then
+		return n
+	end
 	for _, id in Methods.Order do
 		if methods.owned[id] then
 			n += 1
@@ -228,14 +275,26 @@ local function methodRows(): number
 	return n
 end
 
--- One root as a row: its seal, name, grade and perk; `tag` leads the grade line.
-local function rootRow(order: number, element: string, grade: string, tag: string, spec: { action: string?, ready: boolean?, plain: boolean?, onAction: (() -> ())? })
+-- How far Marrow Washing Pills have washed the root toward its next grade
+-- (Pacing.Roots.WASH), e.g. "Washed 1/3 toward Earth grade"; nil at the top.
+local function washLine(root: Roots.Root): string?
+	local done, need = Roots.washed(root)
+	local nextGrade = Roots.nextGrade(root.grade)
+	if not (need and nextGrade) then
+		return nil
+	end
+	return `Washed {done}/{need} toward {nextGrade} grade`
+end
+
+-- One root as a row: its seal, name, grade and perk; `tag` leads the grade line,
+-- `note` follows it.
+local function rootRow(order: number, element: string, grade: string, tag: string, spec: { action: string?, ready: boolean?, plain: boolean?, note: string?, onAction: (() -> ())? })
 	local def = Roots.Elements[element]
 	addRow(order, {
 		icon = SelfCard.rootIcon(def.id),
 		name = `{def.name} Root`,
 		nameColor = def.color,
-		info = `{tag}{grade} grade`,
+		info = if spec.note then `{tag}{grade} grade · {spec.note}` else `{tag}{grade} grade`,
 		infoColor = SelfCard.gradeColor(grade),
 		sub = def.blurb,
 		blurb = "",
@@ -281,15 +340,40 @@ local function pillRows(root: Roots.Root): number
 				name = def.name,
 				nameColor = Items.Rarities[def.rarity].color,
 				info = `Owned {count}`,
-				sub = if purest then "Your root is at its purest." else PILL_SUB[id],
+				sub = if purest
+					then "Your root is at its purest."
+					elseif id == "MarrowWashingPill" then washLine(root) or ""
+					else PILL_SUB[id],
 				blurb = "",
 				action = if purest then nil else "Absorb",
 				ready = true,
 				guideKey = "RootPill",
-				guideSay = if id == "MarrowWashingPill" then "Absorb it to purify your root" else "Absorb it to reform your root",
+				guideSay = if id == "MarrowWashingPill" then "Absorb it to wash your root" else "Absorb it to reform your root",
 				onAction = function()
 					send(inventoryRemote, false, "use", id)
 				end,
+			})
+		end
+	end
+	return n
+end
+
+-- Pity fragments held toward each root pill (Pacing.Roots.FRAGMENTS), once one is in.
+local function fragmentRows(root: Roots.Root): number
+	local n = 0
+	for i, id in PILLS do
+		local have, per = Roots.fragments(root, id)
+		if have > 0 then
+			n += 1
+			local def = Items.Defs[id]
+			addRow(20 + i, {
+				icon = def.icon or "",
+				iconColor = Color3.fromRGB(170, 170, 170), -- a dimmed pill: only part of one
+				name = `{Roots.FragmentNames[id]}s`,
+				nameColor = Items.Rarities[def.rarity].color,
+				info = `{have}/{per}`,
+				sub = `{per} fuse into a {def.name} on their own. Bosses, heavenly treasures and the sect Pavilion give them.`,
+				blurb = "",
 			})
 		end
 	end
@@ -305,8 +389,10 @@ local function rootRows(): number
 	if live and live.pending ~= "" and Roots.Elements[live.pending] then
 		return pendingRows(live)
 	end
-	rootRow(1, root.element, root.grade, "", {})
-	return 1 + pillRows(root)
+	-- washing progress shows once a pill has gone in (until then the pill row says it)
+	local done = Roots.washed(root)
+	rootRow(1, root.element, root.grade, "", { note = if done > 0 then washLine(root) else nil })
+	return 1 + pillRows(root) + fragmentRows(root)
 end
 
 -- A reformed element is waiting for the player's choice.
@@ -321,7 +407,7 @@ local function render()
 			child:Destroy()
 		end
 	end
-	title.Text = TITLES[page]
+	title.Text = if page == "Method" and not MeditationMenu.ownsMethod() then "Seclusion" else TITLES[page]
 	local count = if page == "Comprehend" then comprehendRows() elseif page == "Method" then methodRows() else rootRows()
 	note.Visible = true
 	if page == "Root" then
@@ -337,6 +423,8 @@ local function render()
 		note.Text = "No technique is at a bottleneck. Practice your arts until one is."
 	elseif page == "Method" and count == 0 then
 		note.Text = "You know no cultivation method yet."
+	elseif page == "Method" and not MeditationMenu.ownsMethod() then
+		note.Text = "Seclusion begins on your own peak. Leaving shows what it brought."
 	elseif page == "Method" then
 		note.Text = "Switching is free while you meditate."
 	else
@@ -396,7 +484,7 @@ function MeditationMenu.init(gui: ScreenGui)
 	State.onChanged(function()
 		rerender()
 	end)
-	for _, attr in { "Stones", "Root", "RootGrade", "Method" } do
+	for _, attr in { "Stones", "Root", "RootGrade", "Method", "Secluded" } do
 		player:GetAttributeChangedSignal(attr):Connect(rerender)
 	end
 end

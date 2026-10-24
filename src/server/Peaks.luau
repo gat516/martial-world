@@ -2,6 +2,8 @@
 -- Peak ownership and layouts. Each player gets a free spirit peak for the session;
 -- their saved layout (removed starter pieces, placed items, planted beds) is applied
 -- on join and undone on leave so the next owner starts from the default peak.
+-- Also the peak tier (Config.Build.TIERS: look, build radius, item caps) and the
+-- peak score (Pacing.PeakScore) that adds to meditation and garden growth.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -13,13 +15,14 @@ local PlayerData = require(script.Parent.PlayerData)
 local peaksFolder = workspace.Map.Sect.SpiritPeaks
 local stashFolder = ServerStorage.PeakStash
 local catalog = ReplicatedStorage.BuildCatalog
-local tiers = ServerStorage.PeakTiers
+-- tier looks by template name (Config.Build.TIERS), plus the OwnerSign billboard
+local tierFolder = ServerStorage.PeakTiers
 -- place-only meshes per tier (library MeshParts Rojo can't sync), merged into the tier on apply
 local tierModels = ServerStorage.PeakTierModels
 local Realms = require(ReplicatedStorage.Shared.Realms)
-
--- Peak visuals per major realm, beyond the bare rock every peak starts with.
-local TIER_BY_MAJOR = { Foundation = "Foundation" }
+local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local BuildConfig = Config.Build
 
 type Starter = { inst: Instance, parent: Instance }
 
@@ -33,6 +36,7 @@ local Peaks = {}
 -- peak -> StarterId -> where the piece lives by default
 local starters: { [Model]: { [string]: Starter } } = {}
 local owners: { [Player]: Model } = {}
+local scores: { [Player]: number } = {} -- peak score, already capped at the tier's scoreCap
 
 for _, peak in peaksFolder:GetChildren() do
 	if peak:IsA("Model") then
@@ -100,6 +104,81 @@ function Peaks.spawnPlaced(peak: Model, rec: PlayerData.Placed): Instance?
 	return item
 end
 
+-- The owner's peak tier, from their realm.
+function Peaks.tierOf(player: Player): Peak.Tier
+	local data = PlayerData.get(player)
+	return if data then Peak.tierAt(data.realm.major, data.realm.minor) else BuildConfig.TIERS[1]
+end
+
+-- Score of the build pieces standing on a peak (placed copies and starter pieces
+-- still out); only the first PER_ITEM copies of one item count.
+local function scoreOn(peak: Model): number
+	local rules = Pacing.PeakScore
+	local copies: { [string]: number } = {}
+	local total = 0
+	for _, d in peak:GetDescendants() do
+		local id = d:GetAttribute("ItemId")
+		if type(id) == "string" and (d:GetAttribute("PlacedId") or d:GetAttribute("StarterId")) then
+			local def = BuildItems.Defs[id]
+			local n = (copies[id] or 0) + 1
+			copies[id] = n
+			if def and n <= rules.PER_ITEM then
+				total += Peak.itemScore(def)
+			end
+		end
+	end
+	return total
+end
+
+-- Recount the owner's peak score and publish it with the tier (PeakScore,
+-- PeakScoreCap and PeakTier player attributes, for the build catalog).
+function Peaks.refreshScore(player: Player)
+	local peak = owners[player]
+	if not peak then
+		scores[player] = nil
+		return
+	end
+	local tier = Peaks.tierOf(player)
+	local score = scoreOn(peak)
+	scores[player] = math.min(score, tier.scoreCap)
+	local data = PlayerData.get(player)
+	if data and score > data.stats.peakBest then
+		data.stats.peakBest = score -- the heart-demon trial reads it
+	end
+	player:SetAttribute("PeakScore", score)
+	player:SetAttribute("PeakScoreCap", tier.scoreCap)
+	player:SetAttribute("PeakTier", tier.id)
+end
+
+-- What the peak score adds to the meditation multiplier on the owner's peak.
+function Peaks.meditationBonus(player: Player): number
+	return (scores[player] or 0) * Pacing.PeakScore.MEDITATION
+end
+
+-- The peak score's share of the tier's cap, 0..1: how much decorating lifts the
+-- garden aura's cap (Pacing.Aura.DECOR).
+function Peaks.decorShare(player: Player): number
+	local cap = Peaks.tierOf(player).scoreCap
+	return if cap > 0 then math.clamp((scores[player] or 0) / cap, 0, 1) else 0
+end
+
+-- What the peak score adds to the growth speed of the owner's plants.
+function Peaks.growthBonus(player: Player): number
+	return (scores[player] or 0) * Pacing.PeakScore.GROWTH
+end
+
+-- The template a tier shows: its own, else the nearest earlier tier's that exists.
+local function templateFor(tier: Peak.Tier): (Model?, Peak.Tier?)
+	local list = BuildConfig.TIERS
+	for i = table.find(list, tier) or 1, 1, -1 do
+		local t = tierFolder:FindFirstChild(list[i].template)
+		if t and t:IsA("Model") then
+			return t, list[i]
+		end
+	end
+	return nil, nil
+end
+
 -- Assign a free peak. Called before the character spawns so they spawn at home.
 function Peaks.assign(player: Player): Model?
 	for _, peak in peaksFolder:GetChildren() do
@@ -140,8 +219,9 @@ function Peaks.applyLayout(player: Player, data: PlayerData.Data)
 end
 
 -- The owner's realm on their peak: a floating name sign over the stele, and the
--- major realm's tier (Foundation: lanterns, a floating shrine pavilion and a sky
--- beam), so everyone can see who is strongest from afar.
+-- peak tier's look (Foundation: lanterns, a floating shrine pavilion and a sky
+-- beam), so everyone can see who is strongest from afar. Also sets the peak's
+-- BuildRadius and recounts the score (the cap is per tier).
 function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 	local peak = owners[player]
 	if not peak then
@@ -153,7 +233,7 @@ function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 	if cap then
 		local sign = cap:FindFirstChild("OwnerSign") :: BillboardGui?
 		if not sign then
-			local made = (tiers:FindFirstChild("OwnerSign") :: BillboardGui):Clone()
+			local made = (tierFolder:FindFirstChild("OwnerSign") :: BillboardGui):Clone()
 			made.Parent = cap
 			sign = made
 		end
@@ -163,14 +243,16 @@ function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 		realmLabel.Text = stage.name
 	end
 
-	local wanted = TIER_BY_MAJOR[stage.major]
+	local tierRow = Peak.tierAt(stage.major, stage.minor)
+	local template, shown = templateFor(tierRow)
+	local wanted = template and template.Name
 	local current = peak:FindFirstChild("RealmTier")
 	if current and current:GetAttribute("Tier") ~= wanted then
 		current:Destroy()
 		current = nil
 	end
-	if wanted and not current then
-		local tier = (tiers:FindFirstChild(wanted) :: Model):Clone()
+	if template and wanted and not current then
+		local tier = template:Clone()
 		local extra = tierModels:FindFirstChild(wanted)
 		if extra then
 			for _, child in extra:GetChildren() do
@@ -187,7 +269,16 @@ function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 		tier.Name = "RealmTier"
 		tier:SetAttribute("Tier", wanted)
 		tier.Parent = peak
+		current = tier
 	end
+
+	-- more room only where the look brings ground to build on (the testbed's arena is flat)
+	local hasGround = current ~= nil and current:FindFirstChild(BuildConfig.TIER_GROUND) ~= nil
+	local radius = if Config.TESTBED then tierRow.radius
+		elseif hasGround and shown then shown.radius
+		else BuildConfig.RADIUS
+	peak:SetAttribute("BuildRadius", radius)
+	Peaks.refreshScore(player)
 end
 
 -- Undo the owner's layout so the peak is back to its default for the next player.
@@ -197,6 +288,11 @@ function Peaks.release(player: Player)
 		return
 	end
 	owners[player] = nil
+	scores[player] = nil
+	player:SetAttribute("PeakScore", nil)
+	player:SetAttribute("PeakScoreCap", nil)
+	player:SetAttribute("PeakTier", nil)
+	peak:SetAttribute("BuildRadius", nil)
 	for _, item in (peak:FindFirstChild("Placed") :: Folder):GetChildren() do
 		item:Destroy()
 	end

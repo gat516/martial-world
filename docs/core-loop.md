@@ -15,7 +15,7 @@ Every realm opens a new region and, at the big ones, a new power.
         |  refine raw qi (minigame)            |
         |  garden, peak, spend stones          |
         +--------------------------------------+
-              |  hit a wall          ^  bring back qi, insight,
+              |  hit a wall          ^  bring back qi, stones,
               v                      |  manuals, weapons, herbs
         +----------------- OUT ----------------+
         |  HUNT: beasts, bosses, qi nodes      |
@@ -33,18 +33,23 @@ Every realm opens a new region and, at the big ones, a new power.
 Both halves matter. Home is calm and always makes progress (passive
 cultivation never stops, online or off). Out is where the action, loot and
 surprises are, and it has two verbs:
-- **Hunt:** fight for qi and insight. Reliable and repeatable.
+- **Hunt:** fight for qi, stones and weapon Dao. Reliable and repeatable.
 - **Explore:** go off the path to find things: technique manuals, cultivation
   methods, weapons, treasures, secret spots to meditate or comprehend a Dao.
   It's uncertain and exciting, and it's where the "what's over there?" pull and
   most of the long-term goals come from. The world caches (ManualCache,
   WeaponRack) are the first piece of this; each new region should add more. Neither is a side game: **home turns what you bring back into
 progress, and out is where you get what home is missing.**
+- **Bring it home: Store all.** What you gather out there is your haul, and it's
+  at risk until you store it: a death spills half of it ([haul](systems/haul.md)).
+  Coming home (your peak, the sect, any teleport array) offers one tap, "Store all"
+  (like "sell all", but storing), that banks the whole trip with one line, so the
+  return is a beat of its own. Onboarding teaches it right after the first hunt.
 
 The game must always tell the player **which wall they're at and where to go**.
 The full stage plan (QC1 to FE9, with Qi Refining, the sect, difficulty modes) is in [progression](progression.md).
 The pieces exist (the passive warnings "You must go out and experience the
-world" and "You feel as if you need more insight", the objective line, the quest
+world", the objective line, the quest
 board), but they don't yet frame it as one rhythm.
 
 ## Walls: what sends you out (or home)
@@ -53,7 +58,7 @@ board), but they don't yet frame it as one rhythm.
 |---|---|---|---|---|
 | Empty dantian | bar not full, no raw qi to refine | hunting, qi nodes, eating herbs | the wilds, the garden | built |
 | Full dantian | carrying lots of raw qi | refining it | home or a qi node | built |
-| Insight | full bar, "you need more insight" | first kills of new beasts, the boss, kill milestones | the wilds | built (QC9) |
+| Weapon Dao | a manual waits in Arts ("Requires Saber Dao 2"), or a bottleneck needs more Dao | fighting with that class | the wilds | built (Phase A) |
 | Region seal | the next wilds array is sealed | reaching its realm | breaking through | built (QC5, FE1) |
 | Tribulation | a major breakthrough, **heaven-defying players only** (bloodline or root; decided 2026-10-22) | surviving or bracing against the lightning; never a skill gate | the main peak | built for everyone at QC9; to be gated behind the flag |
 | Beasts too strong | dying out there | weapon, technique, Dao, root, herbs, breaking through | both | partly: it's not signposted |
@@ -65,7 +70,7 @@ this (`Pacing.luau`: HOOK, BREATHER, RAMP, MINI-WALL, WALL).
 
 ## What a trip out brings back
 - **Always:** raw qi. That's the reason to go.
-- **Often:** insight (new beasts), Spirit Stones, herbs and seeds.
+- **Often:** Spirit Stones, weapon Dao, herbs and seeds.
 - **Sometimes, as the surprise that makes trips exciting:** a technique manual,
   a weapon, an event treasure, and later a bloodline essence or a root reroll.
 
@@ -82,11 +87,12 @@ Every trip should get the thing you went for, plus a chance at a surprise.
 | Garden | herbs become qi and buffs (fewer trips) and sell for stones |
 | Peak building | meditation and garden bonuses (a better home) |
 | Weapons, Dao, techniques | how you fight out there (deal with "beasts too strong") |
-| Technique comprehension | spends insight and stones from trips out to break a technique's bottleneck (a new tier) |
+| Technique comprehension | spends stones from trips out, and needs weapon Dao, to break a technique's bottleneck (a new tier) |
 | Spirit root | a small perk on home or out, and your element |
 | World events, treasures, caches | surprise loot during trips |
 | Tribulation | the gate of a major realm |
 | Travel | moves you between home and out |
+| The haul, Store all, spirit ring | makes "come home" matter: store the trip, or risk half of it on a death |
 
 ## A player's life, and when each thing is introduced
 
@@ -95,13 +101,17 @@ and everything else arrives when it first matters.
 
 | Stage | Beat | Introduced |
 |---|---|---|
-| QC1-3 | HOOK | the rhythm itself, once: circulate (home) -> break through -> spirit root -> travel out -> hunt -> technique -> refine (home) -> QC3. This is the current onboarding. |
-| QC4 | BREATHER | **home deepens:** garden and peak building (proposal; onboarding doesn't teach them today) |
-| QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending insight and stones. Today only a toast and the Arts pane explain it; the elder should name it once. |
+| QC1-4 | HOOK | the rhythm itself, once: circulate (home) -> break through -> ride out and hunt -> technique -> store the haul -> refine (at a node by the fight) -> QC3 -> spirit root and the formations -> QC4. This is the current onboarding ([onboarding](systems/onboarding.md)). |
+| QC4 | BREATHER | **home deepens:** the garden (the Home lesson: plant a seed); seclusion waits for the second session; building is taught at QR2 |
+| QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending stones (with enough weapon Dao). Today only a toast and the Arts pane explain it; the elder should name it once. |
 | QC5 | RAMP | a new region (Ruined Borderlands); the gather/refine loop sets in |
-| QC6 | MINI-WALL | herbs start to matter (the garden pays off) |
-| QC7-8 | BREATHER, RAMP | second weapon class and its Dao level (from caches and drops) |
-| QC9 | WALL | insight and the first tribulation |
+| QC5 | | the Borderlands' hidden caches (the Rumours lesson); the sect board, pointed at from the elder's Talk |
+| QC6 | MINI-WALL | herbs start to matter (the Herbs lesson: eat one for qi) |
+| QC7 | | the Dao drill (the DaoPractice lesson) |
+| QC8 | RAMP | a breather, no lesson |
+| QR1 | | a second weapon class (moved out of QC) |
+| QR2 | | building: place one piece; the peak score raises meditation (the Build lesson) |
+| QC9 | WALL | the biggest bar, the heart-demon trial (the HeartDemon lesson), and the first tribulation for heaven-defiers |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |
 | a later update (decided 2026-10-22) | | crafting: mining and ores, weapon refinement, alchemy (see below and [roadmap](roadmap.md)) |
@@ -146,10 +156,10 @@ introduced alone, at a breather stage, by the elder or the quest board.
 ## Techniques: many, found, chosen
 Many more techniques are planned. Every one is a manual you find out in the
 world (caches, ruins, boss pools, events, milestones), never something a tree or
-shop hands out, so exploring keeps paying. Insight is deliberately scarce
-against them: players comprehend a few favourites, not all. So each new region
-must add its own insight sources (its beasts' first kills, event relics, secret
-comprehension spots), or mastery slows to a crawl. No weapon perk trees: weapon
+shop hands out, so exploring keeps paying. Weapon Dao is what limits them
+(Phase A, 2026-10-23): a technique is learned and comprehended only at the class
+Dao its power and rarity require, so players deepen the arts of the weapons they
+actually fight with. Insight is gone. No weapon perk trees: weapon
 Dao stays a level that grows by fighting (decided 2026-10-21, to keep combat
 simple).
 

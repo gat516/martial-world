@@ -11,10 +11,21 @@ local Pacing = require(script.Parent.Pacing).Roots
 -- element "" = not tested yet; grade = that element's; pending = a rerolled
 -- element waiting for the player to keep it or return to `element` ("" = none);
 -- grades = the grade each other element held reached while it was the root
--- (one never held starts at STARTING_GRADE)
-export type Root = { element: string, grade: string, pending: string, grades: { [string]: string } }
+-- (one never held starts at STARTING_GRADE); washed = Marrow Washing Pills each
+-- element has absorbed toward its next grade (Pacing.Roots.WASH; reset when it rises);
+-- fragments = pity fragments held toward each root pill, by pill id (shared by
+-- every element; Pacing.Roots.FRAGMENTS)
+export type Root = {
+	element: string,
+	grade: string,
+	pending: string,
+	grades: { [string]: string },
+	washed: { [string]: number }?,
+	fragments: { [string]: number }?,
+}
 
--- What an element's perk changes (amounts in Pacing.Roots.PERKS):
+-- What an element's perk changes (amounts in Pacing.Roots.PERKS; the rare
+-- elements' second perk in Pacing.Roots.BONUS):
 --   technique  share added to technique damage
 --   regen      share of max health healed per second out of combat
 --   growth     share added to herb growth speed
@@ -46,18 +57,31 @@ Roots.Elements = {
 	Wood = element("Wood", "growth", "Your herbs grow faster.", Color3.fromRGB(110, 200, 90)),
 	Metal = element("Metal", "strike", "Your weapon strikes hit harder.", Color3.fromRGB(225, 225, 235)),
 	Earth = element("Earth", "health", "You have more health.", Color3.fromRGB(200, 150, 80)),
-	Lightning = element("Lightning", "walk", "You run faster.", Color3.fromRGB(180, 140, 255), true),
-	Wind = element("Wind", "jump", "You jump higher.", Color3.fromRGB(150, 235, 210), true),
-	Ice = element("Ice", "guard", "You take less damage.", Color3.fromRGB(170, 230, 255), true),
+	Lightning = element("Lightning", "walk", "You run faster, and your techniques hit harder.", Color3.fromRGB(180, 140, 255), true),
+	Wind = element("Wind", "jump", "You jump higher, and your weapon strikes hit harder.", Color3.fromRGB(150, 235, 210), true),
+	Ice = element("Ice", "guard", "You take less damage, and you have more health.", Color3.fromRGB(170, 230, 255), true),
 } :: { [string]: Element }
 
 Roots.Order = { "Fire", "Water", "Wood", "Metal", "Earth", "Lightning", "Wind", "Ice" }
 
--- Grades low to high (names match Weapons.Grades, for colour).
-Roots.GradeOrder = { "Spirit", "Earth", "Heaven" }
+-- Grades low to high. Spirit, Earth and Heaven match Weapons.Grades (for colour);
+-- Immortal, the rare top, has no weapon grade and takes its colour from here.
+Roots.GradeOrder = { "Spirit", "Earth", "Heaven", "Immortal" }
+Roots.GradeColors = { Immortal = Color3.fromRGB(255, 110, 140) } :: { [string]: Color3 }
+
+-- What a pity fragment of each root pill is called (Pacing.Roots.FRAGMENTS).
+Roots.FragmentNames = {
+	MarrowWashingPill = "Marrow Washing fragment",
+	RootRebirthPill = "Root Rebirth fragment",
+} :: { [string]: string }
 
 function Roots.new(): Root
-	return { element = "", grade = Pacing.STARTING_GRADE, pending = "", grades = {} }
+	return { element = "", grade = Pacing.STARTING_GRADE, pending = "", grades = {}, washed = {}, fragments = {} }
+end
+
+-- Pity fragments held toward `pill`, and how many make one.
+function Roots.fragments(root: Root, pill: string): (number, number)
+	return if root.fragments then root.fragments[pill] or 0 else 0, Pacing.FRAGMENTS.PER_PILL
 end
 
 -- The grade `element` has (or would come back at) for this player.
@@ -90,13 +114,28 @@ local function grade(root: Root): { speed: number, perk: number }
 	return Pacing.GRADES[root.grade] or Pacing.GRADES[Pacing.STARTING_GRADE]
 end
 
--- The root's perk of this kind (0 when its element has another perk).
-function Roots.perk(root: Root, kind: Perk): number
-	local def = Roots.Elements[root.element]
-	if not def or def.perk ~= kind then
-		return 0
+-- The perks an element gives, main first, as { kind, amount at perk strength 1 }.
+function Roots.perks(id: string): { { kind: Perk, amount: number } }
+	local def = Roots.Elements[id]
+	if not def then
+		return {}
 	end
-	return (Pacing.PERKS[def.id] or 0) * grade(root).perk
+	local list = { { kind = def.perk, amount = Pacing.PERKS[id] or 0 } }
+	for kind, amount in Pacing.BONUS[id] or {} do
+		table.insert(list, { kind = kind :: Perk, amount = amount })
+	end
+	return list
+end
+
+-- The root's perk of this kind at its grade (0 when its element gives none).
+function Roots.perk(root: Root, kind: Perk): number
+	local total = 0
+	for _, p in Roots.perks(root.element) do
+		if p.kind == kind then
+			total += p.amount
+		end
+	end
+	return total * grade(root).perk
 end
 
 -- Multiplier on passive cultivation and refining.
@@ -122,6 +161,14 @@ function Roots.roll(rng: Random): string
 		end
 	end
 	return Roots.Order[1]
+end
+
+-- Marrow Washing Pills the current element has absorbed toward its next grade,
+-- and how many that grade needs (nil at the top).
+function Roots.washed(root: Root): (number, number?)
+	local nextGrade = Roots.nextGrade(root.grade)
+	local done = if root.washed then root.washed[root.element] or 0 else 0
+	return done, if nextGrade then Pacing.WASH[nextGrade] else nil
 end
 
 -- The grade above `name`, or nil at the top.

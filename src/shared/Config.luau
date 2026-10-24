@@ -1,7 +1,7 @@
 --!strict
 -- Every gameplay tunable in one place. Herb stats live in Herbs.luau.
 -- Progression pacing and per-stage difficulty (qi, breakthroughs, tribulations,
--- insight, beast strength) live in Pacing.luau, the master tuning file.
+-- beast strength) live in Pacing.luau, the master tuning file.
 
 local Pacing = require(script.Parent.Pacing)
 
@@ -116,6 +116,11 @@ return {
 	-- glowing edges, timing fills, rails and reticles for projectiles, no howl
 	-- rings. Testbed only until the user approves; `true` ships it.
 	NEW_TELEGRAPHS = TESTBED,
+	-- The creator's Robux Change Race / Change Clan rerolls (docs/systems/character-creator.md).
+	-- Off for now (user, 2026-10-24): paid random rolls that carry stats; bloodlines
+	-- will replace them. Off hides the buttons and the server refuses "reroll"; the
+	-- products and receipt handlers stay, so a purchase already made still lands.
+	PAID_REROLLS = false,
 
 	Data = {
 		STORE_NAME = "PlayerData_v1",
@@ -154,7 +159,7 @@ return {
 		WARN_RATIO = 5,
 		WARN_IDLE_SECONDS = 180, -- no runs or breakthroughs for this long
 		WARN_INTERVAL = 240, -- at most one warning this often
-		-- Breakthrough and forced-breakthrough numbers: Pacing.Breakthrough.
+		-- Breakthrough numbers: Pacing.Breakthrough; the qi surge: Pacing.Surge.
 	},
 
 	-- Qi spent per run, efficiency, deviation, and each stage's run length and
@@ -175,6 +180,9 @@ return {
 		FIRST_RUN_GAME = "Maze", -- the very first run is always this game...
 		FIRST_RUN_LEVELS = 1, -- ...one level...
 		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
+		-- ...and it always fills the realm bar, whatever the score (no deviation either), so
+		-- the first breakthrough is guaranteed (docs/systems/onboarding.md, the hook)
+		FIRST_RUN_FILLS_BAR = true,
 
 		-- Minigames. Each run gets a difficulty from 0 (easy) to 1 (hard), set per
 		-- stage in Pacing.Curve (`difficulty`); each game blends every value in
@@ -247,10 +255,28 @@ return {
 	},
 
 	Build = {
-		RADIUS = 47, -- studs from the plateau centre, horizontally
+		RADIUS = 47, -- base build radius, studs from the plateau centre, horizontally
 		MIN_Y = -30, -- down to the abode hall floor (-25)
 		MAX_Y = 30,
-		MAX_ITEMS = 120,
+		-- Peak tiers: the owner's realm picks the last row whose `from` stage they've
+		-- reached (Peaks.applyRealm). A row for a third of a realm (e.g. "QR4") slots in
+		-- anywhere. Per tier:
+		--   template  ServerStorage.PeakTiers.<template>, the look cloned onto the peak
+		--             (falls back to the nearest earlier tier whose template exists, else
+		--             the bare peak); the contract is in docs/systems/build.md
+		--   radius    build radius; on the real map it applies only when the applied
+		--             template brings a `Ground` child (new terraces), else RADIUS
+		--             (the testbed's flat arena always gets it)
+		--   maxItems  placed items the peak holds
+		--   limits    per-item caps replacing BuildItems `limit` (HerbBed: garden plots)
+		--   scoreCap  peak score past this adds nothing (Pacing.PeakScore)
+		TIERS = {
+			{ id = "QiCondensation", from = "QC1", template = "QiCondensation", radius = 47, maxItems = 120, limits = { HerbBed = 16 }, scoreCap = 60 },
+			{ id = "QiRefining", from = "QR1", template = "QiRefining", radius = 56, maxItems = 160, limits = { HerbBed = 20 }, scoreCap = 150 },
+			{ id = "Foundation", from = "FE1", template = "Foundation", radius = 66, maxItems = 200, limits = { HerbBed = 24 }, scoreCap = 250 },
+		} :: { { id: string, from: string, template: string, radius: number, maxItems: number, limits: { [string]: number }, scoreCap: number } },
+		-- the child of a tier template whose parts count as natural ground (GROUND)
+		TIER_GROUND = "Ground",
 		-- Precision presets the Grid button / G cycles: grid snap (studs) and rotation
 		-- step (degrees). The server keeps positions to 0.05 studs and yaw to 1 degree.
 		PRECISION = {
@@ -297,7 +323,7 @@ return {
 		SEEDS_BACK = { 1, 2 }, -- seeds returned per single harvest (min, max)
 		EDGE = 0.5, -- studs a stem keeps from a plot's edge
 		TICK = 10, -- seconds between weather growth, swelling and mutation rolls
-		AURA_CAP = 1.5, -- the most cultivation speed a garden's plants can add
+		-- the garden's aura (by tier and rarity, its cap by peak tier): Pacing.Aura
 		MAX_SELL = 999, -- herbs per sell request
 		MAX_SEEDS_BUY = 25, -- seeds per buy request
 		-- wild herbs that sprout on owned peaks during their weather event
@@ -305,11 +331,10 @@ return {
 		WILD_YIELD = { 1, 2 }, -- herbs per wild sprout
 		WILD_SEED_CHANCE = 0.5, -- a wild sprout also gives its seed
 		WILD_SECONDS = 300, -- a sprout withers after this long
-		-- seeds beasts drop: each damager rolls once per kill
+		-- seeds beasts drop: each damager rolls once per kill, from the kill's
+		-- region pool (Herbs.Regions: which seeds, by weight)
 		BEAST_SEED_CHANCE = 0.12, -- normal beasts
 		BOSS_SEEDS = { 2, 4 }, -- bosses always drop this many
-		BEAST_SEEDS = { "SpiritGrass", "CloudMint", "JadeLotus", "PurpleBamboo", "BloodGinseng" },
-		BEAST_SEED_WEIGHTS = { 40, 25, 15, 15, 5 },
 		-- "Grow now": a Robux developer product that finishes one growing plant.
 		-- A product has a fixed price, so there is one per tier; the tier is picked
 		-- by the seconds the plant has left (first tier whose upTo covers it).
@@ -505,10 +530,10 @@ return {
 		-- THE ELDER WOLF KING TRIAL: rigged boss, heavy attacks and two quick paw
 		-- checks. Testbed only until the user approves the fight; set true to ship.
 		NEW_WOLF_KING = TESTBED,
-		-- THE THUNDER APE TRIAL: a 30-stud storm boss (FE1) with fast combos, jump
+		-- THE THUNDER APE TRIAL: a 30-stud storm boss (QR5) with fast combos, jump
 		-- slams, lightning and a stagger roar. Testbed only until the user approves.
 		NEW_THUNDER_APE = TESTBED,
-		-- THE NINE-TAILED FOX TRIAL: an FE1 duelist boss with telescoping tails (lances,
+		-- THE NINE-TAILED FOX TRIAL: a QR9 duelist boss with telescoping tails (lances,
 		-- sweeps, a snare), foxfire volleys, tail-plunge eruptions, a scream stun and
 		-- retreat flips. Testbed only until the user approves.
 		NEW_NINE_TAIL_FOX = TESTBED,
@@ -534,6 +559,12 @@ return {
 		-- face a target they overshot. Testbed only until the user approves; the bosses'
 		-- new moves also sit behind their own NEW_* flags.
 		WEIGHTED_MOVES = TESTBED,
+		-- REALM VARIANTS (docs/systems/enemies.md "Realm variants"): zones and ambient packs
+		-- spawn their beasts at the realm ranges in Shared.Spawns, scaled and tiered by
+		-- Pacing.Variants (young near the gate, elite and apex farther out). Off: every beast
+		-- spawns at its def's own realm, as before (the admin panel's tier chips still work).
+		-- Testbed only until the user approves; set true to ship.
+		VARIANTS = TESTBED,
 		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
 		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
 		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells
@@ -543,7 +574,7 @@ return {
 		ENGAGE_RESET = 6, -- seconds without a target before a beast's next fight counts as new (howl, opener)
 	},
 
-	-- Insight and technique manuals: Pacing.Rewards.
+	-- Technique manuals: Pacing.Rewards; their Dao gates: Pacing.Comprehension.
 
 	-- The heavenly tribulation's arena. How hard it is (length, strike rate and
 	-- damage, fail cooldown) is per stage: Pacing.Curve `tribulation`.
@@ -588,8 +619,8 @@ return {
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
 		ITEMS_EACH = 2, -- every spirit core and treasure
-		-- not root pills: the RootPill lesson would purify the root before the tutorial's own
-		-- root reveal is digested (give them from the admin panel)
+		-- not root pills: they are rare boss and treasure finds, and a kit's worth would wash
+		-- the root a grade before the hook's own reveal is digested (give them from F2)
 		SKIP_ITEMS = { MarrowWashingPill = true, RootRebirthPill = true } :: { [string]: boolean },
 		STONES = 3000, -- Spirit Stones, to try the Spirit Market
 		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals

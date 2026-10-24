@@ -65,7 +65,7 @@ local FADE = 0.25
 local LIFT_Y = 12 -- the bar's top when lifted: level with the top-right tiles (Hud.Buttons)
 local LIFT_GAP = 8 -- px kept clear between the bar and the tiles / top-bar buttons
 local TILE, TILE_GAP = 56, 8 -- Hud.Buttons tile width and list padding (before its UIScale)
-local COMBAT_TILES = { InventoryButton = true, SettingsButton = true } -- what TileFold keeps
+local COMBAT_TILES = { InventoryButton = true, SelfButton = true } -- what TileFold keeps
 local PIP = "rbxassetid://115297870306868" -- kit gold_stud cut
 local CRACK = "rbxassetid://139598561995314" -- kit crack_split cut
 local PIP_Y = -5 / 24 -- pip centre on the plate's top rim (y 35 in the 560x104 box), in bar heights from the bar's top (y 40)

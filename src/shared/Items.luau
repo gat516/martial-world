@@ -6,13 +6,22 @@
 -- use: what consuming one does
 --   qi                raw qi into the dantian
 --   qiShare           raw qi as a share of the dantian
+--   qiFloor           the least raw qi qiShare gives (herb tiers, Pacing.Herbs.EAT_FLOOR)
+--   qiKills           raw qi worth this many kills at the eater's stage (a spirit
+--                     wolf's qiDrop, Pacing.Income.CORE_KILL_QIDROP, through Realms.enemyQi)
 --   cultivationShare  cultivation as a share of the realm bar (skips the dantian)
---   insight           insight points
+--   daoXp             weapon Dao XP for the class in hand (bare hands: Fist)
 --   heal              share of max health restored
 --   buffs             timed effects, as herbs have
 --   rootGrade         raise the spirit root one grade (absorbed while meditating)
 --   rootReroll        reform the root as another element; the player then keeps
 --                     the new one or returns to the old (Roots.reroll / choose)
+--   temper            absorbed in seclusion: mends the lowest old foundation
+--                     (points in Pacing.Tempering.POINTS, which also lists the herbs
+--                     that temper when eaten in seclusion; server Seclusion)
+--   heartClear        absorbed while meditating: forgives one denial in the next
+--                     heart-demon trial, or lets the latest uncalmed one be retaken
+--                     (Pacing.HeartDemon; server HeartDemon)
 -- Herbs are stored in data.herbs (the garden fills it); everything else in data.items.
 
 local Herbs = require(script.Parent.Herbs)
@@ -20,17 +29,22 @@ local Herbs = require(script.Parent.Herbs)
 export type Use = {
 	qi: number?,
 	qiShare: number?,
+	qiFloor: number?,
+	qiKills: number?,
 	cultivationShare: number?,
-	insight: number?,
+	daoXp: number?,
 	heal: number?,
 	buffs: { Herbs.Buff }?,
 	rootGrade: boolean?,
 	rootReroll: boolean?,
+	temper: boolean?,
+	heartClear: boolean?,
 }
 export type Category = "Herb" | "Core" | "Treasure" | "Pill"
 export type Item = {
 	id: string,
 	name: string,
+	short: string?, -- the hotbar's words (Hotbar.label): one or two short words
 	category: Category,
 	rarity: string,
 	color: Color3,
@@ -73,34 +87,48 @@ local HERB_GLYPHS = {
 	RiftLotus = "蓮",
 	PurpleBamboo = "竹",
 	SpiritPeach = "桃",
+	GhostlampLily = "燈",
+	DuskwindThistle = "薊",
+	SevenStarGrass = "星",
+	EmberheartFruit = "果",
+	DragonbloodVine = "藤",
+	PhoenixPlumeOrchid = "鳳",
+	SnowpeakLotus = "雪",
+	StarfallBamboo = "竹",
+	TribulationThunderGrass = "雷",
+	NinefoldHeavenLotus = "蓮",
+	DaoOriginFruit = "道",
 }
 
 Items.Defs = {
 	LesserSpiritCore = {
 		id = "LesserSpiritCore",
 		name = "Lesser Spirit Core",
+		short = "Lesser Core",
 		category = "Core",
 		rarity = "Uncommon",
 		color = Color3.fromRGB(110, 225, 205),
 		glyph = "核",
-		blurb = "Crush it to draw out raw qi: +25% of your dantian",
+		blurb = "Crush it to draw out raw qi: two kills' worth at your realm",
 		lore = "The condensed qi of a spirit beast. Wolves, boars and serpents of the wilds carry them.",
-		use = { qiShare = 0.25 },
+		use = { qiKills = 2 },
 	},
 	GreaterSpiritCore = {
 		id = "GreaterSpiritCore",
 		name = "Greater Spirit Core",
+		short = "Greater Core",
 		category = "Core",
 		rarity = "Epic",
 		color = Color3.fromRGB(255, 120, 90),
 		glyph = "魄",
-		blurb = "+35% of your realm bar at once, and +30% cultivation for 5 min",
+		blurb = "+8% of your realm bar at once, and +20% cultivation for 5 min",
 		lore = "A beast king's core, dense enough to refine straight into your foundation.",
-		use = { cultivationShare = 0.35, buffs = { { kind = "QiRate", amount = 0.3, seconds = 300 } } },
+		use = { cultivationShare = 0.08, buffs = { { kind = "QiRate", amount = 0.2, seconds = 300 } } },
 	},
 	HeavenlyDew = {
 		id = "HeavenlyDew",
 		name = "Heavenly Dew",
+		short = "Heaven Dew",
 		category = "Treasure",
 		rarity = "Rare",
 		color = Color3.fromRGB(150, 220, 255),
@@ -113,43 +141,47 @@ Items.Defs = {
 	CloudPatternJade = {
 		id = "CloudPatternJade",
 		name = "Cloud-Pattern Jade",
+		short = "Cloud Jade",
 		category = "Treasure",
 		rarity = "Epic",
 		color = Color3.fromRGB(140, 235, 170),
 		glyph = "玉",
-		blurb = "Meditate on its patterns: +1 insight",
+		blurb = "Study its patterns: +60 Dao XP for the weapon in hand",
 		lore = "Clouds drift across its surface. Those who study them see a little further.",
-		use = { insight = 1 },
+		use = { daoXp = 60 },
 		treasureWeight = 30,
 	},
 	ImmortalPeach = {
 		id = "ImmortalPeach",
 		name = "Immortal Peach",
+		short = "Deity Peach",
 		category = "Treasure",
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 160, 175),
 		glyph = "桃",
-		blurb = "+50% of your realm bar, full health, and +100% cultivation for 10 min",
+		blurb = "+50% of your realm bar, full health, and +50% cultivation for 10 min",
 		lore = "A peach from the heavenly orchards, ripened once in three thousand years.",
-		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 1.0, seconds = 600 } } },
+		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 0.5, seconds = 600 } } },
 		treasureWeight = 10,
 	},
-	-- spirit root pills: rare drops (the Elder Wolf King) and treasures
+	-- spirit root pills: rare boss drops (2-5%) and rare treasures, never common beasts
 	MarrowWashingPill = {
 		id = "MarrowWashingPill",
 		name = "Marrow Washing Pill",
+		short = "Marrow Pill",
 		category = "Pill",
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 215, 120),
 		glyph = "髓",
-		blurb = "Absorb it while meditating: your spirit root grows one grade purer",
-		lore = "It burns the impurities from bone and marrow. Few roots stay the same after one.",
+		blurb = "Absorb it while meditating to wash your spirit root. Enough of them raise it a grade",
+		lore = "It burns the impurities from bone and marrow. One is a rare fortune; a root changes only after several.",
 		use = { rootGrade = true },
-		treasureWeight = 4,
+		treasureWeight = 1,
 	},
 	RootRebirthPill = {
 		id = "RootRebirthPill",
 		name = "Root Rebirth Pill",
+		short = "Rebirth Pill",
 		category = "Pill",
 		rarity = "Epic",
 		color = Color3.fromRGB(190, 150, 255),
@@ -157,7 +189,33 @@ Items.Defs = {
 		blurb = "Absorb it while meditating: your root reforms as another element. Keep either",
 		lore = "For a moment your root dissolves, and heaven decides again.",
 		use = { rootReroll = true },
-		treasureWeight = 5,
+		treasureWeight = 2,
+	},
+	-- foundation and heart pills (docs/systems/seclusion.md "Tempering", heart-demon.md):
+	-- realm-neutral (they pay percent points, not qi), so every band's bosses drop them
+	TemperingPill = {
+		id = "TemperingPill",
+		name = "Foundation Tempering Pill",
+		short = "Temper Pill",
+		category = "Pill",
+		rarity = "Rare",
+		color = Color3.fromRGB(205, 170, 120),
+		glyph = "基",
+		blurb = "Absorb it in seclusion: in a few minutes it mends your weakest old foundation, up to 100%",
+		lore = "Ground earth-marrow and spirit clay. It fills the cracks a hurried breakthrough left.",
+		use = { temper = true },
+	},
+	ClearHeartPill = {
+		id = "ClearHeartPill",
+		name = "Clear Heart Pill",
+		short = "Heart Pill",
+		category = "Pill",
+		rarity = "Epic",
+		color = Color3.fromRGB(150, 210, 235),
+		glyph = "心",
+		blurb = "Absorb it while meditating: your heart demon forgives one lie, or lets you face it again",
+		lore = "Cool as mountain water. For a while, the voice inside is easier to hear truly.",
+		use = { heartClear = true },
 	},
 } :: { [string]: Item }
 
@@ -180,16 +238,18 @@ local ICONS = {
 -- Herbs are items too
 for _, id in Herbs.Order do
 	local herb = Herbs.Defs[id]
+	local share, floor = Herbs.eatQi(id)
 	Items.Defs[id] = {
 		id = id,
 		name = herb.name,
+		short = herb.short,
 		category = "Herb",
 		rarity = herb.rarity,
 		color = herb.color,
 		glyph = HERB_GLYPHS[id] or "草",
 		blurb = herb.blurb,
 		lore = "Grown in the beds of your spirit peak.",
-		use = { qi = herb.eat.qi, buffs = herb.eat.buffs },
+		use = { qiShare = if share > 0 then share else nil, qiFloor = if floor > 0 then floor else nil, buffs = herb.eat.buffs },
 	}
 end
 
@@ -198,7 +258,7 @@ for id, icon in ICONS do
 end
 
 Items.Order = table.clone(Herbs.Order)
-for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach", "MarrowWashingPill", "RootRebirthPill" } do
+for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach", "MarrowWashingPill", "RootRebirthPill", "TemperingPill", "ClearHeartPill" } do
 	table.insert(Items.Order, id)
 end
 

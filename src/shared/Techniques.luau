@@ -13,6 +13,10 @@
 -- weapon: the class that must be equipped to cast it (Weapons.Classes), or "Any".
 -- grade: Weapons.Grades key, as weapons have (nil = Mortal): starter and kill-milestone
 --   arts are Mortal, boss and late-milestone manuals Spirit (docs/ui/inventory.md).
+-- dao: the weapon Dao level needed to learn it (nil = 0; Pacing.Comprehension): a
+--   class skill takes its rung of SKILL_DAO (Plain 2, Adept 5, Peak 8: the more
+--   spectacular, the higher), starter arts nothing, so onboarding never waits on Dao.
+--   Any-weapon arts check the player's highest class Dao.
 -- element: its Roots element (Roots.Elements); a caster with that spirit root hits harder.
 --   Class techniques also scale with that class's grade and Dao comprehension.
 --
@@ -47,9 +51,11 @@ export type Hit = { time: number, stop: number, damage: number }
 export type Def = {
 	id: string,
 	name: string,
+	short: string?, -- the hotbar's words (Hotbar.label): one or two short words
 	kind: string,
 	weapon: string, -- a Weapons class id, or "Any"
 	grade: string?, -- a Weapons.Grades key (the inventory frame); nil = Mortal
+	dao: number?, -- weapon Dao needed to learn it (nil = 0); see Techniques.learnDao
 	element: string?, -- a Roots element: casters with that root deal Pacing.Roots.MATCH more
 	cooldown: number,
 	qiCost: number?, -- combat qi per cast; nil = derived from the cooldown (Techniques.qiCost)
@@ -59,7 +65,7 @@ export type Def = {
 	animation: number, -- which Fists chain animation the cast plays (when it has no `hits`)
 	hand: string?, -- visuals: "Left" or "Right", the hand that strikes in that animation
 	cast: Cast,
-	icon: string, -- the image on its HUD button; names only show in the Arts window
+	icon: string, -- its glyph in the Inventory (the hotbar shows `short` words instead)
 	length: number?,
 	width: number?,
 	radius: number?,
@@ -81,6 +87,10 @@ export type Def = {
 }
 
 local Pacing = require(script.Parent.Pacing)
+local Weapons = require(script.Parent.Weapons)
+
+local Comprehension = Pacing.Comprehension
+local SKILL_DAO = Comprehension.SKILL_DAO
 
 local Techniques = {}
 
@@ -90,6 +100,7 @@ Techniques.Defs = {
 		weapon = "Sword",
 		icon = "rbxassetid://100918699109239",
 		name = "Sword Qi Wave",
+		short = "Qi Wave",
 		element = "Metal",
 		kind = "line",
 		cooldown = 6,
@@ -107,6 +118,7 @@ Techniques.Defs = {
 		weapon = "Fist",
 		icon = "rbxassetid://98382420618802",
 		name = "Palm Strike",
+		short = "Palm Strike",
 		element = "Earth",
 		kind = "circle",
 		cooldown = 8,
@@ -123,6 +135,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://89161711966835",
 		name = "Lightning Talisman",
+		short = "Bolt Charm",
 		element = "Lightning",
 		kind = "chain",
 		cooldown = 10,
@@ -141,6 +154,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://73960875385866",
 		name = "Iron Skin",
+		short = "Iron Skin",
 		element = "Metal",
 		kind = "buff",
 		cooldown = 15,
@@ -158,6 +172,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://123372008874762",
 		name = "Fire Seal",
+		short = "Fire Seal",
 		element = "Fire",
 		kind = "zone",
 		cooldown = 12,
@@ -177,8 +192,10 @@ Techniques.Defs = {
 		id = "TwinPhoenixCannon",
 		grade = "Spirit",
 		weapon = "Fist",
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://81953324274209",
 		name = "Twin Phoenix Cannon",
+		short = "Twin Phoenix",
 		element = "Fire",
 		kind = "line",
 		cooldown = 9,
@@ -197,8 +214,10 @@ Techniques.Defs = {
 		id = "MoonflashDraw",
 		grade = "Spirit",
 		weapon = "Sword",
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://96346324489936",
 		name = "Moonflash Draw",
+		short = "Flash Draw",
 		element = "Ice",
 		kind = "line",
 		cooldown = 7,
@@ -221,8 +240,10 @@ Techniques.Defs = {
 		id = "RampagingTiger",
 		grade = "Spirit",
 		weapon = "Saber",
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://104006341750065",
 		name = "Rampaging Tiger Cleave",
+		short = "Tiger Cleave",
 		element = "Metal",
 		kind = "circle",
 		cooldown = 12,
@@ -247,8 +268,10 @@ Techniques.Defs = {
 		id = "HeavenSplitter",
 		grade = "Spirit",
 		weapon = "Greatsword",
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://131580966208055",
 		name = "Heaven-Splitting Descent",
+		short = "Heaven Split",
 		element = "Earth",
 		kind = "circle",
 		cooldown = 16,
@@ -273,8 +296,10 @@ Techniques.Defs = {
 		id = "CrescentSweep",
 		grade = "Spirit",
 		weapon = "Guandao",
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://110851099640824",
 		name = "Crescent Moon Sweep",
+		short = "Moon Sweep",
 		element = "Water",
 		kind = "circle",
 		cooldown = 9,
@@ -292,8 +317,10 @@ Techniques.Defs = {
 		id = "DragonPierce",
 		grade = "Spirit",
 		weapon = "Spear",
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://123799153426166",
 		name = "Dragon-Piercing Thrust",
+		short = "Dragon Thrust",
 		element = "Wood",
 		kind = "line",
 		cooldown = 8,
@@ -314,8 +341,10 @@ Techniques.Defs = {
 		id = "GreatSageAwakening",
 		grade = "Spirit",
 		weapon = "Staff",
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://115862718192751",
 		name = "Great Sage Awakening",
+		short = "Great Sage",
 		element = "Wind",
 		kind = "buff",
 		cooldown = 20,
@@ -368,6 +397,45 @@ end
 -- Whether a technique can be cast with `class` equipped.
 function Techniques.allowed(def: Def, class: string): boolean
 	return def.weapon == "Any" or def.weapon == class
+end
+
+-- DAO GATES (Pacing.Comprehension). `dao` is a by-class table of { level } entries
+-- (PlayerData `dao`, the client snapshot's `dao`); a missing class is level 0.
+
+-- Weapon Dao needed to learn a technique.
+function Techniques.learnDao(def: Def): number
+	return def.dao or 0
+end
+
+-- Weapon Dao needed to break the bottleneck at `level`, or nil if none sits there.
+function Techniques.comprehendDao(def: Def, level: number): number?
+	local gate = Comprehension.GATES[level]
+	if not gate then
+		return nil
+	end
+	local learn = Techniques.learnDao(def)
+	local per = if learn >= Comprehension.HIGH_FROM then Comprehension.DAO_PER_BOTTLENECK_HIGH else Comprehension.DAO_PER_BOTTLENECK
+	return math.min(Weapons.MAX_LEVEL, learn + gate.step * per)
+end
+
+-- The Dao level that counts for a technique: its class's, or the highest class's
+-- for an any-weapon art.
+function Techniques.daoLevel(def: Def, dao: { [string]: { level: number } }): number
+	if def.weapon ~= "Any" then
+		local entry = dao[def.weapon]
+		return if entry then entry.level else 0
+	end
+	local best = 0
+	for _, entry in dao do
+		best = math.max(best, entry.level)
+	end
+	return best
+end
+
+-- "Sword Dao 4", or "Weapon Dao 4" for an any-weapon art (any class counts).
+function Techniques.daoText(def: Def, level: number): string
+	local class = Weapons.Classes[def.weapon]
+	return `{if class then class.dao else "Weapon Dao"} {level}`
 end
 
 -- Visuals tuning knob: the highest level of each visual tier. A technique's cast

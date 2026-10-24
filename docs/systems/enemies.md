@@ -2,7 +2,7 @@
 
 ## Purpose
 Demon beasts in the wilds: the source of raw qi, Spirit Stones, spirit cores,
-seeds, insight and technique manuals, and the main test of a player's realm.
+seeds and technique manuals, and the main test of a player's realm.
 
 ## Design intent
 - Readable fights: every damaging attack has a ground telegraph; bosses rotate a
@@ -23,6 +23,12 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 - Kill credit is earned, not tagged: a player gets the kill's rewards only after
   dealing `Pacing.Rewards.KILL_SHARE` of its max health (`BOSS_KILL_SHARE` for a
   boss). Whoever dealt the most always qualifies, so every kill pays someone.
+- **Summoned beasts pay qi only.** Anything another beast calls (a howl's
+  reinforcements, a boss's adds: `SpawnOptions.called`, set by `summon`) gives its
+  qi at the untiered rate (the tier's `reward` divided back out) and nothing else: no
+  stones, drops, seeds, first kills, foundation experiences, kill count or `onKill`
+  hooks, so a howl is never a farm. A player still in onboarding (before the `QC3`
+  beat) is paid in full, so the lesson's one reinforcement counts (`fullPay`).
 
 ### Every enemy is designed, not filled in (user, 2026-10-22)
 - **Bosses go all out.** Each one has its own AI, its own signature mechanic and an
@@ -55,7 +61,7 @@ One doc per enemy (fight, numbers, effects, its own gaps). Read only the one you
 
 A new enemy gets its own file here and a row in this table.
 
-Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit). The 2026-10-23 roster audit (every enemy measured, a ranked work list and its briefs): [audit-2026-10-23.md](../enemies/audit-2026-10-23.md).
+Shared parts (not one enemy): [variants.md](../enemies/variants.md) (realm variants and tiers), [health-bars.md](../enemies/health-bars.md) (overhead bars), [effects.md](../enemies/effects.md) (EnemyFX cues, boss impacts), [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit). The 2026-10-23 roster audit (every enemy measured, a ranked work list and its briefs): [audit-2026-10-23.md](../enemies/audit-2026-10-23.md).
 
 ## Boss rules (user decisions)
 Apply to every boss pass.
@@ -124,105 +130,15 @@ player in a session sees the same beasts and nothing a client does can change on
   of the area within half their ping, at most `ESCAPE_LEAD`. Prediction is drawing
   only: no client position, timing or hit claim is trusted past these windows.
 
-### Overhead health bars (EnemyBars)
-Regular beasts carry a `HealthBar` BillboardGui (Dead Cells layout in the
-game's lacquer-and-seal dress): a dark ink nameplate strip with the beast's name
-and realm tag (`QC 4`), sitting on a long thin bar whose right end is cut at 45 degrees. The
-fill is blood-qi crimson, cut into ten talisman slips at the same 45 degrees (one per 10% of
-health, the same count as the player's vitals bar; the divisions are drawn into
-the rim art, so the slip size never depends on the beast's max health). A hit
-drops the fill at once and a pale gold ghost (`Trail`) drains after it. The bar
-shows while the beast is locked or for 8 s after it's hurt. The fill's slant
-shows at full health; while draining, its leading edge is the `Fill` frame's
-straight clip.
-
-On tiers with an end gem (jade, gold, far) the gem is as tall as the bar and
-set in the rim's metal, its upper-left face flush along the window's slant, so
-the bar ends in the gem's point rather than running into it (user, 2026-10-23:
-the old slant ran straight into the gem). The metal wedge under the gem fills
-the rest of the end. Bronze keeps a bare slanted end.
-
-Its dressing says how dangerous the beast is **to you**: the gap between the
-beast's realm and the local player's (`Realms.index`, in ladder stages) picks a
-tier from `Pacing.Danger`, re-picked live when the player's `Realm` changes, so
-a breakthrough makes the same beast look tamer.
-
-| Tier | Gap (default) | Look |
-|---|---|---|
-| below | <= -2 | muted bronze frame, grey tag |
-| even | -1 to +1 | jade frame, vermilion gem capping the end |
-| above | +2 to +3 | gold frame, gem end and lozenge cap on the left, omen line |
-| far | +4 to +5 | violet frame, crimson gem drawn out into a talisman tip, pulsing qi aura, sheen sweep, omen line |
-| deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
-
-Omen lines are short xianxia warnings under the bar (under the skull for
-deadly), one picked at random per beast per tier so it never flickers; the pools
-live in `STYLES` in `EnemyBars.luau` (keep lines under ~24 characters). Bosses
-skip all of this: their overhead bar stays off and the boss you fight gets the
-themed screen bar instead (`BossBars.luau`, see [boss bar](../ui/boss-bars.md)), dressed with the
-same tiers and per-boss omen pools. Art: `art/ui/draw_ui.py enemybar` (`EB` geometry, `EB_TIERS`
-colours), ids in `art/ui/assets.json` (`enemybar_*`); rims are set from `STYLES`, while
-Back, Fill, Trail and Sheen ids live in every `HealthBar` in `assets/Enemies.rbxm`.
-
-### Adding a beast's effects (EnemyFX)
-Put `src/client/EnemyFX/<EnemyType>.luau` returning any of `windup`, `strike`,
-`dash`, `stagger`, `death`, `land`, `hit`, each `(cue) -> ()`; a cue is `{ model,
-root, kind, attack, shape, seconds, target, at }` (shape and seconds left only on
-windup, target only on hit). Branch on `cue.attack` (the model's `Attack`
-attribute when the cue fires). Skipped past 220 studs from the camera. Server
-code never plays effects; if a cue is missing, add an attribute, a field on the
-telegraph, or an `enemyCue` (below), not a server-side effect.
-
-A barrage's windup (the Fox's, the Raven's embers) is ONE `windup` cue whose
-`shape` is `{ kind = "multi", parts, center }`: the real circles, lanes and cones are in
-`shape.parts` (each with its own centre or box, `radius` and `delay`), and `shape.center` is
-the beast's own ground position, not the target. Read `shape.parts`, never `shape.center`, for
-where a barrage lands.
-
-Where each cue comes from (`EnemyFX/init.luau`):
-| Cue | Source |
-|---|---|
-| `windup` | the `Telegraph` remote (needs the enemy model in it); `seconds` = time left |
-| `strike` | `AIState` goes windup -> dash or recover (fires for every attack, telegraphed or not) |
-| `dash` | `AIState` becomes dash (same tick as strike for lunges) |
-| `stagger` | `AIState` becomes stagger |
-| `land` | `AIState` leaves dash (to recover, stagger, anything), or the server's `enemyCue` |
-| `hit` | only the server: `Effect:FireAllClients("enemyCue", model, "hit", character)` once per player caught |
-| `death` | `Health` reaches 0 |
-
-`enemyCue` is generic: `Effect:FireAllClients("enemyCue", model, name, target?)`
-calls handler `name` with `cue.target = target` (a Character or nil). Use it for
-moments with no state change, such as a leap's touchdown when the leap isn't
-modelled as a dash. Handlers dedupe what can arrive twice (the Spirit Wolf
-ignores a second `land` within 0.3 s).
-
-Bosses get no stock howl ring: `Telegraphs` skips the pale swelling disc for any `howl` shape from a boss def (roars, intros, phase calls, the fox's leap marker, the Jiao's emerge), since each boss's EnemyFX plays its own effect there. Under `Config.NEW_TELEGRAPHS` (testbed only for now) no enemy gets one: a `howl` shape draws nothing, and the wolf's `howl` windup cue carries its roar effect. Damaging and crowd-control areas still draw (in the new look: [telegraphs.md](telegraphs.md)).
+### Overhead health bars, effects and impacts
+Regular beasts' overhead bar (layout, danger tiers by realm gap, omen lines): [health-bars.md](../enemies/health-bars.md).
+Adding a beast's client effects (`src/client/EnemyFX/<EnemyType>.luau`, cue sources, `enemyCue`, barrage shapes, no stock howl ring for bosses) and the shared boss impact layers (`Effects.EnemyImpact`): [effects.md](../enemies/effects.md).
 
 ### Arrivals, skids and turning into moves
 Testbed only (`Config.Wilds.WEIGHTED_MOVES`): [arrivals.md](../enemies/arrivals.md) (`arrive`, `skid`, eased windup turns, flight yaw, client poses, its gaps).
 
-### Boss impacts (2026-10-22)
-`src/client/EnemyFX/Impact.luau` plays
-`Effects.EnemyImpact` (builder `tools/vfx_specs/EnemyImpact.luau`), layered
-on every boss's ground blows, landings, skids and projectile ends (and the
-normal wolf's roar). Templates are authored at radius 10 in neutral colours;
-each layer's `Role` attribute is painted from the element palette (thunder,
-venom, fox, moon, earth), and the shake falls off with distance. Layers:
-`Shock` (Neon torus wave and echo, bright front, rough ring, rays, dark
-crater; 6), `Dust` (skirt, smoke ring, flipbook plume, rock chips; 4),
-`Contact` (flash, flipbook star, glint, sparks, ink; 5), `Burst` (splat
-flipbook, flame tongues, embers, dark smoke; 4), `Scar` (scorch, crack web,
-burning crack cooling to dark, smoulder; 4, fades over 3.5 s), `Rocks`
-(Craters ring, Game Module only), `Roar`/`RoarDust` (sound rings, breath,
-motes; forward dust, grit, ring), `Skid` (spray, chips, scuff, puff), `Shot`
-(core over a dark disc, halo, glint, shed sparks, dark and bright trails).
-A heavy landing is about 100 particles one-shot. Untested: everything at play
-speed and in a real fight (only Edit-mode stills of a landing, the roar and a
-bolt were checked), the arrival follow-ups and skids against the combat
-agent's live cues (the skid is detected from `Attack` or `AttackName` ending
-in `Skid`), Craters rocks and Game Module playback, phone cost with several
-impacts at once, and whether the extra shakes double up with the templates'
-ScreenEffects shakes when the Game Module is present.
+## Realm variants (2026-10-23)
+One def, many strengths: a spawn gives a beast a realm and a tier (young, adult, elite, apex) that scales its body, speed, cadence and moveset. Behind `Config.Wilds.VARIANTS` (testbed only; off on the main map). Bosses never take variants. Tiers, the wire, first kills, zone realms and gaps: [variants.md](../enemies/variants.md).
 
 ## Attack mechanics
 Shared fields and kinds any def can use (`EnemyService`, `BossAttacks`, `Combat`, fields in `Enemies.luau`). First built for the beast named in brackets.
@@ -247,8 +163,8 @@ Shared fields and kinds any def can use (`EnemyService`, `BossAttacks`, `Combat`
   beast uses either now). `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
   for a slow and 1 s for poison; clients get `Effect "enemyPatch"` (EnemyFX handler `patch`,
   `cue.shape = { center, radius, effect }`, `cue.seconds`).
-- **`leech`** (Bat): a landed hit heals the beast that share of its damage and fires the `leech`
-  cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
+- **`leech`** (Bat): a landed hit heals the beast that share of the damage the player actually
+  took (after suppression, guard and reductions) and fires the `leech` cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
 - **Burrow for a regular beast** (Centipede): the Jiao's `burrow` kind and a `followUp` slam
   (`erupt`, `unburrow`) work for any def; the lane ends on the target's spot (`stopPast = 0`).
   It spawns surfaced; only the dive is underground (`Burrowed`). The erupt sets `unburrowAt =
@@ -299,19 +215,25 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
   pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`). Kill qi scaling uses
   `Pacing.Income.ENEMY_QI_EXPONENT` through `Realms.enemyQi`.
-- `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots).
+- Loot (`drops`): common beasts drop spirit cores only. Root pills are boss-only
+  and extremely rare (user, 2026-10-23), Marrow Washing / Root Rebirth: Elder Wolf
+  King (QC9) 2% / 3%, Jade Jiao (QC7) 2% / 3%, Thunder Ape (QR5) and Nine-Tailed Fox (QR9)
+  4% / 5%. A grade takes several Marrow Washing Pills ([spirit root](../character/spirit-root.md)).
+- `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots), zone and pack
+  realm ranges (realm variants).
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).
 - `src/server/Spawner.luau`: keeps zones (`Workspace.Wilds.Zones` parts with
-  `Enemy`/`Count`/`Radius`) topped up with respawns (zones: GateWolves 2 Spirit Wolves
-  by the Sect Gate array for the FirstKill beat, WolfPocket, WolfDen, BoarMeadow,
+  `Enemy`/`Count`/`Radius`) topped up with respawns (`Shared.Spawns.Zones` overrides a zone's count and
+  respawn by name; zones: GateWolves, 3 Spirit Wolves respawning in 8 s,
+  by the Sect Gate array for the FirstKill and Technique beats, WolfPocket, WolfDen, BoarMeadow,
   BoarField, SerpentMarsh, SerpentFen, BossArena; positions in [world-overview](../world-overview.md) and [docs/map/wilds.md](../map/wilds.md)), runs ambient encounters,
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
-- `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target })`,
+- `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target, fleeting, called, stage, tier })`,
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,
   stagger), attack pools, packs (howl, circle, hop) and attack slots, `strike`
   (telegraphed areas, also used by the tribulation), kill rewards and `onKill` hooks.
-- Kill hooks: `Progression.onKill` (insight, manuals, boss pools), `Inventory.onKill`
+- Kill hooks: `Progression.onKill` (manuals, boss pools; first kills tracked), `Inventory.onKill`
   (drops), `Garden.onKill` (seeds).
 - `src/server/EnemyMover.luau`: kinematic movement (goal, speed, push, turn, `look`
   to face a point while circling, ground and walls).
@@ -383,6 +305,9 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 
 ## Tuning knobs
 - Per beast: `Enemies.luau`. Ambient rates: `Spawns.luau`. Packs per region: `Regions.luau`.
+- Realm variants: `Pacing.Variants` (tier gaps, size, speed, cadence, health, damage, rewards,
+  tints, `AMBIENT_SPREAD`); zone and pack realms in `Spawns.luau`; region `depth` in
+  `Regions.luau`; per attack `minTier` / `tiers`; `Config.Wilds.VARIANTS`.
 - Overhead bar danger tiers: `Pacing.Danger` (`BELOW_AT`, `ABOVE_AT`, `FAR_AT`,
   `DEADLY_AT`, in realm stages); per-tier rim art, colours and omen pools in
   `EnemyBars.luau` `STYLES`; show time `SHOW_AFTER_HURT`, ghost drain `TRAIL`.
@@ -405,8 +330,13 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
-- Per stage (`Pacing.luau`): `beastHealth`, `beastDamage` (Adjust, by the beast's
-  realm; EnemyService applies them through `Realms.ofBeast`),
+- Per stage (`Pacing.luau`): `beastHealth`, `beastDamage` (the curve's player power
+  and health over `Pacing.BeastBaseline`'s, times Adjust, by the beast's realm;
+  EnemyService applies them through `Realms.ofBeast`). Defs are authored against the
+  baseline (e.g. QC9: a 330 HP player at power 2.13), not the live curve. Realm
+  suppression (`Pacing.Suppression`) cuts damage across major realms both ways
+  ([combat](combat.md#realm-power-and-suppression-2026-10-23); eased by the party
+  shelter, and beasts a major below fear a player: `Pacing.Shelter`, `Pacing.Pressure`),
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps

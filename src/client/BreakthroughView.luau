@@ -1,14 +1,20 @@
 --!strict
 -- Breaking through, and the breakthrough effect: a column of light on whoever
--- broke through, seen by everyone nearby. Seated with a full bar it's the
--- meditation menu's Break Through tile (Meditation calls attempt); standing, the
--- Force Breakthrough button shows when badly hurt with the bar nearly full (the
--- server also checks you're in combat, see Cultivation.luau).
+-- broke through, seen by everyone nearby. Breakthroughs are seated only: the
+-- meditation menu's Break Through tile (Meditation calls attempt).
+-- The qi surge (server QiSurge, Pacing.Surge): while the server's SurgeReady is
+-- true, PC shows the standing pill (`Stack.BreakthroughButton`, "M to qi surge":
+-- M surges instead of meditating, Meditation's binding; a click fires it too) and
+-- touch shows `Play.SurgeButton` in the combat cluster instead (Layout places it),
+-- popping in. Both wear the surge flame. Every client plays an ember column and
+-- motes on a player whose SurgeUntil is set, for as long as it lasts.
 -- The ready nudge: when BreakthroughReady turns true, a toast says so once; after
 -- that it comes back only while the player is idle (no input for NUDGE_IDLE) and
 -- standing, at most every NUDGE_EVERY seconds, until they break through.
 -- The local player's own breakthrough also shows the Rewards milestone card
--- (docs/ui/rewards.md).
+-- (docs/ui/rewards.md) when it's worth one: a major, an array opening, the first
+-- foundation, or a stage that took Pacing.Breakthrough.CARD_MIN_MINUTES since the
+-- last breakthrough (or the join). A quicker one gets a small line.
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -19,12 +25,14 @@ local UserInputService = game:GetService("UserInputService")
 
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hud = require(script.Parent.Hud)
+local Layout = require(script.Parent.Layout)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Platform = require(script.Parent.Platform)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(script.Parent.Rewards)
 local State = require(script.Parent.State)
-local Config = require(ReplicatedStorage.Shared.Pacing).Breakthrough
 
 local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
 
@@ -34,6 +42,7 @@ local player = Players.LocalPlayer
 local COLUMN_HEIGHT = 80
 local MINOR_COLOR = Color3.fromRGB(150, 255, 210)
 local MAJOR_COLOR = Color3.fromRGB(255, 220, 120)
+local SURGE_COLOR = Color3.fromRGB(255, 150, 90)
 local FADE_SECONDS = 1.6
 local NUDGE_FIRST = 4 -- seconds after joining before a standing-ready nudge
 local NUDGE_IDLE = 25 -- seconds without input before the nudge may repeat
@@ -42,8 +51,9 @@ local NUDGE_EVERY = 150 -- seconds between repeats
 local BreakthroughView = {}
 
 local busy = false
+local lastBreakthrough = os.clock() -- the join counts as the last one
 
--- Ask the server to break through (seated, or forced); refusals toast why.
+-- Ask the server to break through (seated only); refusals toast why.
 function BreakthroughView.attempt()
 	if busy then
 		return
@@ -56,12 +66,29 @@ function BreakthroughView.attempt()
 	busy = false
 end
 
-local function playEffect(who: Player, major: boolean)
+-- Fire the qi surge (CultivationAction "surge"); refusals toast why.
+function BreakthroughView.surge()
+	if busy then
+		return
+	end
+	busy = true
+	local _, message = (remotes.CultivationAction :: RemoteFunction):InvokeServer("surge")
+	if message then
+		Hud.toast(message)
+	end
+	busy = false
+end
+
+function BreakthroughView.surgeReady(): boolean
+	return player:GetAttribute("SurgeReady") == true
+end
+
+local function playEffect(who: Player, major: boolean, tint: Color3?)
 	local root = who.Character and who.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then
 		return
 	end
-	local color = if major then MAJOR_COLOR else MINOR_COLOR
+	local color = tint or if major then MAJOR_COLOR else MINOR_COLOR
 	local base = root.Position - Vector3.new(0, 3, 0)
 
 	local column = Instance.new("Part")
@@ -107,10 +134,57 @@ local function playEffect(who: Player, major: boolean)
 	motes:Emit(if major then 90 else 45)
 end
 
+-- A surging player: the breakthrough burst in ember, then motes streaming off them
+-- until SurgeUntil passes or clears (short-lived, nothing persistent).
+local function watchSurge(who: Player)
+	local motes: ParticleEmitter? = nil
+	local function clear()
+		if motes then
+			motes:Destroy()
+			motes = nil
+		end
+	end
+	local function changed()
+		clear()
+		local ends = who:GetAttribute("SurgeUntil")
+		if typeof(ends) ~= "number" then
+			return
+		end
+		local left = ends - workspace:GetServerTimeNow()
+		local root = who.Character and who.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if left <= 0 or not root then
+			return
+		end
+		playEffect(who, false, SURGE_COLOR)
+		local emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "QiSurgeMotes"
+		emitter.Texture = SPARKLE
+		emitter.Color = ColorSequence.new(SURGE_COLOR)
+		emitter.LightEmission = 1
+		emitter.Size = NumberSequence.new(0.6, 0)
+		emitter.Lifetime = NumberRange.new(0.6, 1)
+		emitter.Speed = NumberRange.new(4, 8)
+		emitter.SpreadAngle = Vector2.new(180, 180)
+		emitter.Acceleration = Vector3.new(0, 10, 0)
+		emitter.Rate = 30
+		emitter.Parent = root
+		Debris:AddItem(emitter, left + 0.5)
+		motes = emitter
+	end
+	who:GetAttributeChangedSignal("SurgeUntil"):Connect(changed)
+	who.CharacterRemoving:Connect(clear)
+	changed()
+end
+
 -- The local player's moment: the milestone card (Rewards), with what changed from
 -- the stage before (health, power, combat qi, passive cultivation) and any travel
--- array the new stage opens.
-local function milestoneCard(stageName: string, major: boolean)
+-- array the new stage opens. The subtitle also carries the foundation the stage just
+local FIRST_FOUNDATION_CARD = "QC5"
+local FOUNDATION_LINE = "New beasts and herbs deepen your foundation."
+
+-- left sealed, as the percent only ("Foundation 86%"; server Foundation; 100% is full,
+-- past it is more). A hook stage sends none.
+local function milestoneCard(stageName: string, major: boolean, percent: number?)
 	local stage = Realms.byName(stageName)
 	local before: Realms.Stage? = nil
 	if stage then
@@ -129,6 +203,9 @@ local function milestoneCard(stageName: string, major: boolean)
 		add("Combat qi", before.combatQi, stage.combatQi, "%d")
 		add("Passive", before.passive, stage.passive, "%.2f/s")
 	end
+	-- the first card that carries a foundation (QC4 -> QC5; Pacing.Foundation.FROM is
+	-- QC4) introduces it in one line
+	local firstFoundation = stage ~= nil and type(percent) == "number" and stage.key == FIRST_FOUNDATION_CARD
 	local unlock: string? = nil
 	if stage then
 		for _, gate in Gates.List do
@@ -138,14 +215,22 @@ local function milestoneCard(stageName: string, major: boolean)
 			end
 		end
 	end
+	local quick = os.clock() - lastBreakthrough < Pacing.Breakthrough.CARD_MIN_MINUTES * 60
+	lastBreakthrough = os.clock()
+	if quick and not major and not unlock and not firstFoundation then
+		Rewards.show({ tier = "small", text = `Breakthrough · {stageName}`, color = MINOR_COLOR })
+		return
+	end
 	Rewards.show({
 		tier = "card",
 		kind = "milestone",
 		title = if major then "Major Breakthrough" else "Breakthrough",
-		subtitle = stageName,
+		subtitle = if type(percent) == "number" then `{stageName}  ·  Foundation {percent}%` else stageName,
 		stats = stats,
 		unlock = unlock,
-		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
+		flavour = if firstFoundation then FOUNDATION_LINE
+			elseif major then "A new realm opens before you."
+			else "Your qi settles at a new depth.",
 		life = if major then 7 else 5,
 	})
 end
@@ -203,41 +288,39 @@ end
 
 function BreakthroughView.init(gui: ScreenGui)
 	local button = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("BreakthroughButton") :: ImageButton
-	local label = button:FindFirstChild("Label") :: TextLabel
+	local touchButton = (gui:FindFirstChild("Play") :: Frame):FindFirstChild("SurgeButton") :: GuiButton
+	Motion.appear(touchButton)
 
+	-- the qi surge: the server decides when it's ready (SurgeReady); the pill on PC,
+	-- the cluster button on touch
 	local function refresh()
-		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
-		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		local seated = State.current.meditation ~= nil
-		local hurt = humanoid ~= nil and humanoid.Health > 0 and humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
-		local forcible = hurt and max > 0 and value >= max * Config.FORCE_BAR_SHARE
-		button.Visible = not seated and forcible and not Menus.isOpen()
-		label.Text = "Force Breakthrough"
+		local ready = BreakthroughView.surgeReady() and not seated and not Menus.isOpen()
+		local touch = Platform.isTouch()
+		button.Visible = ready and not touch
+		touchButton.Visible = ready and touch and Layout.clusterShown()
 	end
 	Menus.onChanged(refresh)
-	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
-	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
+	player:GetAttributeChangedSignal("SurgeReady"):Connect(refresh)
 	State.onChanged(function()
 		refresh()
 	end)
-	local function watch(character: Model)
-		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
-		humanoid.HealthChanged:Connect(refresh)
-		refresh()
-	end
-	player.CharacterAdded:Connect(watch)
-	if player.Character then
-		task.spawn(watch, player.Character)
-	end
+	refresh()
 
-	button.Activated:Connect(BreakthroughView.attempt)
+	button.Activated:Connect(BreakthroughView.surge)
+	touchButton.Activated:Connect(BreakthroughView.surge)
 	nudges()
 
+	for _, who in Players:GetPlayers() do
+		task.spawn(watchSurge, who)
+	end
+	Players.PlayerAdded:Connect(watchSurge)
+
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
-	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
+	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean, percent: number?)
 		playEffect(who, major)
 		if who == player then
-			milestoneCard(stageName, major)
+			milestoneCard(stageName, major, percent)
 		elseif major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)
 		end

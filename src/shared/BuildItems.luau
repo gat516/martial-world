@@ -29,7 +29,10 @@
 --   footprint narrows the placement bounds to this many studs (X, Z), centred,
 --             so canopies and overhangs don't block placement
 --   boxes     replaces the placement bounds with these boxes (pivot space)
--- Limits: `limit` caps how many can be placed on a peak (Build.MAX_ITEMS caps them all).
+-- Limits: `limit` caps how many can be placed on a peak; the peak tier can raise it
+-- (Config.Build.TIERS `limits`) and its `maxItems` caps them all.
+-- Score: `score` sets its peak-score points (default by category and realm gate,
+-- Pacing.PeakScore).
 -- Unlocks: `realm` is the cultivation realm needed to buy it.
 -- Effects: `meditation` adds to the meditation multiplier when seated near it;
 -- the best piece in range counts (Meditation.luau). `garden` helps plants whose
@@ -69,6 +72,7 @@ export type Def = {
 	garden: { radius: number, growth: number?, luck: number? }?,
 	soil: string?,
 	set: string?, -- BuildItems.Sets id
+	score: number?, -- peak-score points, replacing the category default (Pacing.PeakScore)
 	order: number,
 }
 
@@ -533,44 +537,44 @@ local list: { Def } = {
 	{
 		id = "MeditationCushion",
 		name = "Meditation Cushion",
-		description = "Meditate beside it: +1.5 to your meditation multiplier.",
+		description = "Meditate beside it: +0.75 to your meditation multiplier.",
 		category = "Cultivation",
 		cost = 260,
 		limit = 2,
 		on = FLOOR,
 		stack = true,
-		meditation = 1.5,
+		meditation = 0.75,
 		order = 0,
 	},
 	{
 		id = "MeditationMat",
 		name = "Meditation Mat",
-		description = "Meditate beside it: +0.75 to your meditation multiplier.",
+		description = "Meditate beside it: +0.4 to your meditation multiplier.",
 		category = "Cultivation",
 		cost = 140,
 		limit = 2,
 		on = FLOOR,
-		meditation = 0.75,
+		meditation = 0.4,
 		order = 0,
 	},
 	{
 		id = "IncenseBurner",
 		name = "Incense Burner",
-		description = "Calming smoke. Meditate beside it: +0.5 to your meditation multiplier.",
+		description = "Calming smoke. Meditate beside it: +0.25 to your meditation multiplier.",
 		category = "Cultivation",
 		cost = 90,
 		limit = 3,
 		on = { "floor", "socket" },
 		fits = "Tabletop",
 		stack = true,
-		meditation = 0.5,
+		meditation = 0.25,
 		garden = { radius = 14, luck = 0.5 },
 		order = 0,
 	},
 	{
 		id = "SpiritStone",
 		name = "Spirit Stone",
-		description = "A large stone humming with qi. Meditate beside it: +1 to your multiplier.",
+		description = "A large stone humming with qi. Meditate beside it: +0.5 to your multiplier.",
 		category = "Cultivation",
 		cost = 200,
 		realm = { major = "QiCondensation", minor = 5 },
@@ -578,7 +582,7 @@ local list: { Def } = {
 		on = { "floor", "socket" },
 		fits = "Tabletop",
 		stack = true,
-		meditation = 1,
+		meditation = 0.5,
 		garden = { radius = 18, growth = 0.15, luck = 0.25 },
 		order = 0,
 	},

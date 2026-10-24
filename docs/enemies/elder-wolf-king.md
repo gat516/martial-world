@@ -39,7 +39,7 @@ and 30% health, then resumes that attack; `thresholdOnly = true` keeps the call 
 of the normal rotation. It calls two Spirit Wolves, capped at two owned wolves
 alive. Those wolves arrive already targeting and cannot howl in another pack.
 
-| Attack (`name`) | Kind | Windup / active / server recover | Start range | Locked area | Damage (QC9 330 HP) | Cooldown |
+| Attack (`name`) | Kind | Windup / active / server recover | Start range | Locked area | Damage (def vs `Pacing.BeastBaseline` QC9's 330 HP; share of a QC9 player) | Cooldown |
 |---|---|---|---|---|---|---|
 | Royal Bite (`royalBite`) | cone | 0.90 / 0.16 / 1.00 | 14 | r 15, 100 deg | 64 (19%) | 2.3 s |
 | Paw Swipe (`pawSwipe`) | cone | 0.45 / 0.12 / 0.75 | 11 | r 12, 95 deg | 34 (10%) | 1.6 s |
@@ -50,6 +50,9 @@ alive. Those wolves arrive already targeting and cannot howl in another pack.
 | King's Rake (`kingRake`, `arrive`) | cone | 0.50 / - / 0.90 | 18 on landing | r 16, 120 deg | 40 (12%) | - |
 | Engage roar (`roar`, `pack.howl`) | howl | 1.00 / 0.10 / 0.80 | first engagement (`ENGAGE_RESET`), held until the target is within 24 | no damage; staggers players within 18 studs for 0.8 s (`stun`, `PlayerStun`; circle telegraphed; a dodge evades it). Doesn't consume the pattern | 0 | - |
 | Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage, but the howl stuns players within 20 studs for 1.0 s (`stun`, `PlayerStun`; the circle is telegraphed; a dodge evades it) | 0 | 2.6 s |
+
+Live, the curve scales the defs to the QC9 player (215 HP, power 2.14): damage x0.65 (bite 42),
+health x1.0 (1900), so the shares and hits to kill above hold.
 
 Cooldowns start with the windup; the server always completes the attack and recover
 before starting the next one. Stationary attacks hit **at windup end**. Their active

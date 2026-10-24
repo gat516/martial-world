@@ -29,6 +29,9 @@
 -- (EnemyFX); the server compensates player swings for lag (EnemyHistory).
 -- Idle beasts with no player within Config.Wilds.WAKE_RADIUS sleep: not
 -- thinking or moving, nothing to replicate.
+-- Realm pressure (Pacing.Pressure): a regular beast a full major below a player
+-- leaves them be unless hurt by them, flinches when they arrive and, two majors
+-- below, runs; a breakthrough nearby staggers the beasts below it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -45,6 +48,8 @@ local PlayerSlow = require(script.Parent.PlayerSlow)
 local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
+local PartyPacing = require(ReplicatedStorage.Shared.Pacing).Party
+local VariantTiers = require(ReplicatedStorage.Shared.Pacing).Variants.TIERS
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 local CC = CombatConfig.CC
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
@@ -75,6 +80,10 @@ local EnemyHistory = require(script.Parent.EnemyHistory)
 local EnemyMover = require(script.Parent.EnemyMover)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Shelter = require(script.Parent.Shelter)
+local Pressure = require(ReplicatedStorage.Shared.Pacing).Pressure
+local ShelterPacing = require(ReplicatedStorage.Shared.Pacing).Shelter
+local Analytics = require(script.Parent.Analytics)
 
 local remotes = ReplicatedStorage.Remotes
 local telegraphRemote = remotes.Telegraph :: RemoteEvent
@@ -89,12 +98,15 @@ local bodies = templates:Clone()
 bodies.Name = "EnemyBodies"
 bodies.Parent = ReplicatedStorage
 
--- Per enemy type, a template stripped to its root, cloned for each spawn.
+-- Per enemy type (and body scale, for realm variants), a template stripped to its
+-- root, cloned for each spawn.
 type Standin = { model: Model, rootHeight: number, radius: number, height: number }
 local standins: { [string]: Standin } = {}
 
-local function standinFor(id: string): Standin?
-	local cached = standins[id]
+local function standinFor(id: string, scale: number?): Standin?
+	local s = scale or 1
+	local key = if s == 1 then id else `{id}@{s}`
+	local cached = standins[key]
 	if cached then
 		return cached
 	end
@@ -116,15 +128,17 @@ local function standinFor(id: string): Standin?
 	root.Anchored = true
 	root.CanCollide, root.CanTouch, root.CanQuery = false, false, true
 	root.Transparency = 1
-	root.Size = Vector3.new(math.max(root.Size.X, extents.X), math.max(root.Size.Y, extents.Y), math.max(root.Size.Z, extents.Z))
+	-- a variant's body is drawn scaled by `s` about its root (EnemyMotion), so its hit
+	-- volume, root height and radius scale with it
+	root.Size = Vector3.new(math.max(root.Size.X, extents.X), math.max(root.Size.Y, extents.Y), math.max(root.Size.Z, extents.Z)) * s
 	model.PrimaryPart = root
 	cached = {
 		model = model,
-		rootHeight = templateRoot.Position.Y,
-		radius = math.max(extents.X, extents.Z) / 2,
-		height = extents.Y / 2,
+		rootHeight = templateRoot.Position.Y * s,
+		radius = math.max(extents.X, extents.Z) / 2 * s,
+		height = extents.Y / 2 * s,
 	}
-	standins[id] = cached
+	standins[key] = cached
 	return cached
 end
 
@@ -184,6 +198,7 @@ type Enemy = {
 	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
 	dashLength: number, -- the current lunge/charge's lane length (Enemies `stopPast`)
 	fleeting: boolean, -- SpawnOptions.fleeting
+	called: boolean, -- SpawnOptions.called: pays qi only
 	hopReadyAt: number,
 	hits: { number }, -- recent times it was hit (the hop's trigger)
 	orbitDir: number,
@@ -196,6 +211,8 @@ type Enemy = {
 	boundMode: string?, -- the last bound's landing mode (BoundMode attribute)
 	preferNext: { string }?, -- after a `rangedNext` attack: only these, until preferUntil
 	preferUntil: number,
+	fearless: boolean, -- ignores realm pressure: bosses, summons, beasts sent at a player
+	awedBy: { [Player]: number }, -- os.clock() each player a major above was last seen in aggro
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -210,12 +227,22 @@ local EnemyService = {}
 EnemyService.onKill = {} :: { (Player, Enemies.Def, Model) -> () }
 -- Called with (model, killed) when an enemy leaves: killed, or despawned.
 EnemyService.onRemoved = {} :: { (Model, boolean) -> () }
+-- Set by Party: the player's party members, themselves included ({ player } when solo).
+EnemyService.partyOf = nil :: ((Player) -> { Player })?
 
 export type SpawnOptions = {
 	home: Vector3?, -- where it wanders and leashes back to (default: where it spawns)
 	roam: number?, -- studs it wanders from home
 	target: Player?, -- comes straight for this player
 	fleeting: boolean?, -- gone (no rewards) once it has no one to fight: a howl's reinforcements
+	-- summoned by another beast (a howl's reinforcements, a boss's adds): its kill pays qi
+	-- at the untiered rate and nothing else (no stones, drops, first kills or kill count;
+	-- onboarding players excepted, fullPay)
+	called: boolean?,
+	-- realm variants (Enemies.variant, docs/systems/enemies.md "Realm variants"): the stage it
+	-- cultivates at ("QC5"; default its def's own) and its tier (default picked from the stage)
+	stage: string?,
+	tier: string?,
 }
 
 local function groundParams(): RaycastParams
@@ -323,13 +350,14 @@ end
 
 function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Model?
 	local opts: SpawnOptions = options or {}
-	local def = Enemies.Defs[id]
+	local def = Enemies.variant(id, opts.stage, opts.tier)
 	local template = templates:FindFirstChild(def and def.body or id) :: Model?
 	if not (def and template) then
 		warn(`EnemyService: no enemy "{id}"`)
 		return nil
 	end
-	local standin = standinFor(id)
+	local scale = def.scale or 1
+	local standin = standinFor(id, scale)
 	if not standin then
 		warn(`EnemyService: enemy "{id}" has no HumanoidRootPart`)
 		return nil
@@ -347,6 +375,12 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	model:SetAttribute("Template", def.body or id) -- the template clients draw (EnemyMotion)
 	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
+	if def.tier then
+		-- a realm variant: clients rebuild the same def (Enemies.forModel), scale and tint the body
+		model:SetAttribute("Stage", def.stage)
+		model:SetAttribute("Tier", def.tier)
+		model:SetAttribute("Scale", scale)
+	end
 	model:SetAttribute("MaxHealth", health)
 	model:SetAttribute("Health", health)
 	model:SetAttribute("AIState", "idle")
@@ -403,6 +437,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		followUpUntil = 0,
 		dashLength = 0,
 		fleeting = opts.fleeting == true,
+		called = opts.called == true,
 		hopReadyAt = 0,
 		hits = {},
 		orbitDir = if math.random() < 0.5 then 1 else -1,
@@ -415,6 +450,8 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		boundMode = nil,
 		preferNext = nil,
 		preferUntil = 0,
+		fearless = def.boss == true or opts.target ~= nil or opts.called == true,
+		awedBy = {},
 	}
 	enemies[model] = enemy
 	return model
@@ -522,16 +559,37 @@ local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
 	return math.floor(Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor)) * Cultivation.methodSpeed(data) + 0.5)
 end
 
+-- Whether this kill pays in full. A summoned beast (SpawnOptions.called) pays qi only,
+-- without its tier's reward bonus, so howls and adds are never a better farm than the
+-- beasts that call them. Onboarding players (before the QC3 beat) are paid in full, so
+-- the lesson's one reinforcement counts toward its kills.
+local function fullPay(enemy: Enemy, data: PlayerData.Data): boolean
+	return not enemy.called or not (data.beats :: any).QC3
+end
+
+local function killQi(enemy: Enemy, data: PlayerData.Data): number
+	local qi = qiFor(enemy.def, data)
+	local tier = not fullPay(enemy, data) and enemy.def.tier and VariantTiers[enemy.def.tier]
+	if tier and tier.reward > 0 then
+		qi = math.floor(qi / tier.reward + 0.5)
+	end
+	return qi
+end
+
 -- Players who dealt enough of the beast's health to earn the kill
--- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE). Whoever dealt the most always
--- qualifies, so a kill is never left without anyone credited.
-local function credited(enemy: Enemy): { Player }
+-- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE), each with their own full drop: qi,
+-- stones and the onKill rolls (loot, seeds, first kills), so nobody can steal a kill.
+-- Whoever dealt the most always qualifies, so a kill is never left without anyone
+-- credited. Everyone else who hit it is a helper (a share of qi, `helpers` below).
+local function credited(enemy: Enemy): ({ Player }, { [Player]: boolean })
 	local share = if enemy.def.boss then Rewards.BOSS_KILL_SHARE else Rewards.KILL_SHARE
 	local needed = enemy.maxHealth * share
 	local top, topDamage = nil, 0
 	local list = {}
+	local hit = {}
 	for player, damage in enemy.damagers do
 		if player.Parent then
+			hit[player] = true
 			if damage >= needed then
 				table.insert(list, player)
 			elseif damage > topDamage then
@@ -542,7 +600,42 @@ local function credited(enemy: Enemy): { Player }
 	if #list == 0 and top then
 		table.insert(list, top)
 	end
+	return list, hit
+end
+
+local function near(player: Player, position: Vector3): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	return root ~= nil and humanoid ~= nil and humanoid.Health > 0
+		and (root.Position - position).Magnitude <= PartyPacing.RADIUS
+end
+
+-- Party members near the kill, the player excluded (Pacing.Party RADIUS).
+local function partyNear(player: Player, position: Vector3): { Player }
+	local list = {}
+	if EnemyService.partyOf then
+		for _, member in EnemyService.partyOf(player) do
+			if member ~= player and near(member, position) then
+				table.insert(list, member)
+			end
+		end
+	end
 	return list
+end
+
+-- Qi into the dantian (never past it), with the floating number or the "full" line.
+local function grantQi(player: Player, data: PlayerData.Data, amount: number, position: Vector3): number
+	local cap = Cultivation.stage(data).dantian
+	local given = math.max(0, math.min(math.floor(amount + 0.5), cap - data.rawQi))
+	data.rawQi += given
+	Analytics.qi(player, "source", given, data.rawQi, "Gameplay", "Kill")
+	if given > 0 then
+		effectRemote:FireClient(player, "qi", position, given)
+	else
+		Cultivation.notify(player, "Your dantian is full. Circulate to refine it.")
+	end
+	return given
 end
 
 function EnemyService.died(enemy: Enemy)
@@ -554,31 +647,66 @@ function EnemyService.died(enemy: Enemy)
 	releaseSlot(enemy)
 	dismissSummons(enemy)
 	local position = enemy.root.Position
-	local winners = credited(enemy)
+	local winners, hit = credited(enemy)
+	local isWinner = {}
+	for _, player in winners do
+		isWinner[player] = true
+	end
 	for _, player in winners do
 		local data = player.Parent and PlayerData.get(player)
 		if data then
+			-- the group bonus: a little more beast qi per party member at the kill
+			local bonus = math.min(PartyPacing.BONUS_CAP, #partyNear(player, position) * PartyPacing.BONUS_PER_MEMBER)
 			local cap = Cultivation.stage(data).dantian
-			local amount = math.min(qiFor(enemy.def, data), cap - data.rawQi)
-			data.rawQi += math.max(0, amount)
-			data.stats.kills += 1
-			local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
-			data.stones += stones
+			local amount = math.max(0, math.min(math.floor(killQi(enemy, data) * (1 + bonus) + 0.5), cap - data.rawQi))
 			Cultivation.markActive(player)
-			-- a boss opens the victory card first, so the rewards below land in it
-			if enemy.def.boss then
-				effectRemote:FireClient(player, "boss", enemy.def.name, math.max(0, amount))
+			-- a summoned beast pays its qi and nothing else (fullPay)
+			if fullPay(enemy, data) then
+				data.stats.kills += 1
+				local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
+				data.stones += stones
+				Analytics.stones(player, "source", stones, data.stones, "Gameplay", "Kill")
+				-- a boss opens the victory card first, so the rewards below land in it
+				if enemy.def.boss then
+					effectRemote:FireClient(player, "boss", enemy.def.name, amount)
+				end
+				effectRemote:FireClient(player, "stones", position, stones)
+				for _, fn in EnemyService.onKill do
+					task.spawn(fn, player, enemy.def, enemy.model)
+				end
 			end
-			effectRemote:FireClient(player, "stones", position, stones)
-			for _, fn in EnemyService.onKill do
-				task.spawn(fn, player, enemy.def, enemy.model)
-			end
+			grantQi(player, data, amount, position)
 			Cultivation.pushState(player)
-			if amount > 0 then
-				effectRemote:FireClient(player, "qi", position, amount)
-			else
-				Cultivation.notify(player, "Your dantian is full. Circulate to refine it.")
+			-- the party shelter: whoever sheltered this kill earns a share for it
+			local patron = Shelter.credit(player, data, Realms.ofBeast(enemy.def.realm))
+			local pd = patron and PlayerData.get(patron)
+			if patron and pd then
+				grantQi(patron, pd, killQi(enemy, pd) * ShelterPacing.SENIOR_QI_SHARE, position)
+				Cultivation.pushState(patron)
 			end
+		end
+	end
+	-- helpers: hit it for less than the share, or a party member of a winner nearby
+	-- who didn't hit it at all. A share of their own qi for the beast, nothing else.
+	local helpers: { [Player]: boolean } = {}
+	for player in hit do
+		if not isWinner[player] then
+			helpers[player] = true
+		end
+	end
+	for _, player in winners do
+		for _, member in partyNear(player, position) do
+			if not isWinner[member] then
+				helpers[member] = true
+			end
+		end
+	end
+	for player in helpers do
+		local data = PlayerData.get(player)
+		if data then
+			Cultivation.markActive(player)
+			grantQi(player, data, killQi(enemy, data) * PartyPacing.HELPER_QI_SHARE, position)
+			Cultivation.pushState(player)
 		end
 	end
 
@@ -776,7 +904,22 @@ Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, p
 	end
 end
 
--- Keep the current target while it's alive and not too far, else find the nearest.
+-- Realm pressure (Pacing.Pressure): how many majors the player stands above this
+-- beast, 0 when it doesn't care (a boss, a summon, one sent at a player, one they
+-- have hurt, or the player's major isn't above its own).
+local function awe(enemy: Enemy, player: Player): number
+	if not Pressure.ENABLED or enemy.fearless or enemy.damagers[player] then
+		return 0
+	end
+	local data = PlayerData.get(player)
+	if not data then
+		return 0
+	end
+	return math.max(0, Realms.majorIndex(data.realm.major) - Realms.majorIndex(enemy.def.realm[1]))
+end
+
+-- Keep the current target while it's alive and not too far, else find the nearest
+-- (never one a major above it who hasn't hurt it: realm pressure).
 local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	local def = enemy.def
 	local position = enemy.root.Position
@@ -794,7 +937,7 @@ local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	local best, bestRoot, bestDist = nil, nil, def.aggro
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
-		if root and flat(root.Position - leashCenter).Magnitude <= leash then
+		if root and flat(root.Position - leashCenter).Magnitude <= leash and awe(enemy, player) == 0 then
 			local d = (root.Position - position).Magnitude
 			if d <= bestDist then
 				best, bestRoot, bestDist = player, root, d
@@ -866,6 +1009,80 @@ local function parried(enemy: Enemy, chain: number?)
 	setState(enemy, "stagger")
 	enemy.stateUntil = os.clock() + (if enemy.def.boss then Guarding.PARRY_STAGGER_BOSS else Guarding.PARRY_STAGGER) + bonus
 	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
+end
+
+-- Realm pressure's stagger (an arrival flinch, a breakthrough's wave): whatever it
+-- was doing is broken off, as a knock does.
+local function staggerFor(enemy: Enemy, seconds: number)
+	if enemies[enemy.model] ~= enemy or enemy.health <= 0 or enemy.state == "return" or enemy.asleep then
+		return
+	end
+	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+	enemy.strikeId += 1
+	enemy.hopPending = false
+	enemy.followUp = nil
+	dropArrive(enemy)
+	releaseSlot(enemy)
+	setSpeed(enemy, enemy.def.runSpeed)
+	enemy.mover.turn = false
+	stop(enemy)
+	setState(enemy, "stagger")
+	enemy.stateUntil = math.max(enemy.stateUntil, os.clock() + seconds)
+end
+
+-- Tells the clients a beast just quailed before a player (PressureFX draws a ripple
+-- at the player's feet): the enemy model's `Awed` attribute, "<userId> <kind> <n>"
+-- (kind "flinch" or "wave"; n only makes each cue a change).
+local aweCount = 0
+local function cueAwe(enemy: Enemy, player: Player, kind: string)
+	aweCount += 1
+	enemy.model:SetAttribute("Awed", `{player.UserId} {kind} {aweCount}`)
+end
+
+-- An idle beast feels the players a major or more above it within its aggro: it
+-- flinches when one arrives (again after Pressure.REARM unseen), and runs from one
+-- two majors up. True when it acted (think stops there).
+local function feelPressure(enemy: Enemy, now: number): boolean
+	if not Pressure.ENABLED or enemy.fearless then
+		return false
+	end
+	local position = enemy.root.Position
+	local fleeFrom: Vector3? = nil
+	local flinch: Player? = nil
+	for _, player in Players:GetPlayers() do
+		local root = playerRoot(player)
+		if root and (root.Position - position).Magnitude <= enemy.def.aggro then
+			local majors = awe(enemy, player)
+			if majors >= 2 then
+				fleeFrom = root.Position
+			elseif majors == 1 then
+				local seen = enemy.awedBy[player]
+				if not seen or now - seen > Pressure.REARM then
+					flinch = player
+				end
+				enemy.awedBy[player] = now
+			end
+		end
+	end
+	if fleeFrom then
+		local away = flat(position - fleeFrom)
+		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+		local to = position + away * Pressure.FLEE_STUDS
+		if flat(to - home(enemy)).Magnitude > enemy.def.leash * 0.9 then
+			-- cornered at its leash: run along it instead, back toward home's side
+			to = home(enemy) + flat(to - home(enemy)).Unit * enemy.def.leash * 0.5
+		end
+		enemy.state = "idle"
+		setSpeed(enemy, enemy.def.runSpeed)
+		moveTo(enemy, to)
+		return true
+	end
+	if flinch then
+		staggerFor(enemy, Pressure.FLINCH)
+		cueAwe(enemy, flinch, "flinch")
+		return true
+	end
+	return false
 end
 
 -- An attack in a pool or pattern, by name.
@@ -944,15 +1161,22 @@ local function landOn(player: Player, resolve: () -> ())
 	end
 end
 
--- Combat.hurt for an enemy's attack, guardable as `hit` says. A parry that
+-- Combat.hurt for an enemy's attack, guardable as `hit` says. Every beast and
+-- boss blow on a player goes through here, so realm suppression is applied here
+-- (a beast of a lower major realm barely scratches the player; a stronger party
+-- member nearby eases a higher one's blows, Shelter.hurt). A parry that
 -- closes a chain (or stands alone) staggers the beast; "deflected" (a chained
 -- parry with more blows coming) lets the assault run on.
-local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit)
-	local result = Combat.hurt(player, damage, false, enemy.def.id, hit)
+local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit): (Combat.HurtResult, number)
+	local data = PlayerData.get(player)
+	if data then
+		damage *= Shelter.hurt(player, data, Realms.ofBeast(enemy.def.realm))
+	end
+	local result, dealt = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
 		parried(enemy, hit.chain)
 	end
-	return result
+	return result, dealt
 end
 
 -- A chain whose next blow never came (the beast stopped, or its blows missed):
@@ -969,14 +1193,14 @@ end
 local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, origin: Vector3?, dash: boolean?)
 	local hit = guardHit(enemy, attack, origin, dash)
 	landOn(player, function()
-		local result = hurtBy(enemy, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, hit)
+		local result, dealt = hurtBy(enemy, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, hit)
 		if result == "hit" and player.Character then
 			effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
 			local stun = attack.stun
 			reactTo(enemy, attack, player, if stun and stun.onHit then stun else nil, true)
 			local poison = attack.poison
 			if poison then
-				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
+				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id, enemy.def.realm)
 			end
 			local slow = attack.slow
 			if slow then
@@ -985,8 +1209,8 @@ local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, 
 			end
 			local leech = attack.leech
 			if leech and enemy.health > 0 then
-				-- the bat drinks: it heals a share of what it dealt, up to its maximum
-				local dealt = attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage
+				-- the bat drinks: it heals a share of what it dealt (after suppression and
+				-- the player's reductions), up to its maximum
 				setHealth(enemy, enemy.health + dealt * leech)
 				effectRemote:FireAllClients("enemyCue", enemy.model, "leech", player.Character)
 			end
@@ -1545,11 +1769,14 @@ local function summon(enemy: Enemy, attack: Enemies.Attack, count: number?, arou
 		if not at then
 			continue
 		end
+		-- a variant's own kind comes at its realm and tier (an elite wolf howls in elite wolves)
+		local same = attack.summons == enemy.def.id and enemy.def.tier ~= nil
 		local model = EnemyService.spawn(
 			attack.summons :: string,
 			at :: Vector3,
 			{ home = enemy.home, roam = enemy.roam, target = enemy.target,
-				fleeting = around ~= nil or enemy.def.resetOnEvade == true }
+				fleeting = around ~= nil or enemy.def.resetOnEvade == true, called = true,
+				stage = if same then enemy.def.stage else nil, tier = if same then enemy.def.tier else nil }
 		)
 		if model then
 			table.insert(enemy.summoned, model)
@@ -2136,6 +2363,11 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		end
 		if not chosen or distance > chosen.range or now > enemy.followUpUntil then
 			enemy.followUp = nil
+		elseif not enemy.def.boss and distance < (chosen.minRange or 0) then
+			-- too close for it yet (an elite boar's second charge, the fade back into a step):
+			-- wait for the target to clear it, or for the hop back, until it lapses (bosses'
+			-- chains keep firing as before)
+			return nil
 		elseif slotOk then
 			enemy.followUp = nil
 			return chosen
@@ -2332,6 +2564,9 @@ local function think(enemy: Enemy, now: number)
 			enemy.state = "return"
 			setSpeed(enemy, def.runSpeed)
 			moveTo(enemy, home(enemy))
+			return
+		end
+		if feelPressure(enemy, now) then
 			return
 		end
 		enemy.state = "idle"
@@ -2585,6 +2820,24 @@ BossAttacks.init({
 	end,
 })
 
+-- A breakthrough's pressure wave (Pacing.Pressure): every regular beast nearby below
+-- the new stage staggers. Flavour only.
+table.insert(Cultivation.onBreakthrough, function(player: Player, stage: Realms.Stage)
+	local root = playerRoot(player)
+	if not (Pressure.ENABLED and root) then
+		return
+	end
+	local above = Realms.index(stage.major, stage.minor)
+	for _, enemy in enemies do
+		if not enemy.fearless and Realms.index(enemy.def.realm[1], enemy.def.realm[2]) < above
+			and (enemy.root.Position - root.Position).Magnitude <= Pressure.WAVE_RADIUS
+		then
+			staggerFor(enemy, Pressure.WAVE_STAGGER)
+			cueAwe(enemy, player, "wave")
+		end
+	end
+end)
+
 function EnemyService.start()
 	task.spawn(function()
 		while true do
@@ -2606,6 +2859,7 @@ end
 function EnemyService.forget(player: Player)
 	for _, enemy in enemies do
 		enemy.damagers[player] = nil
+		enemy.awedBy[player] = nil
 		if enemy.target == player then
 			enemy.target = nil
 		end

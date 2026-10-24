@@ -1,8 +1,13 @@
 --!strict
 -- The admin dashboard (Hud.AdminPanel): a compact side panel for testing, only for
--- players the server marks Admin, and only on mouse and keyboard. F2 toggles it;
--- there is no on-screen button. It doesn't register with Menus, so the world and
--- the HUD stay visible while you trigger things.
+-- players the server marks Admin. F2 toggles it on any device with a keyboard. On
+-- touch (phones, tablets, Studio's device emulator) an admin-only tile with the 管
+-- seal (`Buttons.AdminButton`, first in the row, never shown to other players)
+-- toggles it too, and the panel shows a close seal in place of the F2 hint; on a
+-- phone it fills the right side under the tiles and scrolls, and a UI preview chip
+-- closes it so the previewed screen can be seen whole (reopen it from the tile
+-- once that screen closes: open windows hide the tiles). It doesn't register with
+-- Menus, so the world and the HUD stay visible while you trigger things.
 --
 -- Two tabs in the header: Tools (Sections) and Traits (AdminTraits.luau: a
 -- player's race, variant and traits). Tools sections are cloned from
@@ -15,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -31,6 +37,10 @@ local player = Players.LocalPlayer
 
 local TAB_ON = "rbxassetid://124847805310931" -- button_gold
 local TAB_OFF = "rbxassetid://88447362782150" -- button_lacquer
+local TOUCH_CHIP_HEIGHT = 36
+-- touch on a phone: the panel's box, right-aligned under the tile row
+local PHONE_TOP = 64
+local PHONE_BOTTOM_GAP = 10
 local WEATHER_ORDER = { "Clear", "Rain", "Storm", "Windy", "AuspiciousMist", "RainbowAurora", "HeavenSplit" }
 
 local AdminPanel = {}
@@ -39,6 +49,7 @@ local panel: Frame
 local list: ScrollingFrame
 local sectionTemplate: Frame
 local order = 0
+local spawnTier = "adult" -- the "Beast tier" chip last pressed
 
 -- "AuspiciousMist" -> "Auspicious Mist"
 local function spaced(id: string): string
@@ -90,6 +101,10 @@ type Chip = { label: string, color: Color3?, press: (count: number) -> () }
 local function section(title: string, count: number?, chips: { Chip })
 	order += 1
 	local s = sectionTemplate:Clone()
+	local cells = (s:FindFirstChild("Grid") :: Frame):FindFirstChildWhichIsA("UIGridLayout")
+	if cells and Platform.isTouch() then
+		cells.CellSize = UDim2.new(cells.CellSize.X, UDim.new(0, TOUCH_CHIP_HEIGHT)) -- thumb-sized
+	end
 	s.Name = title
 	s.LayoutOrder = order
 	local head = s:FindFirstChild("Head") :: Frame;
@@ -163,6 +178,16 @@ local function build()
 		{ label = "All build ×5", press = function()
 			invoke("buildItems", 5)
 		end },
+		-- the heart-demon trial (docs/systems/heart-demon.md): at a major's stage 9
+		{ label = "Realm QC9", press = function()
+			invoke("realm", "QC9")
+		end },
+		{ label = "Realm QR9", press = function()
+			invoke("realm", "QR9")
+		end },
+		{ label = "Reset heart demons", press = function()
+			invoke("heartReset")
+		end },
 	})
 	-- Open screens in this client: the Studio command bar loads its own fresh copy of a
 	-- module (never init'd), so its require(...).open() can't reach the real UI
@@ -172,6 +197,9 @@ local function build()
 			local node: Instance = script.Parent
 			for _, name in path do
 				node = node:FindFirstChild(name) :: Instance
+			end
+			if Platform.isTouch() and panel.Visible then
+				Motion.close(panel) -- see the previewed screen whole
 			end
 			local ok, err = pcall(function()
 				(require(node :: ModuleScript) :: any)[fn](table.unpack(args, 1, args.n))
@@ -200,6 +228,14 @@ local function build()
 	section("Spirit Stones", 1000, {
 		{ label = "Give stones", press = function(n)
 			invoke("stones", n)
+		end },
+	})
+	section("Sect contribution", 200, {
+		{ label = "Give contribution", press = function(n)
+			invoke("contribution", n)
+		end },
+		{ label = "New dailies", press = function()
+			invoke("sectDailies")
 		end },
 	})
 
@@ -290,6 +326,17 @@ local function build()
 	end
 	section("Seeds", 5, seeds)
 
+	-- realm variants: the tier the beast chips below spawn at (Pacing.Variants; bosses ignore it)
+	local tiers: { Chip } = {}
+	for _, tier in Pacing.Variants.ORDER do
+		local label = string.upper(string.sub(tier, 1, 1)) .. string.sub(tier, 2)
+		table.insert(tiers, { label = label, press = function()
+			spawnTier = tier
+			Hud.toast(`Beasts spawn as {label}`)
+		end })
+	end
+	section("Beast tier", nil, tiers)
+
 	local beasts: { Chip } = {}
 	local enemyIds = {}
 	for id in Enemies.Defs do
@@ -299,7 +346,7 @@ local function build()
 	for _, id in enemyIds do
 		local def = (Enemies.Defs :: any)[id]
 		table.insert(beasts, { label = def and def.name or spaced(id), press = function(n)
-			invoke("spawn", id, n)
+			invoke("spawn", id, n, spawnTier)
 		end })
 	end
 	section("Spawn beasts", 1, beasts)
@@ -332,7 +379,7 @@ local function build()
 end
 
 local function allowed(): boolean
-	return player:GetAttribute("Admin") == true and not Platform.isTouch()
+	return player:GetAttribute("Admin") == true
 end
 
 function AdminPanel.toggle()
@@ -373,9 +420,35 @@ function AdminPanel.init(gui: ScreenGui)
 	list = panel:FindFirstChild("Sections") :: ScrollingFrame
 	sectionTemplate = list:FindFirstChild("SectionTemplate") :: Frame
 	panel.Visible = false
-	if Platform.isTouch() then
-		return -- PC only
+	local touch = Platform.isTouch()
+	local tile = (gui:FindFirstChild("Buttons") :: Instance):FindFirstChild("AdminButton") :: GuiButton?
+	local close = panel:FindFirstChild("Close") :: GuiButton?
+	local keyHint = panel:FindFirstChild("KeyHint") :: GuiObject?
+	if keyHint then
+		keyHint.Visible = not touch
 	end
+	if close then
+		close.Visible = touch
+		close.Activated:Connect(function()
+			AdminPanel.toggle()
+		end)
+	end
+	if touch and Platform.isSmall() then
+		panel.Position = UDim2.new(1, -12, 0, PHONE_TOP)
+		panel.Size = UDim2.new(0, 380, 1, -(PHONE_TOP + PHONE_BOTTOM_GAP))
+	end
+	if tile then
+		tile.Activated:Connect(function()
+			AdminPanel.toggle()
+		end)
+	end
+	local function showTile()
+		if tile then
+			tile.Visible = touch and allowed()
+		end
+	end
+	showTile()
+	player:GetAttributeChangedSignal("Admin"):Connect(showTile)
 	local traitsPage = panel:FindFirstChild("Traits") :: ScrollingFrame?
 	local tabs = panel:FindFirstChild("Tabs")
 	if traitsPage and tabs then

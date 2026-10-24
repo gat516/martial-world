@@ -15,6 +15,7 @@ ones your task touches. For the setting in brief, read
 ## Index
 | File | Covers | Read it when |
 |---|---|---|
+| [new_build](../map/new_build.md) | the sect redo of the main peak and spirit peaks: the process, areas, references, agreed shape | any main peak or spirit peak work (read instead of the two below unless the user says) |
 | [main-peak](../map/main-peak.md) | plaza, courts, grand stairs, ring terrace, summit, falls, landform, terrain colours | working on the main peak or `art/main_peak/` |
 | [spirit-peaks](../map/spirit-peaks.md) | the spirit-peak template, its dressing and rebuild scripts; the rope bridges | touching a `Peak_N` or a bridge |
 | [cloud-sea](../map/cloud-sea.md) | `Map.Clouds`: plane, wisps, mounds, banks, budget, mist spots | adding clouds or placing anything on the cloud plane |
@@ -53,7 +54,7 @@ only for instanced party content.
   the border river); zones that aren't neighbours only connect by arrays.
 - **Arrays carry all long travel** (`Shared.Gates`, `src/server/Travel.luau`).
   Players spawn on their own peak's array, respawn after death on the plaza's and
-  arrive on the destination's. On the sect's safe ground the Travel button rides
+  arrive on the destination's. On the sect's safe ground the contextual tile (Travel) rides
   to the sect's arrays (My Peak, Main Peak, Sect Gate) from anywhere; out in the
   wilds you travel only from an array (its prompt), and the wilds arrays answer
   only from the Sect Gate's array or another wilds array.
@@ -70,7 +71,7 @@ only for instanced party content.
 - **Point-of-interest density:** something to do every 20-30 seconds of travel
   at the player's speed, in clusters with quiet space between, and one landmark
   per zone visible from its arrival array. Kinds: qi nodes, beast lairs, herbs,
-  ruins/steles giving insight, meditation spots with a local bonus, hermit
+  ruins/steles giving Dao or foundation experiences, meditation spots with a local bonus, hermit
   NPCs, small trials, secret-realm entrances, vistas.
 - **Sword flight at Foundation Establishment:** free movement inside a zone,
   never between zones (that stays the arrays). Server-checked speed, landing

@@ -120,6 +120,22 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Cultivation.pushState(player)
 		return true, `Gave {count} Spirit Stones`
 	end,
+	-- sect contribution (Sect): spendable and earned (counts toward rank), past the weekly cap
+	contribution = function(_player, data, n)
+		local count = amount(n, 1e6)
+		if not count then
+			return false, "Bad amount"
+		end
+		data.sect.contribution += count
+		data.sect.earned += count
+		data.stats.contribution += count
+		return true, `Gave {count} contribution`
+	end,
+	-- reroll today's sect dailies (Sect rolls a new offer on the next look)
+	sectDailies = function(_player, data)
+		data.sect.day = 0
+		return true, "New dailies on the board"
+	end,
 	-- sets a technique's level (learning it if needed), for testing its tiers
 	techniqueLevel = function(player, data, id, n)
 		local level = amount(n, Techniques.MAX_LEVEL)
@@ -128,6 +144,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 			return false, `Unknown technique, or level isn't 1-{Techniques.MAX_LEVEL}`
 		end
 		data.techniques.owned[id] = { level = level, xp = 0 }
+		data.techniques.manuals[id] = nil
 		Cultivation.pushState(player)
 		return true, `{def.name} is now level {level}`
 	end,
@@ -172,6 +189,9 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 			return false, `Unknown class, or level isn't 0-{WeaponDefs.MAX_LEVEL}`
 		end
 		data.dao[class] = { level = level, xp = 0 }
+		for _, fn in Weapons.onLevelUp do -- kept manuals that now have their Dao are learned
+			fn(player, class)
+		end
 		Cultivation.pushState(player)
 		return true, `{def.dao} is now {level}`
 	end,
@@ -186,7 +206,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Cultivation.pushState(player)
 		return true, `Gave {count} of every build item`
 	end,
-	spawn = function(player, _, id, n)
+	spawn = function(player, _, id, n, tier)
 		local count = amount(n, MAX_SPAWN)
 		local root = rootOf(player)
 		if not (type(id) == "string" and Enemies.Defs[id] and count and root) then
@@ -201,9 +221,12 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		for i = 1, count do
 			local a = (i / count) * math.pi * 2
 			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -ahead + math.sin(a) * 4)).Position
-			EnemyService.spawn(id, at)
+			-- the panel's tier chip (realm variants: young, adult, elite, apex at the tier's
+			-- stage; Enemies.variant); bosses ignore it
+			EnemyService.spawn(id, at, { tier = if type(tier) == "string" and tier ~= "" then tier else nil })
 		end
-		return true, `Spawned {count} {Enemies.Defs[id].name}`
+		local shown = Enemies.variant(id, nil, if type(tier) == "string" and tier ~= "" then tier else nil) or def
+		return true, `Spawned {count} {shown.name} ({shown.realm[1]} {shown.realm[2]})`
 	end,
 	growAll = function(player)
 		return true, `{Garden.growAll(player)} plants are ready`
@@ -260,6 +283,12 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Cultivation.pushState(player)
 		Traits.check(player) -- realm-gated traits unlock as if broken through
 		return true, `Realm: {key}`
+	end,
+	-- forget every heart-demon trial and "Not now" (the seat offers them again)
+	heartReset = function(player, data)
+		data.heartDemon = { trials = {}, declined = {}, clear = false, retake = "" }
+		Cultivation.pushState(player)
+		return true, "Heart demons reset"
 	end,
 	-- face the current stage's heavenly tribulation now
 	tribulation = function(player)

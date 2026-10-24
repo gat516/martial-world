@@ -12,14 +12,21 @@
 --
 -- Running events are published for clients in the workspace attribute
 -- WorldEvents (see the shared module).
+--
+-- Taking part is a World foundation experience ("world:<id>", Foundation): being
+-- within Pacing.Foundation.EVENT_RADIUS of a located event while it runs, or a kill
+-- anywhere while an event with no location (a wilds-wide surge) runs.
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Shared = require(ReplicatedStorage.Shared.WorldEvents)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local WeatherService = require(script.Parent.WeatherService)
+local Foundation = require(script.Parent.Foundation)
+local Players = game:GetService("Players")
 
 local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
 
@@ -117,6 +124,7 @@ function WorldEvents.start(id: string): (boolean, string?)
 			if i then
 				table.remove(running, i)
 			end
+			Foundation.unlocated[def.id] = nil
 			for _, fn in cleanups do
 				task.spawn(fn, reason or "resolved")
 			end
@@ -134,6 +142,24 @@ function WorldEvents.start(id: string): (boolean, string?)
 	end
 	publish()
 	task.delay(def.minutes * 60, run.finish, "expired")
+	task.spawn(function()
+		-- who's taking part (Foundation): near a located event, or kills during an unlocated one
+		local radius = Pacing.Foundation.EVENT_RADIUS
+		while not run.ended do
+			local at = run.at
+			Foundation.unlocated[def.id] = if at then nil else true
+			if at then
+				for _, player in Players:GetPlayers() do
+					local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+					if root and (root.Position - at).Magnitude <= radius then
+						Foundation.world(player, def.id)
+					end
+				end
+			end
+			task.wait(2)
+		end
+		Foundation.unlocated[def.id] = nil
+	end)
 	return true, nil
 end
 

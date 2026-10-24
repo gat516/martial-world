@@ -1,11 +1,13 @@
 # Character creator
 
 ## Purpose
-The join screen's creator: pick a starting outfit (shirt and pants), skin, hair
-(any catalog hair accessory by id, plus a colour), see the race and clan the
-server drew for the slot (paid rerolls) and pick the race's free looks (tail and
-ear shapes and the like), choose a first name, and enter the world. It opens from the slot screen ([save slots](save-slots.md)) for a new
-character, or on a slot's look to edit it. It's a template: the look and every
+The join screen's creator. A new character gets one page (the front door): the
+race and clan the server drew for the slot, a drawn first name to keep or
+change, and Enter World. Edit look (from the slot screen, or from the world for
+the Self card) has the full steps: a starting outfit (shirt and pants), skin,
+hair (any catalog hair accessory by id, plus a colour), the race's free looks
+(tail and ear shapes and the like). A new account with no character skips the
+slot screen ([save slots](save-slots.md)) and opens on the first-character page. It's a template: the look and every
 list come from config; what a race does is [identity](identity.md).
 
 ## Design intent
@@ -32,10 +34,32 @@ list come from config; what a race does is [identity](identity.md).
   arrows"). Shirt, pants and a race's looks are each one arrow picker: a lacquer
   arrow at each end, the pick's name centred with "1 / 3" under it, wrapping round.
   The big preview character shows the pick; there are no per-option thumbnails.
-- **Fate has its own step** (user, 2026-10-23): race (rolled, paid Change), the
-  race's free looks under "Look" (hidden when it has none), clan (rolled, paid
-  Change), the note and the odds link. Traits come only with rolled variants;
-  looks carry no stats, so they're free ([identity](identity.md) Looks).
+- **The front door** (user, 2026-10-24: "i like the front door idea, do it";
+  [first-session review](../design-reviews/first-session.md) rec 1): join to the
+  world in about 20 s, not 1.5-4 minutes of menus in Roblox's bounce window. A
+  first character is one page: the Fate reveal (the drawn race and clan, each
+  with its rarity beside its value in the rarity's colour; the reveal is the
+  hook), the first name already filled with a drawn cultivator name
+  (`GivenNames`; "New name" draws another, typing still works, so a phone needs
+  no keyboard), the odds button, and a big gold Enter World (76 design px, 61 px on
+  a phone). The look starts on the preset (the ranger outfit, the avatar's own
+  skin and hair) and changes later through Edit look. No paid buttons. Picked by
+  two critic rounds over a variant with the reveal only on the stage nameplate
+  (2026-10-24; not yet approved by the user).
+- **Paid rerolls are off** (user, 2026-10-24): Change Race / Change Clan are paid
+  random rolls that carry stats; bloodlines will replace them. `Config.PAID_REROLLS`
+  (false) hides the buttons and the server refuses `reroll`; the products, the
+  receipt handlers and the reroll code stay, so turning it on brings them back.
+- **Fate has its own step** in Edit look (user, 2026-10-23): race, the race's
+  free looks under "Look" (hidden when it has none), clan (each with a paid
+  Change while rerolls are on), the note and the odds button. Traits come only with
+  rolled variants; looks carry no stats, so they're free ([identity](identity.md) Looks).
+- **The odds are a button** (user, 2026-10-24: "the odds of race should be a
+  button"; Roblox's paid-random-items guidance prefers a labelled button over a
+  bare link): a lacquer pill like Back and New name, 200x56 design px (160x45 on
+  a phone), a gold "%" glyph before "See the odds", centred in its own row under
+  the clan row on the first-character page and after the note on the Fate step.
+  It opens the Odds card. The `%` is live text, not art.
 - **Calm motion:** a 0.15 s fade and 8 px slide between steps, Motion's hover and
   press on buttons. No flashes, shakes, pulses or full-screen darkening.
 - **Mobile first:** the panel scales with the screen height and floors at 0.8, so
@@ -43,13 +67,12 @@ list come from config; what a race does is [identity](identity.md).
   character keeps the rest of the width.
 - **Obvious gating** (user, 2026-10-23: "don't let me move on without picking
   something that's required, and make it really obvious"): only the first name
-  is required, and Enter World sits right under it on the last step. Until it's
-  valid the field's edge is gold, the line under it says what's needed, Enter
-  World is dimmed and the footer says "Choose a first name to enter the world";
-  pressing Enter World focuses the field (keyboard only).
+  is required (and starts filled). Until it's valid the field's edge is gold, the
+  line under it says what's needed, Enter World is dimmed; pressing Enter World
+  focuses the field (keyboard only).
 - Exactly what the user asked for and no more: two clothing categories, hair is
   an asset id and a colour, race and clan can't be picked (only rerolled for
-  Robux; the race reroll draws a variant too), no titles, roots or stats.
+  Robux while that's on; the race reroll draws a variant too), no titles, roots or stats.
 - The screen sits on the live sect world, as if the player stands on a high
   pillar (the camera parks at a vantage with a slow sway and a light blur). No
   menu-only scene. Where there is no `Workspace.Map` (the bare testbed) or
@@ -62,17 +85,22 @@ list come from config; what a race does is [identity](identity.md).
   receipt handler.
 
 ## Flow
-- **New** (from the slot screen's Create, or Name & play on a migrated profile):
-  steps Appearance (skin, shirt, pants), Hair (up to 3 ids, colour), Fate (the
-  race row with Change, an arrow picker per look the race has, the clan row with
-  Change, a note that they stay with the slot, and a link to the odds), Name
-  (first name only). Tabs at the top of the panel jump between
-  steps; the footer has Back (on the first step: back to the slots) and "Next:
-  <step>", or Enter World on Name.
-- **Edit** (Edit look): the same steps, the Name step showing the first name
-  locked ("A cultivator's name is set once"); rerolls and looks still work on
-  Fate. Footer: Cancel and Save look (on every step). Save returns to the
-  slot screen.
+- **New** (an account's first join, the slot screen's Create, or Name & play on
+  a migrated profile): one page (`Tabs/Begin`, `Pages.Begin`) under the "Your
+  fate" plaque (dropped on phones so the page fits unscrolled): the race row
+  ("Race" over "Spirit Fox Rare", the value a size up), the clan row, the
+  odds button ("% See the odds", a centred lacquer pill), the name field with "New
+  name". No "You will be known as" line: the nameplate under the character shows
+  the full name as it changes. Footer: the big Enter World, and Back (to the
+  slots) only when the account has a character. The race's looks keep their
+  defaults until Edit look.
+- **Edit** (Edit look): Appearance (skin, shirt, pants), Hair (up to 3 ids,
+  colour), Fate (race, an arrow picker per look the race has, clan, a note that
+  they stay with the slot, the odds button), Name (the first name locked: "A
+  cultivator's name is set once"). Tabs at the top jump between steps. Footer:
+  Cancel and Save look (on every step). Save returns to the slot screen, or, when
+  opened from the world (`Controller.editLook()`, for the Self card to call), the
+  server dresses the character in the new look and the screen hands the world back.
 - Defaults: the ranger shirt and pants, the avatar's own skin, the first hair
   colour, each look's first option (a race reroll resets the looks to the new
   race's defaults), the avatar's own hairs (up to 3; edit starts from the slot's saved
@@ -97,21 +125,26 @@ list come from config; what a race does is [identity](identity.md).
   - `Products.luau`: reroll developer product ids and the price shown.
   - `Background.luau`: Live or Image, vantage tag / CFrame, sway, blur, fallback image.
   - `Rules.luau`: when the screen shows (`SHOW_ON_JOIN`), whether a spawn wears
-    the look (`APPLY_TO_CHARACTER`), first-name length, hair asset types, the
-    weighted roll, name and id checks, hair tinting.
+    the look (`APPLY_TO_CHARACTER`), the paid rerolls (`PAID_REROLLS`, from
+    `Config.PAID_REROLLS`), first-name length, hair asset types, the weighted
+    roll, name and id checks, hair tinting.
+  - `GivenNames.luau`: the cultivator first names the first-character page draws
+    from (each must pass `Rules.checkFirstName`).
 - `src/server/CharacterIdentity.luau`: rerolls (receipt handlers), hair loading,
   `confirm` (new slot or edited look, through `Slots`), `enter` (the played slot's
   identity, look and spawn); hooks `onConfirmed`, `onRerolled`.
 - `src/client/CharacterCreator/`: Theme (colours, pill art, well edge, tweens,
   steps, fit), State (the
   previewed look; `load` starts over from a look), Components (tab, section, note,
-  link, arrow row, swatch, text field, fate row, slot card, odds row, all cloned from
+  odds button, arrow row, swatch, text field, fate row, slot card, odds row, all cloned from
   the GUI's `Templates`), Look (a whole look on the preview), Preview (viewport
   dummy; it makes the viewport's Camera itself, since a Camera saved inside a
   ViewportFrame is lost in the Rojo sync), Backdrop, Bridge (every server call),
   Modals (odds, delete confirm), Tabs/Appearance (skin, shirt and pants
-  pickers), Hair, Fate (race, looks, clan, rerolls), Name (first name), Controller (`init`, `open`, the slot screen and the creator, `fit`,
-  the title plaque).
+  pickers), Hair, Fate (race, looks, clan, rerolls; options for Begin), Name
+  (first name; a drawn name for Begin), Begin (the first-character page: Fate's
+  and Name's rows with an order offset), Controller (`init`, `open`, `editLook`,
+  the slot screen and the creator, `fit`, the title plaque).
 - `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
   ScreenGui and templates, including a plain R6 dummy for the preview. Built by
   `art/ui/creator/build_gui.luau` (run it with the Studio MCP in Edit, then export).
@@ -122,6 +155,15 @@ list come from config; what a race does is [identity](identity.md).
 - `PlayerGui.CharacterCreator` (DisplayOrder 20, ignores the inset, starts
   disabled): `Backdrop` (image, mist), `Root` (`Preview`, `Nameplate`, `Panel`,
   `Modal`), `Veil` (open/close fade) and `Templates`.
+- The first-character page (2026-10-24, sandbox Edit view, sample data, Spirit
+  Fox / Li): the panel hugs the page (head 76, or 20 on a phone with no plaque;
+  footer = Enter 76 + 30 for the divider off phones). With the odds button
+  (same day): 844x390: panel 384x342 at y 24, page 247 px holding 235 px of rows
+  (no scroll), the odds button 160x45, Enter 346x61; 667x375: panel 384x342 at
+  y 17, the same rows; 1920x1080: panel 576x617, odds 240x67, Enter 518x91;
+  1366x768: panel 410x439, odds 171x48, Enter 369x65; the odds button centred on
+  the panel (dx 0.0) at every size. The race value is
+  Merriweather 24 (19 px on a phone), the rarity beside it in its colour.
 - The panel is authored 480 design px wide and scaled by its `Fit` UIScale:
   `clamp(H / 900, 0.8, 1.4)` (`Theme.Fit`), 16 px from the right edge, centred
   vertically, at most 760 design px tall (the slot screen hugs its cards). Under
@@ -141,9 +183,13 @@ list come from config; what a race does is [identity](identity.md).
   inset 24.00 / 24.00, gaps 8.00; every arrow row 24 in on both sides, its
   arrows 6 in at each end and vertically centred (dy 0.00), the pick's name
   centred (dx 0.00); arrows 56 design px (44.8 px at the phone floor).
+- Footer `Buttons` also holds `Enter` (the first-character page's gold pill,
+  76 tall, `SliceScale` 0.59 so the whole 128 px pill height maps to it with true
+  round ends, a `UIFlexItem` Fill so it takes the row beside Back, label Builder
+  Sans Bold 24); `Primary` shows on every other screen.
 - Panel: `Head` (step tabs: four 102x44 pills, 8 apart, filling the 432 px row,
   labels Builder Sans Bold 16; or the slot screen's title plaque, 48 tall, fitted to its text), `Pages` (a CanvasGroup of
-  ScrollingFrames: Slots, Appearance, Hair, Fate, Name; each canvas follows its list),
+  ScrollingFrames: Slots, Begin, Appearance, Hair, Fate, Name; each canvas follows its list),
   `Footer` (divider, a status line, `Buttons`: Quiet (Delete), Secondary, Primary).
 - Wells (`Templates`): a swatch is a 60 px well with a rounded colour chip (8 px
   in); an arrow row (`ArrowRow`) is a 68 px well, a 56x56 lacquer pill with a
@@ -172,16 +218,21 @@ list come from config; what a race does is [identity](identity.md).
 
 ## Data flow
 Join -> the client asks `slots` (Bridge) and opens the slot screen unless a slot
-is already played (QuickPlay) -> New / Edit: `new, id` or `edit, id` -> the
+is already played (QuickPlay); an account with no filled slot opens straight on
+`new` for slot 1 behind the veil -> New / Edit: `new, id`, `edit, id` or, from
+the world, `editPlayed` -> the
 server shows the slot's race and clan as `Race` / `Surname` attributes ->
 `state`, `templates` and `defaults` as before (the avatar's skin and hairs, once)
 -> picks update the preview locally -> Apply hair: `hair, id` -> the server checks
-the catalog and hands back a preview copy -> Change Race / Clan: `reroll, kind`
+the catalog and hands back a preview copy -> Change Race / Clan (only while
+`Config.PAID_REROLLS`; refused otherwise): `reroll, kind`
 for the open slot -> live product: the slot is remembered (`Account.rerollFor`),
 the client prompts the purchase and `Receipts` calls the reroll; mock (id 0,
 Studio or testbed): rerolled at once -> Enter World / Save look: `confirm, look`
--> the server checks everything and fills the slot (new: and plays it) -> the
-screen fades out once the character is in. Slot looks are stored in the slot's
+(Enter World also sends `NameSource`, Kept / Rolled / Typed, for the
+`TimeToEnterWorld` analytics event) -> the server checks everything and fills
+the slot (new: and plays it; an edit from the world: and dresses the character)
+-> the screen fades out once the character is in. Slot looks are stored in the slot's
 profile (`character.look`, `character.firstName`).
 
 ## Tuning knobs
@@ -211,6 +262,15 @@ profile (`character.look`, `character.firstName`).
   Requires against. `Traits.choose` is the server side for when one is designed.
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".
+- The front door is untested in play: the skip for a new account (the testbed
+  seeds a Tester in slot 1 on a first visit, so it shows the slot screen; an
+  account with no slot sees the skip), the drawn name passing the text filter
+  (a filtered name says "Choose a different name"; press New name), Edit look
+  from the world (the Self card's Edit look button calls `Controller.editLook`),
+  and the timings. Previewed in the sandbox's Edit view with the
+  real Begin, Fate, Name and Components modules on sample data.
+- With `PAID_REROLLS` off there's no way to change a drawn race or clan until
+  bloodlines land.
 - Untested in play: everything (server calls, the flow between the slot screen
   and the creator, rerolls, hair on the dummy, the backdrop camera, the arrow
   pickers, the Fate step, look picks on the preview and on the spawned

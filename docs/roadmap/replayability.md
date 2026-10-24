@@ -5,7 +5,8 @@ Part of the [roadmap](../roadmap.md), section 9. Proposed 2026-10-22; the user d
 A 27-stage ladder is a story you finish. Replay has to come from **variety, cadence
 and goals that don't end**, not from more linear stages. Proposed, in priority order:
 
-1. **Reincarnation (rebirth).** At FE9, or anywhere past the point of no return,
+1. **Reincarnation (rebirth).** **Not at FE (user, 2026-10-23: "i definitely don't want
+   reincarnating at FE")**; a later realm's endgame, when the ladder goes past FE. Then
    a player may start a new life: a fresh root, a chance at a bloodline, a new
    path, and the climb again, faster and with a **legacy** carried over: the
    Herbarium, the peak and its buildings, Dao seeds, titles, and a small
@@ -28,7 +29,9 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
      by affiliation.
    - **How you reach each (revised 2026-10-22):**
      - *Sect* is the default. *Rogue* is open: leave the sect from the elder or board.
-     - *Demon is a secret, never a menu.* No UI offers it. Players discover it, and
+     - *Demon is found, then chosen (user, 2026-10-24).* It is never offered before
+       it's encountered, but once a player has encountered it they can choose the demonic
+       path directly. Until then no UI offers it: players discover it, and
        it is the "how to become a demon in Martial World" video. See "The demon
        secret" below.
    - **Reincarnation** lets a new life start as a mortal in a village and choose from

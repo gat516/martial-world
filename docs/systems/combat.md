@@ -6,6 +6,99 @@ chain bare-handed; see [weapons](weapons.md)), a flying-sword dash with
 i-frames and perfect dodges, and up to a few equipped techniques. Realm power
 scales all player damage.
 
+## Realm power and suppression (2026-10-23)
+- **Strength by stage** (`Pacing.Curve` `health`, `power`): about +10% a minor stage
+  and x2.25 at each major. Health 100 (QC1), 215 (QC9), 480 (QR1), 1030 (QR9), 2330
+  (FE1), 4990 (FE9); power 1.0, 2.14, 4.82, 10.3, 23.3, 49.9.
+- **Beasts follow the curve.** Enemy defs are authored against `Pacing.BeastBaseline`
+  (the 2026-10-22 player stats); `Realms` scales each beast's health by the curve's
+  power over the baseline's and its damage by the curve's health over the baseline's,
+  at the beast's `realm`, so a same-stage beast stays the fight it was designed as.
+- **Realm suppression** (`Pacing.Suppression.KEEP` 0.2, `Realms.suppression`): an
+  attacker whose major realm is below the target's deals 0.2x per major between them
+  (a QC player does 20% to a QR beast, 4% to an FE one; a QC beast the same to a QR
+  player). A higher realm gets no bonus beyond its stats; minor stages never suppress.
+  Applied at the two choke points: `Combat.damageEnemy` (every player hit, so
+  technique zone ticks too) and EnemyService `hurtBy` (every beast and boss blow),
+  plus poison (`PlayerPoison`: each stack ticks 1.2% of the poisoner's stage health
+  a second, the curve's health at its `realm`, times suppression; mixed poisoners
+  tick at the strongest) and leech (the Bat heals from the damage the player really
+  took). Slow carries no damage and isn't scaled. Tribulation strikes aren't
+  suppressed. A minor stage up is fightable (1.1x on both sides); a major up is not
+  (2.25x on both sides plus suppression).
+- **Heaven-defiers** (`data.heavenDefying`) ignore `Pacing.HeavenDefying.SUPPRESSION_RESIST`
+  (half) of the reduction when they hit upward: 0.6x per major instead of 0.2x.
+- Enemy bars read a beast a major up as at least "far" (two: "deadly"), and one a
+  major below as "cowed" ([enemies](enemies.md)).
+
+### Realm pressure (owner's decision, 2026-10-24)
+Suppression is the "heaven and earth" gap between majors; realm pressure makes it
+felt both ways without new numbers on screen, and lets friends of different majors
+play together. All server-side, tuned in `Pacing.Shelter` and `Pacing.Pressure`.
+- **The party shelter** (`src/server/Shelter.luau`). A player with a party member of
+  a higher major within `Pacing.Party.RADIUS` (120) is sheltered by the strongest such
+  member (the patron) against beasts above their own major. Their hits are suppressed
+  from the patron's major instead of their own and synced up to the beast's stage
+  (capped at the patron's): x `HIT` (0.8) x sync power / own power, so a hit takes
+  about 0.8 of the share a same-stage player's would (never less than unsheltered).
+  A beast's blow or poison tick on them is x `HURT` (1.25) x own health / sync health,
+  capped at 1: about 1.25x the share it takes from a same-stage player, never more
+  than unsheltered. Checked live on every hit (`Shelter.hit` in `Combat.damageEnemy`,
+  `Shelter.hurt` in EnemyService `hurtBy` and `PlayerPoison`), so leaving the party
+  or the radius ends it at once. Kill credit counts the synced damage, so a sheltered
+  player reaches the share; rewards stay their own realm's (qi by their stage, capped
+  by the dantian and overflow as always; `onKill` deeds like Daring still fire). No
+  "sheltered" label anywhere (user, 2026-10-24: "dont do sheltered, just give it a
+  suppressed status"): the shelter shows as the Suppressed status going away, the bar
+  reading the beast at the synced stage, the jade qi swirl on the patron's pip and a
+  faint jade qi thread between the two while the sheltered player is in combat. Player
+  attribute `ShelteredBy` (patron UserId, refreshed every 0.5 s) drives them.
+- **Suppressed status.** `Shelter.hit` / `Shelter.hurt` (the suppression choke points
+  above) set player attribute `Suppressed` to the major gap on every hit or blow
+  (poison ticks too) with a beast of a higher major while unsheltered; the shelter
+  loop clears it `SUPPRESSED_HOLD` (5 s) after the last, or at once when a shelter
+  starts. The HUD shows it as a chip in the buff row (see "How it reads").
+- **The helper is paid.** For each beast a sheltered member is credited with, the
+  patron gets `SENIOR_QI_SHARE` (20%) of their own qi for it on top of their own share
+  (`stats.sheltered` counts these kills, the junior's `stats.leaned`; both feed the
+  heart demon's company question, `HEART_LINE_AT` 3). Small enough that farming
+  juniors is never better than fighting.
+- **Beasts feel a realm above them** (EnemyService `awe`, `feelPressure`). A regular
+  beast (not a boss, a summon or one sent at a player: `fearless`) a full major below
+  a player never picks them as a target unless they've hurt it; when one first comes
+  within its aggro it flinches (`FLINCH` 0.8 s stagger, again after `REARM` 30 s out
+  of sight). Two majors below, it runs from them (`FLEE_STUDS` at a time, inside its
+  leash). A beast hunting someone else (a sheltered junior, say) keeps fighting
+  normally. Its bar reads "cowed".
+- **Breakthrough wave.** A breakthrough staggers every regular beast within
+  `WAVE_RADIUS` (60) below the new stage for `WAVE_STAGGER` (1.2 s). Flavour only.
+- **How it reads** (UI, 2026-10-24; kid-friendly, words and marks, not only colour):
+  - Enemy bar: "cowed" puts a small mark, the word in its colour and a short line on
+    the omen row: the kit's gold chevron pointing down + bronze "Cowed · it fears
+    you". A beast above you while sheltered reads its usual tier at the synced stage
+    (within the patron's stage: "even"), with no mark. The mark is cloned
+    from `ReplicatedStorage.PressureMarks.BarMark` (`assets/PressureMarks.rbxmx`) into
+    the bar the first time (`EnemyBars` `STYLES` `word`/`mark`/`markColor`/`markSize`).
+    Picked over a kit tag chip ("a rectangle with cloud caps" on every beast).
+  - Suppressed chip (`Hud` `renderBuffs`): while `Suppressed` is set and `ShelteredBy`
+    isn't, a runtime clone of `BuffTemplate` leads the buff row under the objective:
+    the same gold down-chevron (`sized/ornament_chevron_h20`) warmed red, a full red
+    ring, no timer. Tap or hover: "Suppressed: this beast's realm is above yours. Your
+    blows barely land."
+  - Party pips: the jade qi swirl on the patron's pip; the sheltered member's has no
+    mark ([party](party.md)).
+  - The thread (`ShelterFX`): two crossed flat ribbons of the guide's Stream beam,
+    patron's chest to the sheltered player's, jade, 0.32 wide, about 0.6 transparent at
+    most and faded out at both ends, the texture flowing toward the sheltered one. Its
+    attachments sit in Terrain, re-aimed each frame along the line; never camera-facing.
+  - The moment (`PressureFX`): when a beast flinches at a player, or a breakthrough's
+    wave staggers it, EnemyService `cueAwe` sets the beast's `Awed` attribute
+    ("<userId> <kind> <n>"), and every client rings a pale-gold ripple on the ground at
+    that player's feet (the impact kit's Shock ring and a little dust, radius 4 studs
+    for a flinch, 7 for the wave, at most one per player per 1.5 s); a flinching beast
+    also kicks up a puff of dust where it stands.
+- `Pacing.Pressure.ENABLED` false turns the beast side off (the shelter stays).
+
 ## Design intent
 - Responsive on every device: the client predicts actions and hits; the server
   re-checks the same timelines and owns damage and cooldowns.
@@ -22,10 +115,12 @@ scales all player damage.
   target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
   (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
-  it's the condition for a forced breakthrough. Getting hurt or landing damage
+  it's a condition of the qi surge ([cultivation](cultivation.md#qi-surge)). Getting hurt or landing damage
   (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
   pass quietly; the client reads only that (the top-right tiles fold down, the
-  boss bar lifts, Guide holds its spotlight).
+  boss bar lifts, Guide holds its spotlight). The server's `Haul` reads it too: no
+  banking while it's set, and leaving the game with it set loses half the unbanked
+  haul, like a death ([haul](haul.md)).
 - **Techniques spend combat qi**, the mana pool (`Qi`), never the raw qi in the
   dantian that feeds cultivation. Basic attacks, dashes and the guard are free,
   so a player out of qi still fights with the weapon
@@ -47,14 +142,27 @@ scales all player damage.
 - `src/shared/Techniques.luau`: technique defs (line, circle, chain, zone, buff),
   levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast). At the top of
   tiers I-III (levels 3, 6, 9) XP stops at a bottleneck (`Techniques.bottleneck`);
-  the player breaks it seated in meditation by spending insight and Spirit Stones
-  (`InventoryAction "comprehend"` -> `Progression.comprehend`, costs in
+  the player breaks it seated in meditation with Spirit Stones and enough weapon Dao
+  (`InventoryAction "comprehend"` -> `Progression.comprehend`, numbers in
   `Pacing.Comprehension`), which opens the next visual tier.
+- **Weapon Dao gates techniques** ([weapons](weapons.md) Dao 0-10). Learning needs
+  the def's `dao` in its class (`Techniques.learnDao`). Each class's skills sit on
+  the rungs of `Pacing.Comprehension.SKILL_DAO`: Plain 2 (a mediocre first skill,
+  none made yet), Adept 5 and Peak 8, the more spectacular the higher (the Dao
+  column below). The starter arts (Sword Qi Wave, Palm Strike and the other
+  any-weapon arts) need 0, so onboarding never waits on Dao. Any-weapon arts count
+  the player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
+  `min(10, learn + 2k)`, or `learn + k` for skills learned at Dao 5 or above
+  (`Techniques.comprehendDao`, `HIGH_FROM`): starter arts 2/4/6, Adept skills 6/7/8,
+  Peak skills 9/10/10. A manual found too early is kept
+  (`data.techniques.manuals`), toasts "requires Sword Dao 5", shows in Arts with its
+  requirement, and is learned the moment that Dao level is reached
+  (`Weapons.onLevelUp` -> `Progression.learnReady`).
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
   damage validation, `damageEnemy`, `hurt` (i-frames, perfect dodge, Iron Skin,
-  non-lethal), `power` (the stage's `power`), `inCombat`, `fighting` (hurt or
+  non-lethal), `power` (the stage's `power`, the next stage's during a qi surge via `Cultivation.fightStage`), `inCombat`, `fighting` (hurt or
   dealing damage lately) and the `InCombat` attribute that mirrors it, technique XP.
 - `src/server/CombatQi.luau`: the combat qi pool (`has`, `spend`, `deny`,
   `refill`), its regen loop and the `Qi`/`QiMax`/`QiDenied` attributes.
@@ -152,15 +260,19 @@ comprehension, and each cast grants that class `Pacing.Weapons.XP_CAST` Dao XP.
   farther from the cast's start than the lunge plus `LUNGE_SLACK` and
   `LUNGE_WALK_ALLOWANCE`, when it's pulled back.
 
-| Id | Weapon | Shape | Hits (dmg) | Lunge | Cooldown |
-|---|---|---|---|---|---|
-| TwinPhoenixCannon | Fist | line 18 x 6, right then left fist | 14, 14 | - | 9 |
-| MoonflashDraw | Sword | line 18 x 5 from the cast's start (the dash path) | 30 | 14, i-frames while dashing | 7 |
-| RampagingTiger | Saber | circle r 10 around the caster | 9, 7, 7, 16 | 6 over the leap | 12 |
-| HeavenSplitter | Greatsword | circle r 12 centred 4 ahead | 6, 6, 60 (slam) | 6 over the leap; castSpeed 1.3 | 16 |
-| CrescentSweep | Guandao | circle r 11 | 32 | - | 9 |
-| DragonPierce | Spear | line 22 x 4 | 34 | 8 | 8 |
-| GreatSageAwakening | Staff | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+| Id | Weapon | Dao | Shape | Hits (dmg) | Lunge | Cooldown |
+|---|---|---|---|---|---|---|
+| TwinPhoenixCannon | Fist | 5 | line 18 x 6, right then left fist | 14, 14 | - | 9 |
+| MoonflashDraw | Sword | 5 | line 18 x 5 from the cast's start (the dash path) | 30 | 14, i-frames while dashing | 7 |
+| RampagingTiger | Saber | 8 | circle r 10 around the caster | 9, 7, 7, 16 | 6 over the leap | 12 |
+| HeavenSplitter | Greatsword | 8 | circle r 12 centred 4 ahead | 6, 6, 60 (slam) | 6 over the leap; castSpeed 1.3 | 16 |
+| CrescentSweep | Guandao | 5 | circle r 11 | 32 | - | 9 |
+| DragonPierce | Spear | 5 | line 22 x 4 | 34 | 8 | 8 |
+| GreatSageAwakening | Staff | 8 | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+
+Peak (8) went to the multi-beat set pieces: the Saber's leaping four-cut wheel, the
+Greatsword's sky-column slam and the Staff's Monkey King transformation. The
+single-strike skills are Adept (5).
 
 ## Combat qi (technique mana)
 Qi is the mana techniques spend; raw qi (`data.rawQi`, the dantian) is only for
@@ -313,8 +425,8 @@ Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
 replays the timeline, checks timing (`MAX_LAG`, `CLOCK_SLACK`) and the slackened
 hitbox (a claimed target outside it now still counts if it was inside at the
-swing's time, rewound at most `REWIND`: lag compensation, `EnemyHistory`), applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1)
-and knockback, and acknowledges
+swing's time, rewound at most `REWIND`: lag compensation, `EnemyHistory`), applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1,
+then realm suppression in `damageEnemy`) and knockback, and acknowledges
 via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 `"perfect" | "dodged" | "hit"` and fires `Effect "hurt"`/`"perfect"`.
 
@@ -334,7 +446,8 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
   IV 10), and so where the comprehension bottlenecks sit; `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.
-- Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
+- Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust);
+  `Pacing.Suppression.KEEP`, `Pacing.HeavenDefying.SUPPRESSION_RESIST`; `Pacing.BeastBaseline`.
 - `Config.Combat.CC`: flinch, stagger and stun lengths, move shares, stumble push, immunity and diminishing returns.
 
 ## Known gaps
@@ -357,6 +470,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   level or stage?); should a dodge-cancelled cast refund its qi; should perfect
   dodges or parries restore qi; should items or root perks touch combat qi.
 - Testbed casts cost qi like the main game (no free-qi flag).
+- Suppression is unplayed. A slow from a lower-realm beast still lands in full
+  (it deals no damage), and poison ignores the variant tier's damage knob (a young
+  serpent's poison ticks like an adult's at the same stage).
 - Technique visual gaps (Fire Seal's client-timed ticks, observers never
   seeing windups or the Great Sage twirl, Heaven-Splitting Descent's first
   hit landing before the sweep) are in [technique visuals](../combat/technique-visuals.md#known-gaps)

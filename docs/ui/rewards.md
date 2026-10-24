@@ -9,8 +9,8 @@ ScreenGui (`assets/Rewards.rbxmx`, `StarterGui.Rewards`). The toast (the `Hud`'s
 
 | Tier | Looks like | Used by |
 | --- | --- | --- |
-| `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | ready for floating gains (qi, stones); nothing calls it yet |
-| `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, insight, manuals, weapons, methods (`Effect`) |
+| `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | floating gains: the Haul's line, the "+ Foundation" earn pop (server `Foundation`, jade text, no icon) |
+| `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, manuals, weapons, methods (`Effect`) |
 | `banner` | kicker, a three-part ribbon with the title, a tag and a subtitle, top centre; jade, gold (the navy objective banner) or crimson | the region entry banner (`RegionBanner.luau`); notable gains and onboarding objectives later |
 | `card` | one card, three jobs; reward tiles, stat deltas, the new unlock, one line of flavour; tap or click to skip | boss victory (`Effect "boss"`), breakthroughs (`BreakthroughView`), quests later |
 
@@ -27,9 +27,23 @@ Card jobs (`spec.kind`):
   goes in `flavour`.
 - `milestone`: the quest card with the gold plaque, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
-  "Major Breakthrough", the stage, health/power/combat qi/passive deltas from the
-  stage before, "The <array> array is open" when the stage opens a travel array);
-  bloodlines and firsts later.
+  "Major Breakthrough", the subtitle "<stage>  ·  Foundation <percent>%" with what
+  the stage left earned (the percent only, which can pass 100%; [cultivation](../systems/cultivation.md#foundation-grade); only the stage leaving QC1-3, which have no foundation),
+  health/power/combat qi/passive deltas from the stage before (the curve's, without
+  the foundation bonus), "The <array> array is open" when the stage opens a travel array);
+  bloodlines and firsts later. Only when it's worth a card (user, 2026-10-24): a major,
+  an array opening, the first foundation, or a stage that took
+  `Pacing.Breakthrough.CARD_MIN_MINUTES` (10) since the last breakthrough or the join;
+  a quicker minor gets a small "Breakthrough · <stage>" line (`BreakthroughView`).
+  Seclusion's card has the same kind of gate (`Pacing.Seclusion.CARD_MIN_MINUTES`).
+- `seclusion`: the milestone card (lotus crest, `rays_milestone`) for seclusion's result
+  ("Seclusion Ends", or "First Seclusion" for the onboarding one): the time spent as the
+  subtitle, the find, seed and garden tiles, a stats row per foundation stage mended
+  ("QC5  60% -> 80%") and "Cultivation from -> to", and a flavour line. The server no
+  longer sends `spec.streak` (the streak was cut, 2026-10-24); its row code
+  (`Templates.SeclusionStreak`, `SeclusionView.paintStreak`) is left for the plaque
+  slimming pass to remove ([cultivation UI](cultivation.md#seclusion)). The heart demon's
+  payoff uses `milestone` with a row per stage raised.
 
 Rules: one card at a time, queued; a card waits while another window or minigame is
 open and opens when it closes. It is a `Menus` window (the HUD steps aside, shift lock
@@ -56,11 +70,15 @@ Rewards.show({ tier = "card", kind = "quest", title = "Quest Complete",
 	stats = { { name = "Health", from = 140, to = 165 } },
 	unlock = "The Inner Wilds array is open", flavour = "One line on what to do next.",
 	crest = nil, life = 7 })
-Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
+Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"|"seclusion"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
 ```
 
-Keys (feed rows and card tiles): `stones`, `qi`, `insight`, `contribution` (currency:
-coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
+Keys (feed rows and card tiles): `stones`, `qi`, `contribution` (currency:
+coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, `seed:<herb>` (named by the herb),
+`garden` (seclusion: "Garden tended", the plant glyph on a jade tile, no count),
+`mutation` (seclusion: plants that took a mutation, gold tile), or an `Items` id.
+A card tile's name longer than 14 letters wraps to a second line at the same 12 px; the
+tile and the row grow 13 px (no truncation).
 Item tiles take the edge of their rarity or grade on the Inventory's ladder
 ([inventory](inventory.md), `Rarity.luau`): Common/Mortal bronze (`neutral`),
 Uncommon silver (`grey`), Rare/Spirit jade, Epic/Earth violet, Legendary/Heaven gold;
@@ -70,18 +88,20 @@ blue tier is needed.
 Server side: `Effect "reward"` with a spec table goes straight to `Rewards.show`, so a
 new system picks its own tier without a new remote. What a real system must send:
 the tier, and for a card its `kind`, title, subtitle and whatever it has of items,
-stats, unlock and flavour (empty lines hide). Quests and bloodlines don't send it yet.
+stats, unlock and flavour (empty lines hide). Sect quests send the quest card
+(`Sect.luau`); onboarding objectives and bloodlines don't send it yet.
 
 ## Layout
 
 The ScreenGui holds one `Canvas` with the authored `UiScale` (fitted by `UiScale.fit`:
 desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
-- `Feed` (bottom-right anchor at 58 % height, 264 wide, rows 256x34, 6 px apart; user,
-  2026-10-23: "too bundled together and the icons dont fit"). Row (`EntryTemplate`):
-  the toast's plaque, 9-sliced (SliceScale 34/96); `Disc` (`art_disc`, 24 px, tinted
+- `Feed` (bottom-right anchor at 58 % height, 212 wide, rows 204x28, 6 px apart; user,
+  2026-10-23: "too bundled together and the icons dont fit"; 2026-10-24: 256x34 rows
+  were "invasive", so 0.8x). Row (`EntryTemplate`):
+  the toast's plaque, 9-sliced (SliceScale 28/96); `Disc` (`art_disc`, 23 px, tinted
   the look's colour leaned 20 % to black) with its `Icon` (cropped to its drawn area,
-  `SlotArt.setIcon`, 62 % of the disc) or `Glyph`; `NameLabel` (Builder Sans Bold 15,
-  8 px after the disc, truncated); `CountLabel` (Fredoka One 16, gold). The disc's left
+  `SlotArt.setIcon`, 62 % of the disc) or `Glyph`; `NameLabel` (Builder Sans Bold 13,
+  5 px after the disc, truncated); `CountLabel` (Fredoka One 14, gold). The disc's left
   edge and the count's right edge both sit 4 px inside the plaque's points.
 - `Floats.FloatTemplate`.
 - `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (56 tall, `Art`
@@ -90,8 +110,13 @@ desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
 - `Card` (62 % x 84 %, aspect 1.57, at most 600x382, 10 px above centre): `Rays`,
   `Art` (its aspect set per job: 1.718 boss, 1.571 quest), with `Crest` (and its hidden
   `Emblem`), `Ribbon`,
+  `Inkwash` (the kit's `Frame/Panel` ink clouds, `inkwash_b` at 80 % transparency, 86 %
+  of the card wide, its bottom on the job's `bodyBottom`),
   `Body` (a centred list: `Subtitle`, `List` of `RewardTemplate` tiles 64x82 with 14 px
-  gaps, `Stats`, `Unlock`, `Flavour`) and `Hint` under the card.
+  gaps, `Stats`, `Unlock`, `Flavour`; a milestone's list is centred vertically, the rest
+  top-aligned since boss tiles can join an open card) and `Hint` under the card.
+  `Stats` sets two deltas a line (four on one line ran past the card, user 2026-10-24),
+  20 px a line.
 The card's title plaque fits its title ([ribbons](ribbons.md)): the plain middle is the
 title plus even padding, at least 36 % of the card wide, at most 84 %; the text is 0.47 of
 the plaque's height (28 on PC), shrinks to 85 % and then truncates.
@@ -134,6 +159,22 @@ the toast, it moves below that (or above it). It fades in and out
 (`Motion.fadeIn/fadeOut`); the queue and timing are unchanged. Feed rows use the same
 plaque, plain, so the two read as one family.
 
+The bar's depth comes from `Platform.topbar`, which until 2026-10-23 read it twice
+over (116 px for the 58 px bar: `AbsolutePosition` is measured from below the GUI
+inset, `TopbarInset` from the screen top), so in play the toast sat under the bar,
+centred on its bottom edge, rather than in it, on PC and phones alike.
+
+Phone (touch and short screen; user, 2026-10-23: "the toast is fkn TERRIBLE for
+mobile", a two-line plaque jammed against Roblox's chat button, as tall as the
+tiles): a slimmer plaque (SliceScale 0.3, 20/6 px padding, no studs) and 14 px text,
+read by contrast (cream, near-black stroke). It takes the bar's free lane (Roblox's
+buttons to the tiles) only when the message fits there on one line; otherwise it
+drops just under the top band (8 px below the tiles), from the end of Roblox's
+buttons to the objective column's left edge, where it wraps if it must. The
+meditation toast is shorter for it: "Cultivation ×2.5 on your peak" (was
+"Meditating on your peak: passive cultivation ×2.5"). Queue (4 at most, repeats
+skipped) and timing (3.2 s plus up to 2 s for long text) are unchanged.
+
 Measured 2026-10-23 (sandbox preview, faked top bar 58 px PC / 44 px phone): 36 px
 tall; message centre on the plaque centre to 0.0 px; studs 15.0 / 15.0 px from the
 tips and on the centre line; 7.5 / 7.5 px from the studs to the text. 1366x768: at
@@ -141,14 +182,15 @@ x 490 (centred, dx 0.0), y 11 in the bar, window top 134. 667x375 with the Inven
 open: one line, y 4 in the 44 px bar, slid 7.5 px right of centre to clear Roblox's
 buttons, window top 50; never overlapping. Feed rows (PC, scale 0.726): icon centre on
 disc centre, disc, name and count on the row's centre line, all 0.00 px; 6 px between
-rows; 17 px from each end to the disc and the count.
+rows; 17 px from each end to the disc and the count (measured at the old 256x34 rows; the
+0.8x pass hasn't been re-measured).
 
 ## Art
 
 Kit cuts in `art/ui/codex/cut/` (sheets B1, B2, A6, C3, C5, light effects; ids in
 `art/ui/assets.json`): `card_boss`, `card_quest`, `rays_boss`, `rays_milestone`,
 `ribbon_crimson_*`, `ribbon_jade_*`, `objective_banner_*`, `tile_*` (card tiles),
-`gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight`,
+`gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight` (now only the dialogue's study glyph),
 `emblem_peak`, `emblem_lotus`, `fx_glint`, `ruby_stud` (toast). Drawn: `toast_plaque`
 (toast and feed rows) and `art_disc` (feed discs), `art/ui/draw_ui.py plain`. The Figma mock is
 "Rewards / Cards, feed, toast (mock)" on the kit's Example page (file

@@ -9,7 +9,7 @@ old def (one 0.55 s lunge, 60 HP, the old part-built body). **Follow-up:** remov
 `OLD_SPIRIT_WOLF` (Enemies.luau), the old `SpiritWolf` template in
 `assets/Enemies.rbxm` and the flag once the main game has run on the new wolf for a
 while. Also decided: a careless player
-may die to the GateWolves pair (fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
+may die to the GateWolves (3 since the hook rework, `Spawns.Zones`; fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
 attack slots apply to every non-boss beast; `qiDrop` stays 14; the leap stays on the
 basic wolf; its qi is moonlight pale blue-white; `ServerStorage.Enemies` is now binary
 `assets/Enemies.rbxm`.
@@ -31,13 +31,13 @@ The fight:
   (`reinforcePoint`), already targeting it, so they never howl themselves (no chains),
   wait 1-2.5 s before their first attack and take attack slots like any wolf. While the
   target is still in onboarding (its `QC3` beat not passed, `data.beats`) a howl calls
-  only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves pair
-  the first howl rallies the second, so nothing spawns. They are `fleeting`: gone
+  only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves
+  the first howl rallies the others, so nothing spawns. They are `fleeting`: gone
   without rewards once they have no target, leave the leash or would fall asleep.
-  **Rewards: summoned wolves pay full rewards** (qi, stones, drops, kill credit, exactly
-  like any wolf; summons have never been reduced), so a player who leaves and re-engages
-  a lone wolf (a fresh engagement after `ENGAGE_RESET`) can farm up to 3 extra wolves
-  per howl. The Elder Wolf King's summons now also arrive already targeting (they used
+  **Rewards: summoned wolves pay qi only**, at the untiered rate (no stones, drops,
+  first kills or kill count; [enemies](../systems/enemies.md) "Summoned beasts pay qi
+  only"), so leaving and re-engaging a lone wolf for its howl is no farm. Onboarding
+  players get full pay for their one reinforcement. The Elder Wolf King's summons now also arrive already targeting (they used
   to howl on their first think) and wait 1-2.5 s before attacking.
 - **Attack slots** (every non-boss beast): one beast at a time winds up or strikes at
   a player (`ATTACK_SLOTS` 1), and the next windup waits `SLOT_GAP` 0.6 s after it
@@ -68,6 +68,18 @@ Impacts), `Aggro`, `Death`; all picked by description only, not listened to.
 The testbed's `Wilds.Zones.WolfPair` (test.project.json) still keeps two Spirit Wolves
 at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
+
+## Realm variants
+Tiers and knobs: [variants](variants.md) (QC2 is its own
+realm; young below, elite from QC5, apex from QC8 or any QR). Shares are of a same-stage
+player's health.
+| Tier | Moves | Howl | Shares (bite / pounce / leap) |
+|---|---|---|---|
+| young (QC1: the GateWolves) | bite, pounce; no leap | rallies wolves already there, never calls reinforcements (none for onboarding players either) | 7% / 11% / - |
+| adult (QC2-4) | as designed | rallies, else calls 1-3 | 8% / 13% / 15% |
+| elite (QC5-7) | the leap from 3 s; a pounce that lands close chains into the bite | calls 2-3 elite wolves | 8% / 13% / 15% |
+| apex (QC8+) | elite's, and a dodged leap that lands close chains into the bite | calls 2-4 (4 alive at most) | 9% / 14% / 16% |
+Young 0.85x size (80 HP x0.8 at the curve), elite 1.12x, apex 1.25x; cooldowns x1.25 / x0.88 / x0.8.
 
 ## Effects
 `EnemyFX/SpiritWolf.luau`, templates `ReplicatedStorage.Effects.SpiritWolf`
@@ -110,8 +122,7 @@ TechniqueVFX's plain-emitter fallback).
 ## Known gaps
 - The Spirit Wolf's howl reinforcements are untested in play: where they appear on
   broken ground (a spot can be behind a wall the mover can't cross), whether 3 extra
-  wolves on a QC2 player is too much, the onboarding limit, and whether howls become a
-  farm (full rewards; see "Howl reinforcements").
+  wolves on a QC2 player is too much, and the onboarding limit.
 - The Spirit Wolf fight was approved in the testbed but is unseen in the main game's
   wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
   the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,

@@ -14,7 +14,8 @@
 --     HUD goes too (Play: touch
 --     cluster, buffs, objective, elder line; the vitals; the Dash and Strike
 --     cooldown chips; the seated tiles; world prompts). The
---     hotbar stays only for windows that drop onto it (the inventory).
+--     hotbar stays only for windows that drop onto it (the inventory; on a phone
+--     only while it asks, see keepHotbar and Menus.refresh).
 --   A minigame: everything but the minigame, tiles included.
 --   Seated (Menus.setSeated, from Meditation): the cultivation bars
 --     (Stack.SeatBars) take the vitals' place; health, qi and guard come back
@@ -22,6 +23,17 @@
 --   The calm view (Menus.setCalm, while meditating; nothing open): the gameplay
 --     HUD, the tiles and the hotbar fade away for a clean view of the world.
 --     Opening anything ends it.
+-- Short screens (Platform.isSmall: phones, the device emulator): Roblox's menu
+-- and chat buttons own the top-left corner, so a centred Hud window that would
+-- reach above TOPBAR_CLEAR opens just below it instead, shorter if it has to be
+-- (phone sweep, 2026-10-23: the herb shop, seed picker, quest board and Spirit
+-- Market reached under the buttons). Windows that place themselves (Inventory,
+-- the build catalog in build mode), auto-sized cards and canvas screens are left
+-- alone.
+-- Menus.openFrom(frame, back) opens a window from inside another (the Self card's
+-- Settings and People seals, the Inventory's Herbarium tab): closing it by its own
+-- seal runs `back`, which reopens the window it came from; being replaced by another
+-- window drops it.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
@@ -30,9 +42,49 @@ local Platform = require(script.Parent.Platform)
 
 local Menus = {}
 
+local TOPBAR_CLEAR = 62 -- Roblox's buttons end about 54 px down on a phone
+local BOTTOM_GAP = 8
+local homes: { [GuiObject]: { position: UDim2, size: UDim2 } } = {}
+
+local function clearTopbar(frame: GuiObject)
+	local parent = frame.Parent
+	if not Platform.isSmall() or not (parent and parent:IsA("ScreenGui")) then
+		return
+	end
+	if frame.AnchorPoint ~= Vector2.new(0.5, 0.5) and not homes[frame] then
+		return -- it places itself
+	end
+	if frame.AutomaticSize ~= Enum.AutomaticSize.None then
+		return
+	end
+	local home = homes[frame]
+	if home then
+		if frame.AnchorPoint ~= Vector2.new(0.5, 0.5) then
+			return
+		end
+		frame.Position, frame.Size = home.position, home.size
+	end
+	local motion = frame:FindFirstChild("Motion")
+	local k = if motion and motion:IsA("UIScale") and motion.Scale > 0 then motion.Scale else 1
+	local origin = parent.AbsolutePosition.Y
+	local height = frame.AbsoluteSize.Y / k
+	local centre = frame.AbsolutePosition.Y + frame.AbsoluteSize.Y / 2 - origin
+	if centre - height / 2 >= TOPBAR_CLEAR then
+		return
+	end
+	if not home then
+		homes[frame] = { position = frame.Position, size = frame.Size }
+	end
+	local fit = math.min(height, parent.AbsoluteSize.Y - TOPBAR_CLEAR - BOTTOM_GAP)
+	if fit < height then
+		frame.Size = UDim2.new(frame.Size.X, UDim.new(0, math.floor(fit)))
+	end
+	frame.Position = UDim2.new(frame.Position.X, UDim.new(0, math.floor(TOPBAR_CLEAR + fit / 2)))
+end
+
 export type Options = {
 	close: (() -> ())?, -- how to close it (default: hide the frame)
-	keepHotbar: boolean?, -- leave the hotbar up as a drop target
+	keepHotbar: (boolean | () -> boolean)?, -- leave the hotbar up as a drop target (a function: while it says so)
 	minigame: boolean?, -- takes the whole screen (nothing opens over it)
 }
 
@@ -42,6 +94,7 @@ local calm = false
 local seated = false
 local screen = false
 local listeners: { () -> () } = {}
+local backs: { [GuiObject]: () -> () } = {} -- Menus.openFrom: what a close by its own seal reopens
 
 local play: GuiObject
 local vitals: GuiObject
@@ -49,6 +102,14 @@ local seatBars: GuiObject
 local hotbar: GuiObject
 local tiles: GuiObject
 local chips: GuiObject -- PC only: Dash and Strike cooldown chips over the hotbar
+
+local function keepsHotbar(entry: Options): boolean
+	local keep = entry.keepHotbar
+	if type(keep) == "function" then
+		return keep()
+	end
+	return keep == true
+end
 
 local function update(fade: boolean?)
 	local entry = current and entries[current]
@@ -62,7 +123,7 @@ local function update(fade: boolean?)
 	show(play, not any)
 	show(vitals, not any and not seated)
 	show(seatBars, not any and seated)
-	show(hotbar, not any or (entry :: Options).keepHotbar == true)
+	show(hotbar, not any or keepsHotbar(entry :: Options))
 	show(chips, not any and not Platform.isTouch())
 	-- the top-right tiles always fade (they're what the player just pressed)
 	Motion.setShown(tiles, not any and not calm, true)
@@ -94,6 +155,9 @@ function Menus.register(frame: GuiObject, options: Options?)
 				return
 			end
 			current = frame
+			if not entries[frame].minigame then
+				clearTopbar(frame)
+			end
 			Motion.popWindow(frame)
 			if previous then
 				closeFrame(previous)
@@ -101,7 +165,14 @@ function Menus.register(frame: GuiObject, options: Options?)
 			update()
 		elseif current == frame then
 			current = nil
+			local back = backs[frame]
+			backs[frame] = nil
 			update()
+			if back then
+				task.defer(back)
+			end
+		else
+			backs[frame] = nil -- replaced by another window: no way back
 		end
 	end)
 	if frame.Visible then
@@ -111,7 +182,14 @@ function Menus.register(frame: GuiObject, options: Options?)
 end
 
 function Menus.open(frame: GuiObject)
+	backs[frame] = nil
 	Motion.open(frame)
+end
+
+-- Open frame from inside another window; closing it by its own seal runs back.
+function Menus.openFrom(frame: GuiObject, back: () -> ())
+	Menus.open(frame)
+	backs[frame] = back
 end
 
 function Menus.close(frame: GuiObject)
@@ -141,6 +219,14 @@ end
 -- GUI and hides the Hud itself, so this only makes Menus.isOpen() true.
 function Menus.setScreen(on: boolean)
 	screen = on
+end
+
+-- Ask the open menu's keepHotbar function again and fade the hotbar in or out.
+function Menus.refresh()
+	local entry = current and entries[current]
+	if entry then
+		Motion.setShown(hotbar, keepsHotbar(entry), true)
+	end
 end
 
 -- The open menu, if any.

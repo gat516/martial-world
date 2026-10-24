@@ -1,7 +1,8 @@
 --!strict
 -- Heavenly treasures: when auspicious weather begins (Weather.Defs[*].treasures),
 -- that many treasures fall at random spots on the wilds' event grounds. The first
--- player to claim one keeps it. Unclaimed ones fade when the weather ends.
+-- player to claim one keeps it, and one that isn't a root pill also gives a root
+-- pill fragment (Inventory.pity). Unclaimed ones fade when the weather ends.
 --
 -- Each birth is published in the workspace attribute HeavenlyTreasures (JSON list of
 -- { key, at = {x,y,z}, color = {r,g,b}, weather, born = server time }), and every
@@ -21,6 +22,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local EventGrounds = require(script.Parent.EventGrounds)
 local Inventory = require(script.Parent.Inventory)
+local Foundation = require(script.Parent.Foundation)
 local WeatherService = require(script.Parent.WeatherService)
 
 local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
@@ -136,7 +138,9 @@ local function spawnOne(weatherId: string): boolean
 			return
 		end
 		claimed = true
+		Foundation.world(player, `treasure:{weatherId}`) -- a World foundation experience, once per weather
 		Inventory.grant(player, item.id, 1, spot)
+		Inventory.pity(player, item.category == "Pill", spot) -- no root pill: a pity fragment
 		notifyRemote:FireAllClients(`{player.DisplayName} claimed a heavenly treasure: {item.name}!`)
 		fadeOut(record)
 	end)

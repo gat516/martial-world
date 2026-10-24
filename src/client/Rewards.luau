@@ -20,7 +20,7 @@
 --           milestone rays; "rank", a sect rank-up, shows the rank crest). It shows reward tiles, stat deltas, the new unlock and
 --           one line of flavour. Skippable (click or tap after a beat), closes by
 --           itself, and queues one at a time; it waits while another window is open.
--- Fed by the server's Effect events: "stones", "loot", "insight", "manual",
+-- Fed by the server's Effect events: "stones", "loot", "manual",
 -- "weapon", "method" (feed rows, and tiles on a boss card opened just before),
 -- "boss" (the victory card), and "reward" (a whole spec table, for systems that
 -- pick their own tier). Rewards.preview(tier, kind) shows sample content.
@@ -35,10 +35,12 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local CultivationGui = require(script.Parent.CultivationGui)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 local Ribbon = require(script.Parent.Ribbon)
+local SeclusionView = require(script.Parent.SeclusionView)
 local SelfCard = require(script.Parent.SelfCard)
 local SlotArt = require(script.Parent.SlotArt)
 local UiScale = require(script.Parent.UiScale)
@@ -53,8 +55,8 @@ local ART = {
 	emblem_peak = "rbxassetid://102118062177874",
 	emblem_lotus = "rbxassetid://113579784709637",
 	glyph_stone = "rbxassetid://76651936131955",
+	glyph_plant = "rbxassetid://136552828056796",
 	glyph_qi = "rbxassetid://106989489487468",
-	glyph_insight = "rbxassetid://98394523996866",
 }
 local TILES = {
 	neutral = { tile = "rbxassetid://72729867643691" },
@@ -168,6 +170,18 @@ local KINDS: { [string]: Kind } = {
 		bodyTop = 0.395,
 		bodyBottom = 0.95,
 	},
+	seclusion = { -- seclusion's result (Seclusion.luau): the milestone card, plus spec.streak's day pips
+		art = ART.card_quest,
+		ratio = 1024 / 652,
+		rays = ART.rays_milestone,
+		raysAt = Vector3.new(0.5, 0.12, 1.1),
+		ribbon = "gold_curl",
+		crest = ART.emblem_lotus,
+		ribbonY = 0.315,
+		ribbonH = 0.15,
+		bodyTop = 0.395,
+		bodyBottom = 0.95,
+	},
 	milestone = {
 		art = ART.card_quest,
 		ratio = 1024 / 652,
@@ -185,14 +199,17 @@ local KINDS: { [string]: Kind } = {
 local GOLD = Color3.fromRGB(214, 172, 92)
 local STONE_COLOR = Color3.fromRGB(200, 235, 255)
 local QI_COLOR = Color3.fromRGB(120, 235, 180)
+local GARDEN_COLOR = Color3.fromRGB(130, 230, 185)
 local CREAM = Color3.fromRGB(250, 236, 195)
 
 local ENTRY_LIFE = 3.5 -- seconds a feed row stays after its last gain
-local ENTRY_STEP = 38 -- feed row height plus padding, for the visible cap
+local ENTRY_STEP = 34 -- feed row height plus padding, for the visible cap
 local DISC_DARK = 0.2 -- how far a feed row's disc tint leans to black
 local CARD_COLLECT = 1.5 -- seconds after a boss card that rewards join it
 local CARD_MIN = 1.0 -- seconds before a click can close a card
-local CARD_LIFE = 7 -- a card closes by itself after this
+local CARD_LIFE = 7
+local NAME_ONE_LINE = 14 -- letters that fit under a card tile on one line
+local NAME_LINE = 13 -- a second line's height -- a card closes by itself after this
 local RAY_SPEED = 10 -- degrees per second
 local RAYS_ALPHA = 0.2
 local BANNER_HOLD = 2.6
@@ -233,7 +250,7 @@ export type Spec = {
 	tagColor: Color3?,
 	hold: number?,
 	-- card
-	kind: string?, -- "boss" | "quest" | "milestone" | "rank"
+	kind: string?, -- "boss" | "quest" | "milestone" | "rank" | "seclusion"
 	items: { Item }?,
 	stats: { Stat }?,
 	unlock: string?,
@@ -241,6 +258,8 @@ export type Spec = {
 	crest: (string | CrestSpec)?, -- image id for the crest slot, or a rank crest with an
 	-- emblem centred on its hole (SectRank.rankUp)
 	life: number?,
+	-- seclusion: the streak row (Cultivation Templates.SeclusionStreak, day pips)
+	streak: { days: number, text: string }?,
 }
 
 type Look = {
@@ -251,6 +270,7 @@ type Look = {
 	tint: Color3?, -- for white kit glyphs
 	coin: boolean?, -- currency: drawn in the coin frame
 	tier: string?, -- tile edge for items
+	plain: boolean?, -- no count (a state, not an amount)
 }
 type Entry = { frame: GuiObject, count: number, last: number }
 
@@ -285,8 +305,6 @@ local bannerShowing = false
 local function lookOf(key: string): Look?
 	if key == "stones" then
 		return { name = "Spirit Stones", icon = ART.glyph_stone, tint = STONE_COLOR, color = STONE_COLOR, coin = true }
-	elseif key == "insight" then
-		return { name = "Insight", icon = ART.glyph_insight, tint = GOLD, color = GOLD, coin = true }
 	elseif key == "qi" then
 		return { name = "Raw Qi", icon = ART.glyph_qi, tint = QI_COLOR, color = QI_COLOR, coin = true }
 	elseif key == "contribution" then
@@ -303,6 +321,21 @@ local function lookOf(key: string): Look?
 				icon = SlotArt.weaponIcon(id),
 				color = SlotArt.weaponColor(id),
 				tier = TIER_OF[def.grade] or "neutral",
+			}
+	elseif key == "garden" then -- seclusion: the garden tended
+		return { name = "Garden tended", icon = ART.glyph_plant, tint = GARDEN_COLOR, color = GARDEN_COLOR, tier = "jade", plain = true }
+	elseif key == "mutation" then -- seclusion: plants that took a mutation
+		return { name = "Mutations", icon = ART.glyph_plant, tint = GARDEN_COLOR, color = GARDEN_COLOR, tier = "gold" }
+	elseif key:sub(1, 5) == "seed:" then
+		-- a seed (seclusion's finds): the herb's own look, named as its seed
+		local herb = Items.Defs[key:sub(6)]
+		return herb
+			and {
+				name = herb.name, -- " Seed" doesn't fit under a card tile (78 px); the seed's look is the herb's
+				icon = herb.icon,
+				glyph = herb.glyph,
+				color = Items.rarityColor(herb),
+				tier = TIER_OF[herb.rarity] or "neutral",
 			}
 	elseif key:sub(1, 7) == "method:" then
 		local def = Methods.Defs[key:sub(8)]
@@ -372,7 +405,7 @@ local function paint(frame: GuiObject, look: Look, count: number)
 	glyph.Visible = look.icon == nil
 	local name = frame:FindFirstChild("NameLabel", true) :: TextLabel
 	name.Text = look.name;
-	(frame:FindFirstChild("CountLabel", true) :: TextLabel).Text = `x{count}`
+	(frame:FindFirstChild("CountLabel", true) :: TextLabel).Text = if look.plain then "" else `x{count}`
 end
 
 local function pop(frame: GuiObject)
@@ -610,6 +643,17 @@ local function addTile(key: string, amount: number)
 	order += 1
 	frame.LayoutOrder = order
 	paint(frame, look, amount)
+	-- a name too long for one line under the tile (78 px at 12 px: about 14 letters,
+	-- "Cloud-Pattern Jade", most tier III-IV herbs) wraps to a second line at the same
+	-- size; the tile and the row grow by that line
+	if #look.name > NAME_ONE_LINE then
+		local name = frame:FindFirstChild("NameLabel", true) :: TextLabel
+		name.TextWrapped = true
+		name.TextTruncate = Enum.TextTruncate.None
+		name.Size = UDim2.new(name.Size.X, UDim.new(0, name.Size.Y.Offset + NAME_LINE))
+		frame.Size = UDim2.new(frame.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset + NAME_LINE))
+		list.Size = UDim2.new(list.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset + NAME_LINE))
+	end
 	frame.Visible = true
 	frame.Parent = list
 	pop(frame)
@@ -640,12 +684,20 @@ local function cardGain(key: string, amount: number)
 	end
 end
 
-local function statsText(stats: { Stat }): string
-	local parts = {}
+-- Two stats a line (four on one line ran past the card's sides), and the line count.
+local function statsText(stats: { Stat }): (string, number)
+	local lines, pair = {}, {}
 	for _, s in stats do
-		table.insert(parts, `{s.name}  {s.from} <font color="#fff1c8">→</font> {s.to}`)
+		table.insert(pair, `{s.name}  {s.from} <font color="#fff1c8">→</font> {s.to}`)
+		if #pair == 2 then
+			table.insert(lines, table.concat(pair, "      "))
+			pair = {}
+		end
 	end
-	return table.concat(parts, "     ")
+	if #pair > 0 then
+		table.insert(lines, pair[1])
+	end
+	return table.concat(lines, "\n"), #lines
 end
 
 local function closeCard()
@@ -669,6 +721,7 @@ local function openCard(spec: Spec)
 		t.frame:Destroy()
 	end
 	table.clear(tiles)
+	list.Size = UDim2.new(list.Size.X, UDim.new(0, rewardTemplate.Size.Y.Offset))
 
 	cardArt.Image = kind.art;
 	(cardArt:FindFirstChildOfClass("UIAspectRatioConstraint") :: UIAspectRatioConstraint).AspectRatio = kind.ratio
@@ -718,7 +771,14 @@ local function openCard(spec: Spec)
 	})
 	local body = cardArt:FindFirstChild("Body") :: Frame
 	body.Position = UDim2.fromScale(0.5, kind.bodyTop)
-	body.Size = UDim2.fromScale(0.84, kind.bodyBottom - kind.bodyTop)
+	body.Size = UDim2.fromScale(0.84, kind.bodyBottom - kind.bodyTop);
+	-- a milestone (a breakthrough, no tiles) centres its few lines instead of leaving
+	-- the lower half bare; boss tiles can join an open card, so the rest stay on top
+	(body:FindFirstChildOfClass("UIListLayout") :: UIListLayout).VerticalAlignment = if spec.kind == "milestone"
+		then Enum.VerticalAlignment.Center
+		else Enum.VerticalAlignment.Top;
+	-- the kit panel's ink clouds (Frame/Panel) along the card's floor
+	(cardArt:FindFirstChild("Inkwash") :: ImageLabel).Position = UDim2.fromScale(0.5, kind.bodyBottom)
 
 	local function line(name: string, value: string?)
 		local label = body:FindFirstChild(name) :: TextLabel
@@ -726,9 +786,26 @@ local function openCard(spec: Spec)
 		label.Visible = value ~= nil and value ~= ""
 	end
 	line("Subtitle", spec.subtitle)
-	line("Stats", if spec.stats and #spec.stats > 0 then statsText(spec.stats) else nil)
+	local stats = body:FindFirstChild("Stats") :: TextLabel
+	if spec.stats and #spec.stats > 0 then
+		local text, count = statsText(spec.stats)
+		line("Stats", text)
+		stats.Size = UDim2.new(1, 0, 0, 20 * count + 2 * (count - 1))
+	else
+		line("Stats", nil)
+	end
 	line("Unlock", spec.unlock)
 	line("Flavour", spec.flavour)
+	local oldStreak = body:FindFirstChild("SeclusionStreak")
+	if oldStreak then
+		oldStreak:Destroy()
+	end
+	if spec.streak then
+		local row = CultivationGui.template("SeclusionStreak")
+		row.LayoutOrder = 4 -- in Unlock's place (a seclusion card has no unlock)
+		SeclusionView.paintStreak(row:FindFirstChild("Streak", true) :: Instance, math.min(spec.streak.days, 7), false, spec.streak.text)
+		row.Parent = body
+	end
 	list.Visible = false
 	for _, item in spec.items or {} do
 		addTile(item.key, item.amount)
@@ -811,7 +888,7 @@ function Rewards.preview(tier: string?, kind: string?)
 		Rewards.show({ tier = "small", text = "+12", icon = "qi" })
 		Rewards.show({ tier = "small", text = "+3", icon = "stones", at = Vector2.new(0.56, 0.58) })
 	elseif tier == "feed" then
-		for _, key in { "stones", "qi", "insight" } do
+		for _, key in { "stones", "qi" } do
 			Rewards.show({ tier = "feed", key = key, amount = math.random(1, 30) })
 		end
 	elseif tier == "banner" then
@@ -841,15 +918,30 @@ function Rewards.preview(tier: string?, kind: string?)
 				kind = "quest",
 				title = "Quest Complete",
 				subtitle = "The Herbalist's Errand",
-				items = { { key = "stones", amount = 60 }, { key = "insight", amount = 2 }, { key = "contribution", amount = 40 } },
+				items = { { key = "stones", amount = 60 }, { key = "contribution", amount = 40 } },
 				flavour = "The Herbalist nods: \"You may yet be useful.\"",
+			})
+		elseif k == "seclusion" then
+			Rewards.show({
+				tier = "card",
+				kind = "seclusion",
+				title = "Seclusion Ends",
+				subtitle = "9 hours in seclusion",
+				items = {
+					{ key = "stones", amount = 270 },
+					{ key = "HeavenlyDew", amount = 1 },
+					{ key = "seed:CloudMint", amount = 2 },
+					{ key = "mutation", amount = 3 },
+				},
+				stats = { { name = "Cultivation", from = 1200, to = 4800 } },
+				streak = { days = 3, text = "Day 3  ·  +54 streak stones" },
 			})
 		else
 			Rewards.show({
 				tier = "card",
 				kind = "milestone",
 				title = "Breakthrough",
-				subtitle = "Qi Condensation 4",
+				subtitle = "Qi Condensation 4  ·  Foundation 100%",
 				stats = { { name = "Health", from = 140, to = 165 }, { name = "Power", from = "1.20", to = "1.32" } },
 				unlock = "New: the Inner Wilds array is open",
 				flavour = "Your qi settles at a new depth.",
@@ -891,8 +983,6 @@ function Rewards.init()
 			gain("stones", args[2])
 		elseif kind == "loot" then
 			gain(args[1], args[2])
-		elseif kind == "insight" then
-			gain("insight", args[1])
 		elseif kind == "manual" then
 			gain(`manual:{args[1]}`, 1)
 		elseif kind == "weapon" then

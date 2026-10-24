@@ -85,11 +85,16 @@ local function isCanvas(o)
 	return s ~= nil and s:IsA("UIScale")
 end
 
+-- Screens fitted at the phone baseline on every device (UiScale.fit with base PHONE),
+-- by ScreenGui name: { max = their clamp }. Keep in step with their modules.
+local FIT = opts.fit or { Sect = { phone = true, max = 1.5 }, Social = { phone = true, max = 1.3 } }
+
 -- Mirror UiScale.fit for one canvas at a given viewport size.
-local function fitCanvas(canvas, w, h, phone)
+local function fitCanvas(canvas, w, h, phone, guiName)
 	local scale = canvas:FindFirstChild("UiScale")
-	local base = if phone then PHONE else DESKTOP
-	local s = math.clamp(math.min(w / base.X, h / base.Y), 0.4, 1.5)
+	local fit = FIT[guiName]
+	local base = if phone or (fit and fit.phone) then PHONE else DESKTOP
+	local s = math.clamp(math.min(w / base.X, h / base.Y), 0.4, if fit and fit.max then fit.max else 1.5)
 	scale.Scale = s
 	canvas.AnchorPoint = Vector2.new(0.5, 0.5)
 	canvas.Position = UDim2.fromScale(0.5, 0.5)
@@ -459,7 +464,7 @@ local function dump(size, guis0)
 	for _, stand in ipairs(guis) do
 		for _, d in ipairs(stand:GetDescendants()) do
 			if d:IsA("UIScale") and d.Name == "UiScale" and d.Parent:IsA("GuiObject") then
-				fitCanvas(d.Parent, stand:GetAttribute("SafeW"), stand:GetAttribute("SafeH"), phone)
+				fitCanvas(d.Parent, stand:GetAttribute("SafeW"), stand:GetAttribute("SafeH"), phone, stand.Name)
 			end
 		end
 		for _, d in ipairs(stand:GetDescendants()) do

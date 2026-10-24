@@ -4,8 +4,8 @@
 A namecard floating over every other player's head that disappears past a
 distance. Your own name isn't over your head on your screen (others still see
 it), and it isn't on the HUD either (user, 2026-10-22: a name row made the vitals
-stack too tall on phones, and your own name tells you nothing). Room is kept above
-the name for a title, for when titles come in (user, 2026-10-23).
+stack too tall on phones, and your own name tells you nothing). Above the name
+sits the player's worn title, if any ([titles](titles.md)).
 
 ## Design intent
 - A small namecard, not bare text, but light enough that a crowd of players
@@ -29,6 +29,10 @@ the name for a title, for when titles come in (user, 2026-10-23).
   xianxia ("Li Wei"). Until a player has both, it falls back to their Roblox
   DisplayName (the main game has no character screen yet).
 - Roblox's own humanoid name is turned off, so there's only ever one name.
+- Tapping or clicking another player's plate opens their player card
+  ([party](party.md)): a transparent `Hit` button over the band (the BillboardGui is
+  `Active`) calls `Nameplates.onTap`, which `Social` sets. The look is unchanged; the
+  testbed stand-in's plate has no card.
 - It's cut off by `BillboardGui.MaxDistance` (measured from the camera), not
   faded, at 60 studs.
 - The testbed has a stand-in player beside the spawn pad ("Li Wei", title
@@ -56,16 +60,15 @@ the name for a title, for when titles come in (user, 2026-10-23).
   `draw_ui.py`, because it was drawn on a Windows machine without Python.
 
 ## The title contract
-A future titles system only has to set player attributes; the nameplate already
-shows them:
+The titles system ([titles](titles.md), server `Titles.luau`) sets these player
+attributes for the worn title; the nameplate shows them:
 - `Title` (string): the text above the name. `""` or nil hides the line.
-- `TitleColor` (Color3, optional): its colour, e.g. a rarity colour. Gold if unset.
+- `TitleColor` (Color3, optional): its colour (Titles sets the rarity's). Gold if unset.
 
 ## Known gaps
 - Untested in play with several players (shown on others, cut at 60 studs) and
   on a real phone; previewed only in Studio's Edit view on PC with stand-in rigs.
-- No titles exist yet, so the title line only shows on the testbed stand-in.
-  The HUD name plaque has no title line yet; a title could go on the plaque
+- The HUD name plaque has no title line yet; a title could go on the plaque
   (under the name, smaller) or as a small line above it.
 - Very long titles wrap or truncate at the minimum size rather than widening the
   card; keep titles to a few words.

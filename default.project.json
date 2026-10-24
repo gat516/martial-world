@@ -15,6 +15,9 @@
       "Nameplate": {
         "$path": "assets/Nameplate.rbxmx"
       },
+      "PressureMarks": {
+        "$path": "assets/PressureMarks.rbxmx"
+      },
       "Animations": {
         "$path": "assets/Animations.rbxmx"
       },
@@ -41,6 +44,12 @@
       },
       "HerbMorsel": {
         "$path": "assets/HerbMorsel.rbxmx"
+      },
+      "HerbModelsExtra": {
+        "$path": "assets/HerbModelsExtra.rbxm"
+      },
+      "ItemModels": {
+        "$path": "assets/ItemModels.rbxm"
       }
     },
     "ReplicatedFirst": {
@@ -71,6 +80,9 @@
       },
       "Sect": {
         "$path": "assets/Sect.rbxmx"
+      },
+      "Social": {
+        "$path": "assets/Social.rbxmx"
       },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"

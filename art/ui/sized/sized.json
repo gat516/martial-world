@@ -201,11 +201,13 @@
  },
  "codex/cut/ornament_chevron.png": {
   "heights": [
+   20,
    24
   ],
   "margin": 0,
   "margins": {
-   "24": 4
+   "24": 4,
+   "20": 2
   }
  },
  "codex/cut/ornament_close_seal.png": {
@@ -1489,6 +1491,12 @@
   ],
   "margin": 0
  },
+ "seal_mark_jade.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0
+ },
  "stone_icon.png": {
   "heights": [
    40
@@ -1509,5 +1517,41 @@
   "margins": {
    "48": 5
   }
+ },
+ "codex/cut/ornament_emblem_lotus.png": {
+  "heights": [
+   64
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_spirit_stone.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_chest.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
+ },
+ "codex/cut/ornament_glyph_plant.png": {
+  "heights": [
+   48
+  ],
+  "margin": 5
+ },
+ "glyphs/shelter_shield.png": {
+  "heights": [
+   28
+  ],
+  "margin": 4
+ },
+ "codex/cut/ornament_glyph_qi.png": {
+  "heights": [
+   28
+  ],
+  "margin": 4
  }
 }

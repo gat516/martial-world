@@ -7,6 +7,7 @@
   <float name="LightInfluence">0</float>
   <Vector3 name="StudsOffset"><X>0</X><Y>2.1</Y><Z>0</Z></Vector3>
   <float name="MaxDistance">60</float>
+  <bool name="Active">true</bool>
  </Properties>
   <Item class="UIListLayout" referent="NP2"><Properties>
    <string name="Name">Layout</string>
@@ -65,6 +66,15 @@
      <int name="MinTextSize">12</int>
     </Properties>
     </Item>
+   </Item>
+   <Item class="TextButton" referent="NP8"><Properties>
+    <string name="Name">Hit</string>
+    <bool name="AutoButtonColor">false</bool>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+    <string name="Text"></string>
+    <int name="ZIndex">2</int>
+   </Properties>
    </Item>
   </Item>
  </Item>

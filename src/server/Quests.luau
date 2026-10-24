@@ -25,7 +25,8 @@
 -- when it's passed; a lesson: while `open` holds), and claim() marks it before
 -- granting so it can't pay twice. The objective line shows, in order: a
 -- guiding lesson's unclaimed objective, the current beat, the first unclaimed
--- open lesson, then the top quest board goal; the reward rides along
+-- open lesson shown this session, then the wall card (wallCard: Hunt, Refine,
+-- Break through, Store) or the top quest board goal; the reward rides along
 -- (`reward` in QuestState) for the client to show after it.
 --
 -- Guide (sent in QuestState as `guide`; the client resolves the names):
@@ -35,15 +36,20 @@
 --           "Method", "SpiritRoot" (seated tiles),
 --           "Travel", "Attack", "Inventory", "Self",
 --           "RootPill" (the Absorb button on the Spirit Root page; until that
---           page is open the client points at the SpiritRoot tile)
+--           page is open the client points at the SpiritRoot tile),
+--           "Seclusion" (the Enter Seclusion row in the meditation panel; until
+--           it is open, the Method tile, which reads Seclusion without a method),
+--           "Build" (the Build tile)
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
 --   point   (no dim) a bobbing pointer and a callout beside the button
 --   say     the callout's short line for this step
+--   button  also "Slot1".."Slot9", the hotbar's slots (the Cast beat)
 --   place   a world target to walk to: "TestingStone", "Elder", "QuestBoard",
 --           "QiNode" (nearest), "Enemy" (nearest living), "Array" (nearest
 --           array of any kind), "Array:<gate id>", "Garden" (nearest HerbPlot
---           on your own peak), "WeaponRack" (nearest). With button "Travel" +
+--           on your own peak), "WeaponRack" (nearest), "MyPeak" (your own
+--           peak's plateau; the testbed's way home). With button "Travel" +
 --           `to` (out in the wilds, where the button is hidden), walk to the
 --           array; once its menu is open, `to` points at the destination.
 
@@ -55,7 +61,6 @@ local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
-local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
@@ -65,8 +70,8 @@ local Peak = require(ReplicatedStorage.Shared.Peak)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local CollectionService = game:GetService("CollectionService")
 local PlayerData = require(script.Parent.PlayerData)
+local Analytics = require(script.Parent.Analytics)
 local DaoPacing = require(ReplicatedStorage.Shared.Pacing).DaoPractice
-local Progression = require(script.Parent.Progression)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
@@ -94,6 +99,7 @@ export type Quest = {
 
 type Beat = Quest & {
 	travel: boolean?, -- the formation is taught from this beat on
+	skip: (() -> boolean)?, -- passed over while true, unmarked and unpaid (its system isn't in this build)
 }
 
 type Lesson = Quest & {
@@ -149,29 +155,43 @@ local function inSect(player: Player): boolean
 end
 
 -- Travel to a sect array: the Travel button on sect ground; out in the wilds
--- there is none, so walk to the nearest array (its prompt opens the menu).
-local function travelTo(player: Player, gate: string, dim: boolean?): Guide
+-- there is none, so walk to the nearest array (its prompt opens the menu). The
+-- testbed has no arrays (everything stands on one baseplate): walk to `walk`.
+local function travelTo(player: Player, gate: string, dim: boolean?, walk: string?): Guide?
+	if Config.TESTBED then
+		return if walk then { place = walk } else nil
+	end
 	if inSect(player) then
 		return { button = "Travel", to = gate, dim = dim }
 	end
 	return { button = "Travel", to = gate, place = "Array" }
 end
 
+-- Out to the wolves: ride to the Sect Gate (spotlit on sect ground), then the
+-- nearest living beast. Anywhere in the wilds, and in the testbed, the beast.
+local function huntGuide(player: Player, dim: boolean?): Guide?
+	if Config.TESTBED or nearGate(player) or not inSect(player) then
+		return { place = "Enemy" }
+	end
+	return travelTo(player, "SectGate", dim)
+end
+
 -- Where to refine: circulate here if you can, else the nearest qi node out in
--- the wilds, or your own peak from the sect.
-local function refineGuide(player: Player): Guide
+-- the wilds (one sits beside the Sect Gate's wolves), or your own peak from the sect.
+local function refineGuide(player: Player): Guide?
 	if Circulation.atRefiningSpot(player) then
 		return seatedTile(player, "Circulate")
 	end
 	if inSect(player) then
-		return travelTo(player, "Peak")
+		return travelTo(player, "Peak", nil, "MyPeak")
 	end
 	return { place = "QiNode" }
 end
 
 -- Circulate until the bar is full, then break through. Too little raw qi for a
--- run: before travel is taught, meditate (passive cultivation fills the rest);
--- after, go out and gather it.
+-- run: before the first breakthrough, meditate (passive cultivation fills the
+-- rest); after, go out and hunt for it. Never nil after the first breakthrough,
+-- so the objective line always has somewhere to point (QC3 -> QC4 included).
 local function climbGuide(player: Player, data: PlayerData.Data): Guide?
 	if barFull(data) then
 		return seatedTile(player, "Breakthrough", true)
@@ -180,12 +200,19 @@ local function climbGuide(player: Player, data: PlayerData.Data): Guide?
 		if not data.beats.Breakthrough then
 			return if seated(player) then nil else { button = "Cultivate" }
 		end
-		if inSect(player) then
-			return travelTo(player, "SectGate")
-		end
-		return { place = "QiNode" }
+		return huntGuide(player)
 	end
 	return refineGuide(player)
+end
+
+-- A lesson's guide never dims the HUD.
+local function undimmed(guide: Guide?): Guide?
+	if guide and guide.dim then
+		local copy = table.clone(guide)
+		copy.dim = nil
+		return copy
+	end
+	return guide
 end
 
 local function positionOf(thing: Instance?): Vector3?
@@ -200,10 +227,19 @@ end
 -- Close enough to walk to (the same peak), rather than travel to.
 local WALKABLE = 250
 
-local function nearTestingStone(player: Player): boolean
+-- Within walking distance of a Hub piece ("TestingStone", "QuestBoard").
+local function nearHub(player: Player, name: string): boolean
 	local hub = workspace:FindFirstChild("Hub")
-	local at, here = positionOf(hub and hub:FindFirstChild("TestingStone")), rootPosition(player)
+	local at, here = positionOf(hub and hub:FindFirstChild(name)), rootPosition(player)
 	return at ~= nil and here ~= nil and (here - at).Magnitude < WALKABLE
+end
+
+-- Walk to a Hub piece when it's close, else ride to the Main Peak.
+local function toHub(player: Player, name: string, dim: boolean?): Guide?
+	if nearHub(player, name) then
+		return { place = name }
+	end
+	return travelTo(player, "MainPeak", dim, name)
 end
 
 local function nearTagged(player: Player, tag: string): boolean
@@ -260,6 +296,36 @@ local function reached(data: PlayerData.Data, key: string): boolean
 	return stage ~= nil and stageIndex(data) >= Realms.index(stage.major, stage.minor)
 end
 
+-- The hotbar slot ("Slot<n>") of the first technique on it, if any.
+local function techniqueSlot(data: PlayerData.Data): string?
+	for i, id in data.hotbar do
+		if Hotbar.isTechnique(id) then
+			return `Slot{i}`
+		end
+	end
+	return nil
+end
+
+-- Any technique cast at least once (casting grants technique XP, Combat grantXp).
+local function castAny(data: PlayerData.Data): boolean
+	for _, owned in data.techniques.owned do
+		if owned.level > 1 or owned.xp > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- A world cache found (a manual or method left in the wilds), not a sect rack.
+local function cacheFound(data: PlayerData.Data): boolean
+	for id in data.caches do
+		if string.sub(id, 1, 5) ~= "rack:" then
+			return true
+		end
+	end
+	return false
+end
+
 local function bottlenecked(data: PlayerData.Data): boolean
 	for _, owned in data.techniques.owned do
 		if Techniques.bottleneck(owned.level) and owned.xp >= Techniques.xpToNext(owned.level) then
@@ -305,20 +371,62 @@ local Quests = {}
 -- Called with (player, beatIndex, beatId) when a beat is completed, for analytics.
 Quests.onBeat = {} :: { (Player, number, string) -> () }
 
+-- The haul (src/server/Haul.luau, docs/systems/haul.md): what you carry out in
+-- the wilds can be lost if you fall, until you store it at a bank point (home,
+-- the sect, any array). The Store beat is done once Haul reports a bank through
+-- `Haul.onBanked` (branch store-all: a list of (player, ...) callbacks, this
+-- codebase's usual hook, or a signal with :Connect / a BindableEvent). With no
+-- Haul module or no onBanked, the beat counts as done and is skipped, so this
+-- works before and after that branch lands. Hooked in Quests.start.
+local haulHooked = false
+local haulModule: any = nil -- Haul, once hooked (the wall card's Store reads Haul.unbanked)
+
+local function hookHaul()
+	local module = script.Parent:FindFirstChild("Haul")
+	if not (module and module:IsA("ModuleScript")) then
+		return
+	end
+	local ok, haul = pcall(require, module)
+	if not ok or type(haul) ~= "table" then
+		return
+	end
+	haulModule = haul
+	local function banked(player: any)
+		local data = typeof(player) == "Instance" and player:IsA("Player") and PlayerData.get(player)
+		if data then
+			data.lessons.HaulStored = true
+		end
+	end
+	local signal = (haul :: any).onBanked
+	if typeof(signal) == "Instance" and signal:IsA("BindableEvent") then
+		signal.Event:Connect(banked)
+		haulHooked = true
+	elseif type(signal) == "table" and type(signal.Connect) == "function" then
+		signal:Connect(banked)
+		haulHooked = true
+	elseif type(signal) == "table" then
+		table.insert(signal, banked)
+		haulHooked = true
+	end
+end
+
+-- The first session (docs/systems/onboarding.md "The first session"): one new
+-- mechanic per beat, combat right after the first breakthrough, the spirit root
+-- and the travel menu's wider use only once the hook has landed (QC3).
 Quests.Beats = {
 	{
 		id = "Circulate",
 		reward = REWARDS.Circulate,
-		elder = "Welcome home, disciple. This peak is yours. Circulate the qi already stirring in your dantian.",
+		elder = "Welcome home, disciple. Sit, and circulate your qi.",
 		talk = {
 			lines = {
 				"Welcome home, disciple. This peak is yours now.",
-				"Qi already stirs in your dantian. Sit, and circulate it through your meridians.",
+				"Qi already stirs inside you. Sit, and circulate it.",
 				"Guide it out of the maze. Slowly; qi does not like to be rushed.",
 			},
 			reply = "I will try, Elder.",
 		},
-		objective = "Tap Cultivate, then Circulate, and guide your qi out of the maze",
+		objective = "Circulate your qi",
 		done = function(_, data)
 			return data.stats.circulationRuns >= 1
 		end,
@@ -327,88 +435,50 @@ Quests.Beats = {
 		end,
 	},
 	{
+		-- the first run always fills the bar (Config.Circulation.FIRST_RUN_FILLS_BAR)
 		id = "Breakthrough",
 		reward = REWARDS.Breakthrough,
-		elder = "Good. Your meridians brim with qi. Sit in meditation and break through!",
+		elder = "Good. Your qi is full. Break through!",
 		talk = {
 			lines = {
 				"Good. Your meridians brim with qi.",
-				"When your realm bar is full, sit in meditation and break through.",
+				"When your bar is full, sit and break through.",
 			},
 			reply = "I am ready.",
 		},
-		objective = "Fill your realm bar, then meditate and tap Break Through",
+		objective = "Break through",
 		done = function(_, data)
 			return data.stats.breakthroughs >= 1
 		end,
 		guide = climbGuide,
 	},
 	{
-		id = "Root",
-		reward = REWARDS.Root,
-		elder = "Qi flows in you now. Ride the teleport formation to the Main Peak and lay your hand on the Testing Stone. Let us see your spirit root.",
-		talk = {
-			lines = {
-				"Qi flows in you now. Next, let us see what root it grows from.",
-				"Ride the teleport formation to the Main Peak and lay your hand on the Testing Stone.",
-			},
-			reply = "To the Testing Stone.",
-		},
-		objective = "Travel to the Main Peak and touch the Testing Stone",
-		done = function(_, data)
-			return Roots.tested(data.root)
-		end,
-		travel = true,
-		guide = function(player)
-			if nearTestingStone(player) then
-				return { place = "TestingStone" }
-			end
-			return { button = "Travel", to = "MainPeak", dim = true }
-		end,
-	},
-	{
-		id = "Gate",
-		reward = REWARDS.Gate,
-		elder = "Your dantian is spent. Spirit wolves prowl just past the Sect Gate. Go, and take their qi!",
-		talk = {
-			lines = {
-				"Your dantian is spent. Sitting on a peak refills it too slowly.",
-				"Spirit wolves prowl just past the Sect Gate. Their qi is yours to take.",
-				"Ride the formation there. Go!",
-			},
-			reply = "I am going.",
-		},
-		objective = "Tap Travel, then Sect Gate",
-		done = function(player, _)
-			return nearGate(player)
-		end,
-		guide = function()
-			return { button = "Travel", to = "SectGate", dim = true }
-		end,
-	},
-	{
+		-- the old Gate beat (a ride) is merged in: the Travel button is spotlit
+		-- straight to the Sect Gate, then the path leads to a wolf
 		id = "FirstKill",
 		reward = REWARDS.FirstKill,
-		elder = "Spirit wolves prowl beyond the gate. Strike them, and dodge when the ground glows red.",
+		elder = "Hunt the wolves past the Sect Gate. Dodge the red ground!",
 		talk = {
 			lines = {
-				"Strike the wolves, and watch the ground.",
-				"When it glows red, dodge. A wise disciple is never where the bite lands.",
+				"That breakthrough drank nearly all your qi.",
+				"Spirit wolves prowl past the Sect Gate. Their qi is yours to take.",
+				"Strike them. When the ground glows red, dodge.",
 			},
-			reply = "I will be careful.",
+			reply = "I am going.",
 		},
 		objective = "Defeat a spirit wolf",
 		done = function(_, data)
 			return data.stats.kills >= 1
 		end,
-		guide = function()
-			return { place = "Enemy" }
+		travel = true,
+		guide = function(player)
+			return huntGuide(player, true)
 		end,
 	},
 	{
 		id = "Technique",
 		reward = REWARDS.Technique,
-		elder = "Every beast you slay teaches you something. Defeat a few more; a technique manual awaits.",
+		elder = "Every beast teaches you something. Defeat a few more for a manual.",
 		talk = {
 			lines = {
 				"Every beast you slay teaches you something.",
@@ -416,31 +486,84 @@ Quests.Beats = {
 			},
 			reply = "A few more, then.",
 		},
-		objective = "Defeat 3 enemies to earn a technique manual",
+		objective = "Defeat 3 wolves",
 		progress = function(data)
 			return `{math.min(data.stats.kills, 3)}/3`
 		end,
-		-- the 3-kill milestone's manual, earned; not "two on the hotbar", which a
-		-- full hotbar or an unslotted starter technique kept from ever holding
+		-- the 3-kill milestone's manual (Fire Seal, any weapon, Dao 0), earned
 		done = function(_, data)
-			return data.milestones["3"] == true or slotted(data) >= 2
+			return data.milestones["3"] == true
 		end,
-		guide = function()
-			return { place = "Enemy" }
+		guide = function(player)
+			return huntGuide(player)
+		end,
+	},
+	{
+		id = "Cast",
+		reward = REWARDS.Cast,
+		elder = "Your first technique! It waits on your hotbar. Cast it!",
+		talk = {
+			lines = {
+				"A manual, and already you have its art. It waits on your hotbar.",
+				"Tap it at a wolf. Arts spend combat qi; it comes back fast.",
+			},
+			reply = "Let them see it.",
+		},
+		objective = "Cast your new art",
+		done = function(_, data)
+			return castAny(data)
+		end,
+		guide = function(_, data)
+			local slot = techniqueSlot(data)
+			if slot then
+				return { button = slot, point = true, say = "Cast it at a wolf", place = "Enemy" } :: Guide
+			end
+			-- a full hotbar: put it on from the Inventory's Arts
+			return { button = "Inventory", point = true, say = "Put your art on the hotbar" } :: Guide
+		end,
+	},
+	{
+		-- the haul (Haul.luau, haul-spill); skipped without it (hookHaul)
+		id = "Store",
+		reward = REWARDS.Store,
+		elder = "Fall out here and you drop half. Store it at an array.",
+		talk = {
+			lines = {
+				"What you carry in the wilds is not safe yet.",
+				"Fall out there, and half of it spills where you lie.",
+				"Store it at any teleport array, or at home. Then it is yours.",
+			},
+			reply = "I will store it.",
+		},
+		objective = "Store your haul",
+		skip = function()
+			return not haulHooked
+		end,
+		done = function(_, data)
+			return data.lessons.HaulStored == true
+		end,
+		guide = function(player)
+			if Config.TESTBED then
+				return { place = "MyPeak" } :: Guide? -- the testbed banks only by the spawn pad
+			end
+			if inSect(player) then
+				return nil -- already on safe ground: the Store all button is right there
+			end
+			return { place = "Array" }
 		end,
 	},
 	{
 		id = "Refine",
 		reward = REWARDS.Refine,
-		elder = "Your dantian swells. Refine that qi at a glowing qi node, or back on your peak.",
+		elder = "Raw qi is not yours yet. Circulate it at a qi node.",
 		talk = {
 			lines = {
 				"Your dantian swells, but raw qi is not yet your own.",
-				"Refine it: circulate at a glowing qi node, or back on your peak.",
+				"Refine it: circulate at a glowing qi node, or on your peak.",
 			},
 			reply = "I will refine it.",
 		},
-		objective = "Circulate at a qi node or on your peak",
+		objective = "Refine your raw qi",
 		-- a bar already full (passive cultivation while hunting) can't take a
 		-- run, so it moves on to QC3, which breaks through
 		done = function(_, data)
@@ -453,10 +576,10 @@ Quests.Beats = {
 	{
 		id = "QC3",
 		reward = REWARDS.QC3,
-		elder = "First kills grant insight. You will need it to reach Qi Refining. Now break through again.",
+		elder = "That qi is yours now. Fill your bar and break through!",
 		talk = {
 			lines = {
-				"First kills grant insight. Every realm ahead will ask for it.",
+				"Hunt, refine, break through. That is how a cultivator climbs.",
 				"Fill your bar once more, and break through again.",
 			},
 			reply = "Again, then.",
@@ -468,14 +591,54 @@ Quests.Beats = {
 		guide = climbGuide,
 	},
 	{
-		id = "FreePlay",
-		elder = "You walk the path on your own now. The quest board on the main peak holds your next goals.",
+		-- the spirit root and the formations, once the hook has landed; the
+		-- reveal card asks once to favourite the game (RootReveal)
+		id = "Root",
+		reward = REWARDS.Root,
+		elder = "Let us see your spirit root. Ride to the Main Peak.",
 		talk = {
 			lines = {
-				"The third stage already. Then hear the whole path once, and remember it.",
+				"The teleport arrays carry disciples between the peaks.",
+				"Ride one to the Main Peak and touch the Testing Stone.",
+				"Let us see what root your qi grows from.",
+			},
+			reply = "To the Testing Stone.",
+		},
+		objective = "Touch the Testing Stone",
+		done = function(_, data)
+			return Roots.tested(data.root)
+		end,
+		guide = function(player)
+			return toHub(player, "TestingStone", true)
+		end,
+	},
+	{
+		-- the QC3 -> QC4 stretch, the longest of the first session: the climb guide
+		-- always points somewhere (home to refine, out to hunt, Break Through)
+		id = "QC4",
+		reward = REWARDS.QC4,
+		elder = "A fine root! Hunt, refine and break through once more.",
+		talk = {
+			lines = {
+				"Your root speeds every step you take from here.",
+				"Hunt in the wilds, refine at home or a node, then break through.",
+			},
+			reply = "I will climb.",
+		},
+		objective = "Reach Qi Condensation 4",
+		done = function(_, data)
+			return stageIndex(data) >= 4
+		end,
+		guide = climbGuide,
+	},
+	{
+		id = "FreePlay",
+		elder = "Cultivate until you hit a wall. Break it, and come home stronger.",
+		talk = {
+			lines = {
+				"The fourth stage already. Then hear the whole path once.",
 				"Cultivate until you hit a wall. Go out and break it. Come home stronger.",
 				"Every realm is that, again and again.",
-				"The quest board on the Main Peak holds your next steps.",
 			},
 			reply = "I understand, Elder.",
 		},
@@ -488,29 +651,54 @@ Quests.Beats = {
 
 local FREE_PLAY = #Quests.Beats
 
+-- The second session (the Seclusion lesson): the stage each player joined this
+-- session at, and whether they have sat down since a join at QC4 or later.
+local joinStage: { [Player]: number } = {}
+local satSinceJoin: { [Player]: boolean } = {}
+
+-- The first seclusion waits for the second session (user, 2026-10-24): the first
+-- sit after a join that began at QC4 or later, or QC5 for a player who never
+-- rejoins. Home comes first (the seed is what it tends), unless QC5 is reached.
+local function seclusionDue(player: Player, data: PlayerData.Data): boolean
+	if not reached(data, "QC4") or data.seclusion.first then
+		return false
+	end
+	if reached(data, "QC5") then
+		return true
+	end
+	return (data.quests.Home == true or Config.TESTBED) and satSinceJoin[player] == true
+end
+
+-- One idea per chapter, each a live system (docs/systems/onboarding.md, "One idea
+-- per chapter"): QC4 Home, the second session Seclusion, QC5 the Borderlands and
+-- their rumours, QC6 Herbs, QC7 the Dao drill, QC9 the heart demon, QR1 the weapon
+-- rack, QR2 building. Elder lines at most 12 words (the why), objectives at most 5
+-- (the what), the detail in `talk`.
 Quests.Lessons = {
 	{
-		-- first so no standing lesson (DaoPractice holds for good) hides it
+		-- first so no standing lesson hides it
 		id = "RootPill",
-		elder = "A root pill! It can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
+		elder = "A root pill! Sit, open your Spirit Root, and absorb it.",
 		talk = {
 			lines = {
-				"A root pill! It can temper your very root.",
+				"A root pill! A rare fortune: it tempers your very root.",
 				"Sit in meditation, open your Spirit Root, and absorb it.",
 			},
 			reply = "I will absorb it.",
 		},
-		objective = "Meditate, open Spirit Root and absorb the pill",
+		objective = "Absorb the root pill",
 		reward = REWARDS.RootPill,
-		-- not `early`: a pill absorbed mid-tutorial would purify the root the Testing
-		-- Stone just revealed; it waits for free play
+		-- not `early`, and never before QC5: a pill absorbed in the hook would
+		-- change the root the Testing Stone just revealed (user, 2026-10-23: "pill
+		-- eating made no sense during onboarding"). Pills are rare boss and treasure
+		-- drops, so most players meet this long after the hook.
 		persist = true,
 		-- until the first pill is absorbed (data.lessons.RootPillUsed, set in check)
 		when = function(_, data)
-			return not data.lessons.RootPillUsed and rootPillReady(data)
+			return not data.lessons.RootPillUsed and reached(data, "QC5") and rootPillReady(data)
 		end,
 		open = function(_, data)
-			return data.lessons.RootPillUsed == true or rootPillReady(data)
+			return data.lessons.RootPillUsed == true or (reached(data, "QC5") and rootPillReady(data))
 		end,
 		done = function(_, data)
 			return data.lessons.RootPillUsed == true
@@ -523,16 +711,18 @@ Quests.Lessons = {
 		end,
 	},
 	{
+		-- QC4, the abode: the only idea of its chapter
 		id = "Home",
-		elder = "Your peak can grow with you. Plant a seed in your garden; herbs feed your cultivation and sell for Spirit Stones.",
+		elder = "Your peak grows with you. Plant a seed in your garden.",
 		talk = {
 			lines = {
 				"Your peak can grow with you.",
-				"Plant a seed in your garden. Herbs feed your cultivation and sell for Spirit Stones.",
+				"Plant a seed in your garden. Herbs feed your cultivation.",
+				"They sell for Spirit Stones, too.",
 			},
 			reply = "I will plant one.",
 		},
-		objective = "Plant a seed in your garden",
+		objective = "Plant a seed",
 		reward = REWARDS.Home,
 		when = function(_, data)
 			return reached(data, "QC4") and not plantedAny(data)
@@ -547,20 +737,177 @@ Quests.Lessons = {
 			if onOwnPeak(player) then
 				return { place = "Garden" }
 			end
-			return travelTo(player, "Peak")
+			return travelTo(player, "Peak", nil, "MyPeak")
+		end,
+	},
+	{
+		-- the second session (seclusionDue): the AFK mode as a reward moment. The
+		-- first seclusion ends by itself after Pacing.Seclusion FIRST_SECONDS with a
+		-- card about the garden and tempering (Seclusion.luau), which is what `done` reads.
+		id = "Seclusion",
+		elder = "Rest now. Your peak works for you while you're away.",
+		talk = {
+			lines = {
+				"A cultivator who never rests burns out.",
+				"Sit on your own peak and enter seclusion.",
+				"Your garden is tended, and with a herb or pill you can mend an old foundation.",
+			},
+			reply = "I will try it.",
+		},
+		objective = "Enter seclusion at home",
+		reward = REWARDS.Seclusion,
+		when = seclusionDue,
+		open = function(player, data)
+			return reached(data, "QC4")
+				and (data.seclusion.first == true or data.lessons.Seclusion == true or seclusionDue(player, data))
+		end,
+		done = function(_, data)
+			return data.seclusion.first == true
+		end,
+		guide = function(player)
+			if player:GetAttribute("Secluded") then
+				return nil -- secluded: nothing to point at
+			end
+			if not onOwnPeak(player) then
+				return travelTo(player, "Peak", nil, "MyPeak")
+			end
+			if seated(player) then
+				return { button = "Seclusion", point = true, say = "Enter Seclusion" }
+			end
+			return { button = "Cultivate", point = true, say = "Sit in meditation" }
+		end,
+	},
+	{
+		-- QC5, the new region and its rumours as one idea: the Ruined Borderlands
+		-- open (Regions MiddleWilds) and their hidden caches. No guide: finding it
+		-- is the point. The sect board is pointed at from the talk.
+		id = "Rumours",
+		elder = "The Borderlands are open. Old manuals hide off their paths.",
+		talk = {
+			lines = {
+				"The Ruined Borderlands are open to you now.",
+				"Wanderers hid old manuals there. Look off the paths, behind the falls.",
+				"The sect board on the Main Peak has daily tasks, too.",
+			},
+			reply = "I will search.",
+		},
+		objective = "Find a hidden cache",
+		reward = REWARDS.Rumours,
+		when = function(_, data)
+			return reached(data, "QC5") and not cacheFound(data)
+		end,
+		open = function(_, data)
+			return reached(data, "QC5")
+		end,
+		done = function(_, data)
+			return cacheFound(data)
+		end,
+	},
+	{
+		-- QC6, herbs matter: the mini-wall, where one dantian no longer fills the bar
+		id = "Herbs",
+		elder = "Herbs are qi you can carry. Eat one when you run dry.",
+		talk = {
+			lines = {
+				"Herbs are qi you can carry.",
+				"Eat one from your pouch when your dantian runs dry.",
+				"The Herbalist at the Spirit Market sells seeds to grow more.",
+			},
+			reply = "I will try one.",
+		},
+		objective = "Eat a herb",
+		reward = REWARDS.Herbs,
+		when = function(_, data)
+			return reached(data, "QC6") and not data.lessons.HerbEaten
+		end,
+		open = function(_, data)
+			return reached(data, "QC6")
+		end,
+		-- set when a herb is eaten (Inventory.use)
+		done = function(_, data)
+			return data.lessons.HerbEaten == true
+		end,
+		guide = function()
+			return { button = "Inventory", point = true, say = "Eat a herb" }
+		end,
+	},
+	{
+		-- QC7 (Pacing.DaoPractice.FROM), the Dao drill: its own chapter's idea
+		id = "DaoPractice",
+		elder = "Practice your weapon's forms as you sit. Its Dao will deepen.",
+		talk = {
+			lines = {
+				"Your body is ready for more than brawling.",
+				"While you meditate, practice your weapon's forms.",
+				"That is how its Dao deepens, and greater arts open.",
+			},
+			reply = "I will practice.",
+		},
+		objective = "Practice your weapon's Dao",
+		reward = REWARDS.DaoPractice,
+		when = function(_, data)
+			return reached(data, DaoPacing.FROM) and data.daoPracticeReadyUnix == 0
+		end,
+		open = function(_, data)
+			return reached(data, DaoPacing.FROM)
+		end,
+		-- a finished drill sets the saved cooldown
+		done = function(_, data)
+			return data.daoPracticeReadyUnix > 0
+		end,
+		guide = function(player)
+			return seatedTile(player, "PracticeDao")
+		end,
+	},
+	{
+		-- QC9, the heart-demon trial (HeartDemon.luau): offered from the seat once a
+		-- session, and on Break Through at QC9. It replaces the old Wall lesson; the
+		-- free-play objective line already says what the wall needs.
+		id = "HeartDemon",
+		elder = "Your heart demon stirs. Sit, and face it honestly.",
+		talk = {
+			lines = {
+				"At the edge of a realm, your heart demon wakes.",
+				"It asks how you climbed. Answer it truly.",
+				"Facing it costs nothing, and it may temper your foundation.",
+			},
+			reply = "I will face it.",
+		},
+		objective = "Face your heart demon",
+		reward = REWARDS.HeartDemon,
+		when = function(_, data)
+			return reached(data, "QC9") and not data.heartDemon.trials.QiCondensation
+		end,
+		open = function(_, data)
+			return reached(data, "QC9")
+		end,
+		done = function(_, data)
+			return data.heartDemon.trials.QiCondensation ~= nil
+		end,
+		guide = function(player, data)
+			-- "Not now" snoozes the seat's offer; nothing to point at until it returns
+			local declined = data.heartDemon.declined.QiCondensation
+			if declined and os.time() - declined < Pacing.HeartDemon.OFFER_COOLDOWN then
+				return nil
+			end
+			if seated(player) then
+				return nil -- the seat offers it
+			end
+			return { button = "Cultivate", point = true, say = "Sit to face it" }
 		end,
 	},
 	{
 		id = "Bottleneck",
-		elder = "Your technique has hit a bottleneck. Sit in meditation and comprehend it; insight opens the way.",
+		elder = "Your art is stuck. Sit and spend stones to break it.",
 		talk = {
 			lines = {
 				"Your technique has hit a bottleneck. Swinging harder will not break it.",
-				"Sit in meditation and comprehend it. Insight opens the way.",
+				"Sit and comprehend it. It costs Spirit Stones.",
+				"Greater arts also need a deeper weapon Dao.",
 			},
 			reply = "I will sit with it.",
 		},
-		objective = "Meditate and comprehend your technique",
+		objective = "Break your art's bottleneck",
 		reward = REWARDS.Bottleneck,
 		when = function(_, data)
 			return bottlenecked(data)
@@ -576,22 +923,23 @@ Quests.Lessons = {
 		end,
 	},
 	{
+		-- QR1 (Pacing.DaoPractice.RACK_FROM), the second weapon
 		id = "WeaponRack",
-		elder = "A cultivator need not keep to one blade. The sect's weapon rack on the Main Peak lends each disciple one weapon of every kind.",
+		elder = "One blade is not enough. Borrow another from the sect's rack.",
 		talk = {
 			lines = {
 				"A cultivator need not keep to one blade.",
-				"The weapon rack on the Main Peak lends each disciple one weapon of every kind. Take one.",
+				"The rack on the Main Peak lends one weapon of every kind.",
 			},
 			reply = "I will choose one.",
 		},
-		objective = "Take a new kind of weapon from the Main Peak rack",
+		objective = "Take a new weapon",
 		reward = REWARDS.WeaponRack,
 		when = function(_, data)
-			return reached(data, DaoPacing.FROM) and weaponClasses(data) < 2
+			return reached(data, DaoPacing.RACK_FROM) and weaponClasses(data) < 2
 		end,
 		open = function(_, data)
-			return reached(data, DaoPacing.FROM)
+			return reached(data, DaoPacing.RACK_FROM)
 		end,
 		done = function(_, data)
 			return weaponClasses(data) >= 2
@@ -600,35 +948,44 @@ Quests.Lessons = {
 			if nearTagged(player, "WeaponRack") then
 				return { place = "WeaponRack" }
 			end
-			return travelTo(player, "MainPeak")
+			return travelTo(player, "MainPeak", nil, "WeaponRack")
 		end,
 	},
 	{
-		id = "DaoPractice",
-		elder = "Your body is ready for more than brawling. While you meditate, practice your weapon's forms to deepen its Dao.",
+		-- QR2, building (Build.luau, Peaks): one piece placed. The peak score raises
+		-- meditation on your peak (docs/systems/build.md "Peak score"), the abode lever
+		-- for the QR slowdown.
+		id = "Build",
+		elder = "Build up your peak. A finer home makes meditation stronger.",
 		talk = {
 			lines = {
-				"Your body is ready for more than brawling.",
-				"While you meditate, practice your weapon's forms. That is how its Dao deepens.",
+				"Your abode can do more than grow herbs.",
+				"Place a piece on your peak. Every piece raises its score.",
+				"A higher score makes your meditation there stronger.",
 			},
-			reply = "I will practice.",
+			reply = "I will build.",
 		},
-		objective = "Meditate and practice your weapon's Dao",
-		reward = REWARDS.DaoPractice,
+		objective = "Place one build piece",
+		reward = REWARDS.Build,
 		when = function(_, data)
-			return reached(data, DaoPacing.FROM)
+			return reached(data, "QR2") and data.stats.placed == 0
 		end,
-		-- a finished drill sets the saved cooldown
+		open = function(_, data)
+			return reached(data, "QR2")
+		end,
 		done = function(_, data)
-			return data.daoPracticeReadyUnix > 0
+			return data.stats.placed > 0
 		end,
 		guide = function(player)
-			return seatedTile(player, "PracticeDao")
+			if onOwnPeak(player) then
+				return { button = "Build", point = true, say = "Place one piece" }
+			end
+			return travelTo(player, "Peak", nil, "MyPeak")
 		end,
 	},
 	{
 		id = "Method",
-		elder = "A true cultivation method! See it on your Self card. Should you find others, switch between them while you meditate.",
+		elder = "A true cultivation method! See it on your Self card.",
 		talk = {
 			lines = {
 				"A true cultivation method! You can see it on your Self card.",
@@ -649,12 +1006,19 @@ Quests.Lessons = {
 		end,
 	},
 } :: { Lesson }
+-- Still to write, one per chapter as each system lands (docs/roadmap.md section 2):
+-- one lesson per QR third (QR4: the garden aura and build items against the
+-- slowdown; a master, the Halls, rifts) and FE the depth (methods beyond Method
+-- above, weapon refinement, treasures, pets), and the circulation games past the
+-- Maze, one per breather. Each is a lesson here: an elder line, a talk, a rewarded
+-- objective and a guide, gated by `reached(data, "<stage>")`.
 
 -- The first beat not yet done (FreePlay once they all are), and its index.
 local function current(data: PlayerData.Data): (Beat, number)
 	for i = 1, FREE_PLAY - 1 do
 		local beat = Quests.Beats[i]
-		if not data.beats[beat.id] then
+		-- a skipped beat is passed over unmarked, so it's met once its system exists
+		if not data.beats[beat.id] and not (beat.skip and beat.skip()) then
 			return beat, i
 		end
 	end
@@ -681,13 +1045,6 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if nextStage then
 		local major = nextStage.major ~= stage.major
 		local defier = Cultivation.heavenDefying(data)
-		if data.insightEarned < stage.insight then
-			table.insert(goals, {
-				name = "Gather insight",
-				detail = `Insight from first kills, kill milestones and bosses (an optional, faster road) opens the way to {nextStage.name}.`,
-				progress = `{data.insightEarned}/{stage.insight}`,
-			})
-		end
 		if Cultivation.methodLimit(data, nextStage) then
 			table.insert(goals, {
 				name = "Seek a stronger method",
@@ -713,28 +1070,19 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if data.stats.bossKills == 0 then
 		table.insert(goals, {
 			name = "Slay the Elder Wolf King (optional)",
-			detail = "He rules the far end of the wilds. A faster road, never required: his first defeat yields a technique manual and insight.",
+			detail = "He rules the far end of the wilds. A faster road, never required: his first defeat yields a technique manual.",
 			progress = "0/1",
 		})
 	end
 	for _, m in Pacing.Rewards.MILESTONES do
 		if not data.milestones[tostring(m.kills)] then
-			local reward = if m.manual then Techniques.Defs[m.manual].name else "insight"
+			local reward = if m.manual then Techniques.Defs[m.manual].name else "nothing"
 			table.insert(goals, {
 				name = `Slay {m.kills} enemies`,
-				detail = `Reward: {reward}{if m.insight and m.manual then " and insight" else ""}.`,
+				detail = `Reward: {reward}.`,
 				progress = `{data.stats.kills}/{m.kills}`,
 			})
 			break
-		end
-	end
-	for id, def in Enemies.Defs do
-		if not def.boss and not data.firstKills[id] then
-			table.insert(goals, {
-				name = `First {def.name}`,
-				detail = "The first kill of each kind of beast grants insight.",
-				progress = "0/1",
-			})
 		end
 	end
 	local owned = 0
@@ -744,7 +1092,7 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if owned < #Techniques.Order then
 		table.insert(goals, {
 			name = "Learn every technique",
-			detail = "Manuals come from kill milestones and the Elder Wolf King.",
+			detail = "Manuals come from kill milestones and the Elder Wolf King. Greater arts need a deeper weapon Dao to learn.",
 			progress = `{owned}/{#Techniques.Order}`,
 		})
 	end
@@ -758,7 +1106,7 @@ local function rewardQi(reward: Pacing.QuestReward, data: PlayerData.Data): numb
 	return if reward.qiShare then math.floor(Cultivation.stage(data).dantian * reward.qiShare + 0.5) else 0
 end
 
--- "30 Spirit Stones, 65 raw qi, 1 insight" (nil for no reward).
+-- "30 Spirit Stones, 65 raw qi" (nil for no reward).
 function Quests.rewardText(reward: Pacing.QuestReward?, data: PlayerData.Data): string?
 	if not reward then
 		return nil
@@ -771,14 +1119,18 @@ function Quests.rewardText(reward: Pacing.QuestReward?, data: PlayerData.Data): 
 	if qi > 0 then
 		table.insert(parts, `{qi} raw qi`)
 	end
-	if (reward.insight or 0) > 0 then
-		table.insert(parts, `{reward.insight} insight`)
-	end
 	return if #parts > 0 then table.concat(parts, ", ") else nil
 end
 
--- Called with (player, questId) when a quest is claimed, for analytics.
+-- Called with (player, questId) when a quest is claimed, for analytics (the
+-- sect's dailies and chain steps call these too).
 Quests.onClaimed = {} :: { (Player, string) -> () }
+
+-- Set by Sect: the board's Read prompt opens the sect board (true) once the
+-- player has reached it, else the goals list opens; and the objective line of the
+-- sect quest the player tracks (free play only, before the open lessons).
+Quests.openBoard = nil :: ((Player) -> boolean)?
+Quests.trackedObjective = nil :: ((Player, PlayerData.Data) -> string?)?
 
 -- Claim a done quest once: mark it first (so nothing can pay twice), then
 -- grant its reward and say so.
@@ -798,12 +1150,14 @@ local function claim(player: Player, data: PlayerData.Data, quest: Quest)
 	local stones = reward.stones or 0
 	if stones > 0 then
 		data.stones += stones
+		Analytics.stones(player, "source", stones, data.stones, "Onboarding", "Quest")
 		effectRemote:FireClient(player, "stones", at, stones)
 	end
 	-- raw qi only fills the room left in the dantian
 	local qi = math.min(rewardQi(reward, data), math.max(0, Cultivation.stage(data).dantian - data.rawQi))
 	if qi > 0 then
 		data.rawQi += qi
+		Analytics.qi(player, "source", qi, data.rawQi, "Onboarding", "Quest")
 		effectRemote:FireClient(player, "qi", at + Vector3.new(0, 3, 0), qi)
 	end
 	-- what actually landed, for the toast
@@ -814,14 +1168,8 @@ local function claim(player: Player, data: PlayerData.Data, quest: Quest)
 	if qi > 0 then
 		table.insert(got, `{qi} raw qi`)
 	end
-	if (reward.insight or 0) > 0 then
-		table.insert(got, `{reward.insight} insight`)
-	end
 	local gained = if #got > 0 then ` +{table.concat(got, ", ")}` else ""
 	Cultivation.notify(player, `Objective complete: {quest.objective}!{gained}`)
-	if (reward.insight or 0) > 0 then
-		Progression.grantInsight(player, reward.insight :: number, quest.objective)
-	end
 	Cultivation.pushState(player)
 end
 
@@ -832,15 +1180,19 @@ local function claimLessons(player: Player, data: PlayerData.Data)
 			local open = if lesson.open then lesson.open(player, data) else lesson.when(player, data)
 			if open and lesson.done(player, data) then
 				claim(player, data, lesson)
+				Analytics.event(player, "Lesson", 1, lesson.id, "claimed")
 			end
 		end
 	end
 end
 
 -- The first lesson whose objective applies and isn't claimed yet.
-local function openLesson(player: Player, data: PlayerData.Data): Lesson?
+-- With `live`, only a lesson shown this session (or a `persist` one, ever): in a
+-- later session an unclaimed lesson leaves the objective line to the wall card.
+local function openLesson(player: Player, data: PlayerData.Data, live: { [string]: boolean }?): Lesson?
 	for _, lesson in Quests.Lessons do
-		if not data.quests[lesson.id] then
+		local current = live == nil or live[lesson.id] or (lesson.persist and data.lessons[lesson.id])
+		if current and not data.quests[lesson.id] then
 			local open = if lesson.open then lesson.open(player, data) else lesson.when(player, data)
 			if open then
 				return lesson
@@ -859,6 +1211,8 @@ local sessionLessons: { [Player]: { [string]: boolean } } = {} -- lessons shown 
 local claimed: { [Player]: string } = {} -- the early lesson holding the guide during the beats
 local pillsHeld: { [Player]: number } = {}
 local guidingNow: { [Player]: Lesson } = {} -- the lesson whose guide last showed (talk)
+local freeSince: { [Player]: number } = {} -- os.clock() free play was first seen this session
+local LESSON_DELAY = 20
 
 local function key(guide: Guide?): string
 	if not guide then
@@ -874,11 +1228,16 @@ local function lessons(player: Player, data: PlayerData.Data): (Lesson?, Guide?,
 	local shown = sessionLessons[player] or {}
 	sessionLessons[player] = shown
 	local fresh: Lesson? = nil
-	for _, lesson in Quests.Lessons do
+	-- a new lesson's line waits LESSON_DELAY into free play, so it never lands on
+	-- top of FreePlay's own line (Home is due the moment QC4 ends the beats)
+	freeSince[player] = freeSince[player] or os.clock()
+	local settled = os.clock() - (freeSince[player] :: number) >= LESSON_DELAY
+	for _, lesson in (if settled then Quests.Lessons else {}) :: { Lesson } do
 		if not data.lessons[lesson.id] and lesson.when(player, data) then
 			data.lessons[lesson.id] = true
 			shown[lesson.id] = true
 			fresh = lesson
+			Analytics.event(player, "Lesson", 1, lesson.id, "shown")
 			break
 		end
 	end
@@ -907,12 +1266,61 @@ local function earlyLesson(player: Player, data: PlayerData.Data, beatGuide: Gui
 			if not data.lessons[lesson.id] then
 				data.lessons[lesson.id] = true
 				fresh = lesson
+				Analytics.event(player, "Lesson", 1, lesson.id, "shown")
 			end
 			return fresh, lesson
 		end
 	end
 	claimed[player] = nil
 	return nil, nil
+end
+
+-- The wall card (docs/design-reviews/onboarding-lessons.md, rec 1): in free play,
+-- with no lesson or tracked sect quest to show, the objective line says what to do
+-- now, one verb per state, from the checks the guides use:
+--   Break through   the bar is full (a heaven-defier at a major: Face the tribulation)
+--   Store           an unbanked haul in the wilds below STORE_HEALTH (a fall spills it)
+--   Hunt            too little raw qi for a run (Circulation.enoughQi): raw qi / a run's
+--   Refine          raw qi waiting: cultivation / bar
+-- nil at the last stage or a method's limit: the quest board's top goal instead.
+local STORE_HEALTH = 0.5
+
+local function haulAtRisk(player: Player): boolean
+	if not haulModule or inSect(player) or onOwnPeak(player) then
+		return false
+	end
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.MaxHealth <= 0 or humanoid.Health / humanoid.MaxHealth >= STORE_HEALTH then
+		return false
+	end
+	local haul = haulModule.unbanked(player)
+	return haul.rawQi > 0
+		or haul.stones > 0
+		or next(haul.herbs) ~= nil
+		or next(haul.items) ~= nil
+		or next(haul.seeds) ~= nil
+end
+
+local function wallCard(player: Player, data: PlayerData.Data): string?
+	local here = Realms.get(data.realm.major, data.realm.minor)
+	local nextStage = Realms.after(here.major, here.minor)
+	if not nextStage or Cultivation.methodLimit(data, nextStage) then
+		return nil
+	end
+	if barFull(data) then
+		if nextStage.major ~= here.major and Cultivation.heavenDefying(data) then
+			return "Face the tribulation"
+		end
+		return "Break through"
+	end
+	if haulAtRisk(player) then
+		return "Store your haul"
+	end
+	if not Circulation.enoughQi(data) then
+		return `Hunt beasts ({math.floor(data.rawQi)}/{Circulation.qiForRun(data)})`
+	end
+	return `Refine your qi ({math.floor(data.cultivation)}/{Cultivation.stage(data).bar})`
 end
 
 local function push(player: Player, data: PlayerData.Data)
@@ -930,21 +1338,30 @@ local function push(player: Player, data: PlayerData.Data)
 	end
 	guidingNow[player] = guiding
 	-- the objective line: a guiding lesson's (while unclaimed), the current
-	-- beat, the first open lesson, then the top quest board goal
+	-- beat, the first open lesson shown this session, then the wall card (or the
+	-- top quest board goal)
 	local shown: Quest? = nil
+	local tracked: string? = nil -- a sect quest the player tracks (Sect), in free play
 	if guiding and not data.quests[guiding.id] then
 		shown = guiding
 	elseif beat.id ~= "FreePlay" then
 		shown = beat
 	else
-		shown = openLesson(player, data)
+		tracked = if Quests.trackedObjective then Quests.trackedObjective(player, data) else nil
+		if not tracked then
+			shown = openLesson(player, data, sessionLessons[player] or {})
+		end
 	end
 	local objective = ""
 	if shown then
 		objective = objectiveOf(shown, data)
+	elseif tracked then
+		objective = tracked
 	else
-		local top = Quests.goals(data)[1]
-		objective = if top then `{top.name} ({top.progress})` else ""
+		-- free play's wall card, else (the last stage, a method's limit) the board's top goal
+		local card = if beat.id == "FreePlay" then wallCard(player, data) else nil
+		local top = if card then nil else Quests.goals(data)[1]
+		objective = if card then card elseif top then `{top.name} ({top.progress})` else ""
 	end
 	local reward = if shown and not data.quests[shown.id] then Quests.rewardText(shown.reward, data) else nil
 	local payload = {
@@ -997,6 +1414,11 @@ function Quests.check(player: Player)
 	local data = PlayerData.get(player)
 	if data then
 		notePills(player, data)
+		-- the stage this session began at, and a sit since (the Seclusion lesson)
+		joinStage[player] = joinStage[player] or stageIndex(data)
+		if (joinStage[player] :: number) >= 4 and seated(player) then
+			satSinceJoin[player] = true
+		end
 		advance(player, data)
 		claimLessons(player, data)
 		push(player, data)
@@ -1044,6 +1466,7 @@ function Quests.talk(player: Player)
 end
 
 function Quests.start()
+	hookHaul()
 	local hub = workspace:WaitForChild("Hub")
 	local elder = hub:WaitForChild("Elder")
 	local talk = elder:FindFirstChild("TalkPrompt", true) :: ProximityPrompt?
@@ -1054,7 +1477,13 @@ function Quests.start()
 	local read = board:FindFirstChild("ReadPrompt", true) :: ProximityPrompt?
 	if read then
 		read.Triggered:Connect(function(player)
-			questRemote:FireClient(player, { openBoard = true })
+			local data = PlayerData.get(player)
+			if data then
+				data.lessons.BoardRead = true -- read once (HeartDemon's lone-wolf question)
+			end
+			if not (Quests.openBoard and Quests.openBoard(player)) then
+				questRemote:FireClient(player, { openBoard = true })
+			end
 		end)
 	end
 	task.spawn(function()
@@ -1076,6 +1505,9 @@ function Quests.forget(player: Player)
 	claimed[player] = nil
 	pillsHeld[player] = nil
 	guidingNow[player] = nil
+	freeSince[player] = nil
+	joinStage[player] = nil
+	satSinceJoin[player] = nil
 end
 
 return Quests

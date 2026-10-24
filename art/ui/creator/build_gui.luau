@@ -296,7 +296,8 @@ local pages = new("CanvasGroup", {
 	Position = UDim2.fromOffset(0, 76),
 	Size = UDim2.new(1, 0, 1, -76 - 132),
 })
-for _, id in { "Slots", "Appearance", "Hair", "Fate", "Name" } do
+-- Begin: the first-character page (the front door, Tabs/Begin); the other four are Edit look's steps
+for _, id in { "Slots", "Begin", "Appearance", "Hair", "Fate", "Name" } do
 	new("ScrollingFrame", {
 		Name = id,
 		Parent = pages,
@@ -375,6 +376,15 @@ local primary, primaryKids = pillButton("Primary", 200, 56, "Play", true) -- gol
 withChildren(primary, primaryKids).LayoutOrder = 3
 primary.Label.TextSize = 20
 primary.Parent = buttons
+-- the first-character page's Enter World: the one big thing to press, filling the
+-- row beside Back (76 tall, Theme.Fit.EnterHeight; 61 px at the phone floor)
+local enterButton, enterKids = pillButton("Enter", 200, 76, "Enter World", true)
+withChildren(enterButton, enterKids).LayoutOrder = 4
+enterButton.SliceScale = 0.59 -- the whole 128 px pill height x 0.59 = 76: true round ends, no stretch
+enterButton.Label.TextSize = 24
+enterButton.Visible = false
+new("UIFlexItem", { Parent = enterButton, FlexMode = Enum.UIFlexMode.Fill })
+enterButton.Parent = buttons
 
 -- Modal cards (no dimming behind them): the odds list and the delete confirm
 local modal = new("Frame", {
@@ -496,17 +506,23 @@ text("Note", BODY, 17, C.Muted, {
 	AutomaticSize = Enum.AutomaticSize.Y,
 	TextWrapped = true,
 })
-new("TextButton", {
-	Name = "Link",
+-- the odds button (user, 2026-10-24: "the odds of race should be a button"; Roblox's
+-- paid-random-items guidance prefers a labelled button over a bare link): a lacquer
+-- pill like Back, 56 tall (45 px at the phone floor), a gold "%" glyph before
+-- "See the odds", centred in a full-width 56 px row under the clan row
+local oddsHolder = new("Frame", {
+	Name = "OddsButton",
 	Parent = T,
 	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 0, 32),
-	FontFace = BOLD,
-	TextSize = 17,
-	TextColor3 = C.Gold,
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Text = "",
+	Size = UDim2.new(1, 0, 0, 56),
 })
+local odds, oddsKids = pillButton("Button", 200, 56, "", false)
+withChildren(odds, oddsKids)
+odds.AnchorPoint = Vector2.new(0.5, 0.5)
+odds.Position = UDim2.fromScale(0.5, 0.5)
+odds.Label.RichText = true
+odds.Label.Text = `<font size="22" color="#{C.Gold:ToHex()}">%</font>  See the odds`
+odds.Parent = oddsHolder
 
 local function grid(name, cell, gap)
 	return new("Frame", {

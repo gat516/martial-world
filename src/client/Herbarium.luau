@@ -1,32 +1,45 @@
 --!strict
 -- The Herbarium (StarterGui.Herbarium, assets/Herbarium.rbxmx): the collection
--- book of every herb, roadmap §5 / Phase B. A ready-to-wire component: the real
--- system (herb tiers and the collection record) isn't built yet, so nothing in
--- the game opens it; its owner calls Herbarium.open with the player's entries.
--- Contract and layout: docs/ui/herbarium.md.
+-- book of every herb, roadmap §5 / Phase B. H and the Inventory's book tab
+-- (Inventory.Tabs.HerbariumTab; closing the book then goes back to the Inventory)
+-- open the player's own book, built from the server's
+-- record in the PlayerState push (`herbarium`, server Herbarium.luau). Contract
+-- and layout: docs/ui/herbarium.md.
 --
---   Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"? })
+--   Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"?, done = { tier }? })
+--   Herbarium.openMine(back?)   the player's own book (Herbarium.fromState); back runs
+--                               when it's closed by its own seal (Menus.openFrom)
+--   Herbarium.toggle()
 --   Herbarium.close()
 --   Herbarium.isOpen()
---   Herbarium.preview()   sample book (every herb in Herbs.Order plus a few
---                         undiscovered pages), from the client console in play:
+--   Herbarium.preview()   sample book (a made-up record over every herb), from the
+--                         client console in play:
 --     require(game.Players.LocalPlayer.PlayerScripts.Client.Herbarium).preview()
 --
 -- The open book shows six herb cards per page, twelve per spread, in the order
--- given: a discovered herb's card has its art, tier shield (I-V), name, rarity
+-- given: a discovered herb's card has its real 3D model (ModelView, like the
+-- Inventory's weapons; its icon when it has no model), tier shield (I-V), name, rarity
 -- gem, how many were harvested, the largest size seen and the mutations seen
--- (kit tag ribbons, one row); an undiscovered one is the greyed card with a
--- question mark and its tier. The seals on the book's edges turn the spread.
+-- (kit tag ribbons, one row); an undiscovered one is the greyed card with the
+-- model's dark silhouette (a question mark without a model) and its tier; a blank entry leaves its slot empty. The player's
+-- book gives each tier its own page (blanks pad it), so a page is a tier and
+-- completing it is the tier reward; the footer lists the completed pages. The
+-- seals on the book's edges turn the spread. The twelve cards of a spread are
+-- made once and refilled in place, so a state push while the book is open redraws
+-- no model (ModelView skips what a viewport already shows).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local HerbArt = require(script.Parent.HerbArt)
 local Menus = require(script.Parent.Menus)
+local ModelView = require(script.Parent.ModelView)
 local Motion = require(script.Parent.Motion)
 local Ribbon = require(script.Parent.Ribbon)
+local State = require(script.Parent.State)
 local UiScale = require(script.Parent.UiScale)
 
 export type Entry = {
@@ -37,8 +50,11 @@ export type Entry = {
 	largest: number?, -- the biggest size seen (×)
 	mutations: { string }?, -- Herbs.Mutations ids seen on this herb
 	name: string?, -- overrides the def's name (a herb not in Herbs.Defs yet)
+	blank: boolean?, -- an empty slot (pads a tier to its own page)
 }
-export type Book = { entries: { Entry }, title: string? }
+-- done: tiers whose page is complete, listed in the footer; mine: the player's own
+-- book, rebuilt from State while open
+export type Book = { entries: { Entry }, title: string?, done: { number }?, mine: boolean? }
 
 local PER_PAGE = 6
 local TITLE_SIZE = 22 -- the title on its plaque (Merriweather Bold), baseline pixels
@@ -55,6 +71,7 @@ local Herbarium = {}
 local window: Frame
 local pages: { Frame }
 local template: GuiButton
+local slots: { GuiButton } = {} -- the spread's cards, 1-6 left page, 7-12 right
 local footer: TextLabel
 local title: TextLabel
 local prev: GuiButton
@@ -86,8 +103,10 @@ local function fillCard(card: GuiButton, entry: Entry)
 	local tags = card:FindFirstChild("Tags") :: Frame
 	local found = entry.discovered;
 	(card :: any).Image = if found then CARD else CARD_EMPTY
-	swatch.Visible = found
-	unknown.Visible = not found
+	-- the real model, standing (an undiscovered herb: its dark silhouette)
+	local modelShown = ModelView.item(art:FindFirstChild("Model") :: ViewportFrame, entry.herb, { silhouette = not found })
+	swatch.Visible = found and not modelShown
+	unknown.Visible = not found and not modelShown
 	for _, part in { "RarityRow", "Divider", "Stats" } do
 		(card:FindFirstChild(part) :: GuiObject).Visible = found and not (phone and part == "Divider")
 	end
@@ -141,34 +160,45 @@ local function spreads(): number
 end
 
 local function render()
-	for _, page in pages do
-		for _, child in page:GetChildren() do
-			if child.Name == "Card" then
-				child:Destroy()
-			end
-		end
-	end
 	local first = (spread - 1) * PER_PAGE * 2
 	for i = 1, PER_PAGE * 2 do
 		local entry = book.entries[first + i]
-		if not entry then
-			break
+		local card = slots[i]
+		if not entry or entry.blank then
+			if card then
+				card.Visible = false
+			end
+			continue
 		end
-		local card = template:Clone()
-		card.Name = "Card"
-		card.LayoutOrder = i
-		fillCard(card, entry)
+		if not card then
+			card = template:Clone()
+			card.Name = "Card"
+			card.LayoutOrder = i
+			card.Parent = pages[if i <= PER_PAGE then 1 else 2]
+			slots[i] = card
+		end
 		card.Visible = true
-		card.Parent = pages[if i <= PER_PAGE then 1 else 2]
+		fillCard(card, entry)
 	end
-	local found = 0
+	local found, herbs = 0, 0
 	for _, e in book.entries do
-		if e.discovered then
-			found += 1
+		if not e.blank then
+			herbs += 1
+			if e.discovered then
+				found += 1
+			end
 		end
 	end
 	local total = spreads()
-	footer.Text = `Page {spread} / {total}  ·  {found} of {#book.entries} discovered`
+	local line = `Page {spread} / {total}  ·  {found} of {herbs} discovered`
+	if book.done and #book.done > 0 then
+		local numerals = {}
+		for _, t in book.done do
+			table.insert(numerals, Herbs.TierNumerals[t] or tostring(t))
+		end
+		line ..= `  ·  Complete: {table.concat(numerals, " ")}`
+	end
+	footer.Text = line
 	-- the gold title plaque fits its title (docs/ui/ribbons.md)
 	local plaque = title.Parent :: Frame
 	task.spawn(Ribbon.fit, plaque, book.title or "Herbarium", {
@@ -198,12 +228,70 @@ local function turn(step: number)
 	end
 end
 
-function Herbarium.open(b: Book)
+function Herbarium.open(b: Book, back: (() -> ())?)
 	assert(window, "Herbarium.init hasn't run")
 	book = b
 	spread = 1
 	render()
-	Menus.open(window)
+	if back then
+		Menus.openFrom(window, back)
+	else
+		Menus.open(window)
+	end
+end
+
+type Record = { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }
+
+-- A book from a Herbarium record (the PlayerState `herbarium`): every herb, tier by
+-- tier in Herbs.Order, each tier padded with blanks to whole pages.
+function Herbarium.fromState(record: Record?): Book
+	local herbs = if record then record.herbs else {}
+	local tiers = if record then record.tiers else {}
+	local entries: { Entry } = {}
+	local done = {}
+	for tier = 1, #Herbs.TierNumerals do
+		local count = 0
+		for _, id in Herbs.Order do
+			local herb = Herbs.Defs[id]
+			if herb.tier == tier then
+				local r = herbs[id]
+				table.insert(entries, {
+					herb = id,
+					tier = tier,
+					discovered = r ~= nil,
+					harvested = if r then r.n else nil,
+					largest = if r and r.l > 0 then r.l else nil,
+					mutations = if r then r.m else nil,
+				})
+				count += 1
+			end
+		end
+		while count % PER_PAGE ~= 0 do
+			table.insert(entries, { herb = "", tier = tier, discovered = false, blank = true })
+			count += 1
+		end
+		if tiers[tostring(tier)] then
+			table.insert(done, tier)
+		end
+	end
+	return { entries = entries, done = done }
+end
+
+function Herbarium.openMine(back: (() -> ())?)
+	if not window then
+		return -- still loading its ScreenGui
+	end
+	local b = Herbarium.fromState(State.current.herbarium)
+	b.mine = true
+	Herbarium.open(b, back)
+end
+
+function Herbarium.toggle()
+	if Herbarium.isOpen() then
+		Herbarium.close()
+	else
+		Herbarium.openMine()
+	end
 end
 
 function Herbarium.close()
@@ -216,29 +304,22 @@ function Herbarium.isOpen(): boolean
 	return window ~= nil and window.Visible
 end
 
--- Sample content to review the book: every herb in Herbs.Order (a few with
--- harvest counts, sizes and mutations), then undiscovered pages. Preview only;
--- the real flow passes the player's record.
+-- Sample content to review the book: a made-up record over every herb (most
+-- discovered, with harvest counts, sizes and mutations; tier I complete). Preview
+-- only; the real flow reads the player's record.
 function Herbarium.preview()
-	local entries: { Entry } = {}
 	local mutationIds = { "Dewy", "Windswept", "Auspicious", "Golden", "Thunderstruck", "Rainbow", "Heavenlit" }
+	local record: Record = { herbs = {}, tiers = { ["1"] = true } }
 	for i, id in Herbs.Order do
-		local found = i % 4 ~= 0
-		table.insert(entries, {
-			herb = id,
-			tier = math.clamp(math.ceil(i / 3), 1, 5),
-			discovered = found,
-			harvested = if found then i * 7 else nil,
-			largest = if found then 1 + (i % 5) * 0.6 else nil,
-			mutations = if found then { mutationIds[(i % #mutationIds) + 1], mutationIds[((i * 3) % #mutationIds) + 1] } else nil,
-		})
-	end
-	for tier = 3, 5 do
-		for _ = 1, 3 do
-			table.insert(entries, { herb = "", tier = tier, discovered = false })
+		if Herbs.Defs[id].tier == 1 or i % 4 ~= 0 then
+			record.herbs[id] = {
+				n = i * 7,
+				l = 1 + (i % 5) * 0.6,
+				m = { mutationIds[(i % #mutationIds) + 1], mutationIds[((i * 3) % #mutationIds) + 1] },
+			}
 		end
 	end
-	Herbarium.open({ entries = entries })
+	Herbarium.open(Herbarium.fromState(record))
 end
 
 function Herbarium.init()
@@ -279,6 +360,22 @@ function Herbarium.init()
 	end)
 	nextButton.Activated:Connect(function()
 		turn(1)
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.H then
+			Herbarium.toggle()
+		end
+	end)
+	-- the player's own book follows the record while open (a harvest, a reward)
+	State.onChanged(function(snapshot)
+		if book.mine and Herbarium.isOpen() then
+			local keep = spread
+			local b = Herbarium.fromState(snapshot.herbarium)
+			b.mine = true
+			book = b
+			spread = math.clamp(keep, 1, spreads())
+			render()
+		end
 	end)
 end
 

@@ -6,14 +6,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 export type Buff = { source: string, kind: string, amount: number, expires: number, seconds: number? } -- seconds: its full span (the chip's timer ring)
 export type Technique = { level: number, xp: number }
 export type Snapshot = {
-	insight: number,
-	techniques: { owned: { [string]: Technique } },
+	techniques: { owned: { [string]: Technique }, manuals: { [string]: boolean }? }, -- manuals: found, waiting on weapon Dao
 	hotbar: { string }, -- technique id, item id or "" per slot
 	rate: number,
 	aura: number,
 	herbs: { [string]: number },
 	items: { [string]: number },
 	seeds: { [string]: number },
+	shop: { [string]: number }?, -- the Herbalist's seeds left today, by herb id (missing: not sold to you; Pacing.Herbs.STOCK)
+	ring: { string }?, -- spirit ring: herb and item ids whose stacks are banked even in the wilds (server Haul)
+	ringSlots: number?, -- stacks the ring holds at this realm
 	buffs: { Buff },
 	decor: { [string]: number }?,
 	meditation: { multiplier: number, place: string }?, -- nil when not meditating
@@ -26,13 +28,33 @@ export type Snapshot = {
 	root: { element: string, grade: string, pending: string, grades: { [string]: string } }?, -- spirit root (Shared.Roots); element "" = not tested, pending = a reformed element awaiting keep/return ("" = none), grades = other elements' own grades
 	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
 	daoPracticeReady: number?, -- os.time() when the next Practice Dao drill opens (server DaoPractice)
+	-- the current stage's foundation (server Foundation.state; docs/ui/cultivation.md):
+	-- the percent it would get now (100 = full, up to `max`; players see only the percent),
+	-- past percents by stage key, the summed bonus share, and up to 5 open experiences
+	-- { category, text }; at a hook stage (QC1-3) only `hidden` = true and the bonus
+	foundation: { hidden: boolean?, percent: number, max: number, percents: { [string]: number }, bonus: number, hints: { { category: string, text: string } } }?,
+	-- the heart-demon trial (server HeartDemon.state): the open major's id and name (nil
+	-- when none), whether the player is at a stage 9 (the Break Through offer), whether a seat offer waits out
+	-- a "Not now", and finished trials by major (`note` is the heart line for the Self card)
+	heartDemon: {
+		open: string?,
+		name: string?,
+		atPeak: boolean,
+		snoozed: boolean,
+		trials: { [string]: { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string? } }, -- title: the Dao heart it picked (Shared.Titles id)
+	}?,
+	-- the Herbarium's record (server Herbarium): per herb id n harvested, l largest
+	-- size, m mutations seen; tiers whose page is complete ("1".."5")
+	herbarium: { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }?,
+	-- titles (server Titles; defs, names and how-to lines in Shared.Titles): earned ids ->
+	-- os.time() earned, and the worn one ("" = none)
+	titles: { owned: { [string]: number }, equipped: string }?,
 }
 
 local State = {}
 
 State.current = {
-	insight = 0,
-	techniques = { owned = {} },
+	techniques = { owned = {}, manuals = {} },
 	hotbar = { "", "", "", "", "", "", "", "", "" },
 	rate = 0,
 	aura = 0,

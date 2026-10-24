@@ -1,7 +1,7 @@
 # Progression: Qi Condensation to Foundation Establishment 9
 
 The stage-by-stage plan for the whole current game. [core-loop.md](core-loop.md) is
-the north star; this page is how it plays out over about 16 hours. Numbers live
+the north star; this page is how it plays out over about 30 hours. Numbers live
 in `src/shared/Pacing.luau`; this page is the design they are tuned against.
 Decided 2026-10-22 in conversation; stage assignments and targets are proposals
 until playtested. Nothing here is built yet unless it says so.
@@ -20,30 +20,52 @@ until playtested. Nothing here is built yet unless it says so.
 - **Content: reuse what exists.** The 13 shipped beasts and 3 bosses are spread
   over the ladder with elite tiers (below); new beasts are not needed to get to FE9.
 - **Next system: the sect and its quests** (below).
+- **Insight is deleted; walls are the bar (user, 2026-10-23).** A breakthrough
+  is graded by what the player experienced that stage (the foundation grade, a
+  permanent stat bonus); death spills half of the unbanked haul (a spirit ring keeps some safe); the forced breakthrough
+  became the qi surge. See [roadmap](roadmap.md) "Phase A". Insight is gone from
+  the code; the grades and the surge are built, the haul isn't yet.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 
-## Length targets (active play, proposals)
-| Major | Stages | Target | Per stage |
-|---|---|---|---|
-| Qi Condensation | 9 | about 2 h (as built) | 13 min |
-| Qi Refining | 9 | about 4 h | 27 min |
-| Foundation Establishment | 9 | about 10 h | 67 min |
+## Length targets (active play; rebalanced 2026-10-24, untuned in play)
+The targets are for the model's regular player online (1.5 h a day, hunting and
+meditating, a growing garden; [pacing model](systems/pacing-model.md)), not a bare
+fighter: since the 2026-10-24 rebalance the bars (`Pacing.Adjust`) are sized for
+players who use the systems. The rules every reward follows are in
+[progression rules](systems/progression-rules.md).
 
-Bars cannot keep growing 1.6x a stage: from QC9 on, the curve grows about 1.25x
-a stage with a step at each major. Time per stage is stretched by quests,
-events and exploring (more things to do per stage), not by a bigger grind.
-Passive cultivation still never stops. Derive each stage's bar and income from
-its target minutes with the formulas in the `Pacing.luau` header.
+| Major | Stages | Target | Per stage (the regular, online) |
+|---|---|---|---|
+| Qi Condensation | 9 | about 2.5 h (2.4 h built) | 1 min (QC1) to 51 min (QC9) |
+| Qi Refining | 9 | about 7 h (7.1 h built) | 30-70 min |
+| Foundation Establishment | 9 | about 20 h (19.9 h built) | 1.7-2.7 h |
+
+No lever is mandatory: one road (only hunting, or only gardening and meditating) with
+a natural garden is within 15% of that; stacking everything is at most 1.3x faster.
+
+About 30 h to FE9, the cap, which should be hard to reach; passive and offline
+cultivation stretch it over real days. Shape ([roadmap](roadmap.md) "Pacing, realm
+gaps and verbs"): the hook lands QC2, QC3 and QC4 in the first ten minutes; every
+realm is three thirds, each easy to hard and opened by a breather; the real
+slowdown is mid Qi Refining (QR4 on), where the garden and the peak keep
+cultivation moving; no stage runs over about 3 h. The bare gardener's road is about
+2x the bare fighter's time in QC and 1.5-1.8x after; the garden aura, herbs and the
+seat close it. Heaven-defiers take 1.5x longer on every bar. The per-stage table (the
+bare fighter, the bare gardener and the regular), its assumptions and the formulas
+are in the `Pacing.luau` header (`tools/pacing_model.py --header` regenerates it).
 
 ## The stage template
 Every three stages is a **chapter**; every nine is a **realm**.
+- **Beats are `Pacing.Curve`'s** (the `beat` field): each realm opens HOOK, RAMP,
+  MINI-WALL (QC1-3 are all HOOK), then BREATHER, RAMP, MINI-WALL, then BREATHER,
+  RAMP, WALL. A breather never shrinks the bar (bars never go down); it pours more
+  raw qi (the row's `gather`) instead.
 - **Stage 1 of a chapter:** something new (a region seal, a beast tier, a home
   idea). The "hook" of the chapter.
-- **Stage 2:** the loop settles in (breather).
-- **Stage 3:** a mini-wall: the chapter's elite hunt or event chain, one insight.
-- **Stage 9 of a realm:** the wall: the biggest bar, the realm's insight, an
-  optional realm boss as the fast road. Heaven-defying players add the tribulation.
+- **Stage 3:** a mini-wall: the chapter's elite hunt or event chain, a foundation experience.
+- **Stage 9 of a realm:** the wall: the biggest bar, the realm's experiences, an
+  optional realm boss as the fast road to a Deep foundation. Heaven-defying players add the tribulation.
 
 One new idea per chapter, never per stage, and never two at once.
 
@@ -59,9 +81,11 @@ The map isn't done, so these are logical regions; the map-builder fits them late
 
 **Elite and apex tiers** are the cheap way to fill 18 stages: the same body with
 a tint, an aura tier and one extra move per tier (`vfx` and `animator` do a short
-pass per beast, not a rebuild), higher `realm`, new insight on first kill. A
+pass per beast, not a rebuild), higher `realm`, a new first-kill experience. A
 beast re-tiered by realm keeps its identity, so the player reads "the same
-wolf, but older".
+wolf, but older". The backend is built ([realm variants](enemies/variants.md):
+realm per spawn, tint, size, cadence, moves unlocked by tier, the elite and apex first
+kills); the aura and the per-beast extra moves wait on `vfx` and `animator`.
 
 ## The ladder, stage by stage
 `Wall` is what sends you out or home. `New` is the one idea of the chapter.
@@ -69,85 +93,104 @@ wolf, but older".
 ### Qi Condensation (built; the hook)
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
-| QC1 | HOOK | Inner Wilds | circulate, breakthrough | empty dantian |
-| QC2 | HOOK | Inner Wilds | spirit root, travel out, first hunt | empty dantian |
-| QC3 | HOOK | Inner Wilds | technique, refine | the tutorial ends |
-| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak | none |
-| QC5 | RAMP | Ruined Borderlands | **the sect board:** daily tasks, contribution, Outer Disciple rank | full dantian |
+| QC1 | HOOK | Inner Wilds | circulate, breakthrough (the first is guaranteed) | empty dantian |
+| QC2 | HOOK | Inner Wilds | first hunt, technique, store the haul, refine | empty dantian |
+| QC3 | HOOK | Inner Wilds | spirit root (Testing Stone), the travel formations | the tutorial ends at QC4 |
+| QC4 | BREATHER | Inner Wilds | **home grows:** the garden (the Home lesson; seclusion in the second session); the foundation starts (QC1-3 have none), introduced on the QC4 -> QC5 card | none |
+| QC5 | RAMP | Ruined Borderlands | **the Borderlands and their hidden caches** (the Rumours lesson); the sect board: daily tasks, contribution, Outer Disciple rank | full dantian |
 | QC6 | MINI-WALL | Borderlands | herbs matter (tier I herbs eaten for qi) | more than a dantian of qi |
-| QC7 | BREATHER | Borderlands | second weapon class, Dao drills; Jade Jiao | beasts too strong |
-| QC8 | RAMP | Borderlands | rumours of ruins; the first secret place | insight |
-| QC9 | WALL | Borderlands | the realm boss is optional (faster insight), 5 insight; the quiet breakthrough ceremony | bar, insight (a boss is one source) |
+| QC7 | BREATHER | Borderlands | Jade Jiao; the Dao drill (the DaoPractice lesson) | beasts too strong |
+| QC8 | RAMP | Borderlands | no lesson (rumours moved to QC5) | foundation (soft) |
+| QC9 | WALL | Borderlands | the heart-demon trial (the HeartDemon lesson); the realm boss is optional (a Boss experience); the quiet breakthrough ceremony | bar |
 
 ### Qi Refining (new; the sect and the home deepen)
 Rank becomes **Inner Disciple** at QR1.
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
-| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests | region seal |
-| QR2 | BREATHER | Wastes | weekly sect tasks | none |
+| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class (moved from QC7; the Dao drill stays at QC7) | region seal |
+| QR2 | RAMP | Wastes | weekly sect tasks; building (the Build lesson: place one piece) | none |
 | QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
-| QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |
-| QR5 | BREATHER | Wastes | Thunder Ape event and boss | beasts too strong |
+| QR4 | BREATHER | Wastes | the real slowdown starts: passive (garden aura, peak items, herbs) carries cultivation (seclusion is taught at QC4) | full dantian |
+| QR5 | RAMP | Wastes | Thunder Ape event and boss | beasts too strong |
 | QR6 | MINI-WALL | Deep Wilds | Dao glimpses at special places (storms, springs) | region seal |
-| QR7 | RAMP | Deep Wilds | sect trials: a rank test with a tiny reward | insight |
-| QR8 | BREATHER | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
-| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar, insight |
+| QR7 | BREATHER | Deep Wilds | sect trials: a rank test with a tiny reward | foundation (soft) |
+| QR8 | RAMP | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
+| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar |
 
-### Foundation Establishment (new content, 10 hours)
+### Foundation Establishment (new content, about 20 hours)
 Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
 [character](systems/character.md)).
 | Stage | Beat | New | Wall |
 |---|---|---|---|
 | FE1 | HOOK | **cultivation method:** the sect library; Far Reaches seal | method |
-| FE2 | BREATHER | method upgrades from exploring | none |
+| FE2 | RAMP | method upgrades from exploring | none |
 | FE3 | MINI-WALL | tier III herbs; the Pavilion's second shelf | herbs |
-| FE4 | RAMP | **treasure slot:** one equipped treasure | insight |
-| FE5 | BREATHER | secret realms: timed rifts with manuals | none |
+| FE4 | BREATHER | **treasure slot:** one equipped treasure | foundation (soft) |
+| FE5 | RAMP | secret realms: timed rifts with manuals | none |
 | FE6 | MINI-WALL | **spirit beast egg:** a cosmetic pet that follows you | beasts too strong |
-| FE7 | RAMP | tier IV herbs; Dao tree preview | full dantian |
-| FE8 | BREATHER | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
-| FE9 | WALL | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar, insight |
+| FE7 | BREATHER | tier IV herbs; Dao tree preview | full dantian |
+| FE8 | RAMP | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
+| FE9 | PEAK | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar |
 
 ## Home, herbs and the loop (the missing link)
 The garden dies at QC6 because herb qi is flat. Fix:
 - **Herb tiers, by region.** I Common (QC), II Spirit (QR1-5), III Rare (QR6-FE3),
-  IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
+  IV Treasure (FE4-9), V Heavenly (past FE: **deferred**, owner 2026-10-24). A herb's
+  tier matches how grand its name is (Spirit Grass humble, Thousand-Year Ginseng a
+  treasure). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
-  matters but never replaces hunting.
+  matters but never replaces hunting, with a floor per tier so early herbs stay worth
+  eating (60, 150, 900, 3000, 8000 raw qi; `EAT_FLOOR`), only the floor once you're
+  past the herb's band (2026-10-24: low-tier herbs stop scaling), and event herbs keep
+  a bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
+  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; 19 herbs over
+  tiers I-IV in the game, 3 tier V herbs parked (`Herbs.Deferred`) ([garden](systems/garden.md)
+  has the table).
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out
   feeds the garden; the garden saves trips. Sect errands ask for herbs (home
-  turns into quests).
+  turns into quests). Built: `Herbs.Regions` pools for the Inner Wilds and Ruined
+  Borderlands (I), Outer Wastes (II), Deep Wilds (III) and Far Reaches (IV); a kill outside a seed region (and the testbed) uses the beast's realm.
 - **Peak and garden tiers** gate plots and soil. The peak levels with contribution
   and realm, not stones alone.
 - **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or
   breakthrough-aid pills for now. Herbs are eaten directly (qi and timed buffs), and
   pills, cores and elixirs stay loot and shop finds (the Root Pill and Marrow Washing
-  Pill already work that way). Foundation repair comes from meditation, seclusion and
-  tending the garden instead. See [roadmap](roadmap.md) "Deferred to a later update".
+  Pill already work that way). Foundation repair is tempering, to 100%: the heart-demon
+  trial and herbs and pills absorbed in seclusion (seclusion earns no experiences). See [roadmap](roadmap.md) "Deferred to a later update".
 - **Cultivating at home stays calm and always progresses.** Meditation and peak
   bonuses keep scaling through Pacing; nothing here asks for skill.
 
 ## The sect and its quests
-The sect is what sends you out and welcomes you home. It uses the existing
-quest defs (`Quests.Quest`, `data.quests`).
-- **Ranks:** Outer Disciple (QC1), Inner Disciple (QR1), Core Disciple (FE1).
-  Promotion needs realm and contribution, so rank is not just a realm label.
+The sect is what sends you out and welcomes you home. The MVP is built
+([sect](systems/sect.md)): ranks, three dailies, the Borderlands chain "Ash Past the
+Gorge" (QC5-9) and a small Pavilion; the rest below comes later.
+- **Ranks:** Outer Disciple (QC1), Inner Disciple (QR1 + 600 contribution earned),
+  Core Disciple (FE1 + 2500). Promotion needs realm and contribution, so rank is not
+  just a realm label.
 - **The board** (introduced at QC5): the current wall first, then at most two
   other goals.
-  - **Dailies:** three offered, one to three taken; hunt, herb errand, gather,
-    event call. Pays contribution and some stones.
+  - **Dailies (built):** three offered, any taken, at most one combat; hunt, herb
+    errand, gather qi, seclusion, Store all, harvest, find a cache. Pays contribution
+    (700 a week at most) and some stones by major.
   - **Weeklies:** one large goal per week.
-  - **Chapter chains:** story per region, ending at its boss or secret place.
+  - **Chapter chains:** story per region, ending at its boss or secret place
+    (built: the Borderlands' five steps, ending at the Broken Pagoda or the Elder Wolf King).
   - **Bounties:** a named elite or boss, repeatable.
   - **Sect tasks:** tend the sect garden, escort, deliver herbs.
 - **Contribution points** buy from the Pavilion: technique manual copies, pills,
-  seeds, weapons, cosmetics. Weekly cap, so it can't inflate. **Never qi**; qi
+  seeds, weapons, cosmetics (built: seed packets by tier, a ring slot per major, the
+  milestone manuals). Weekly cap, so it can't inflate. **Never qi**; qi
   stays with Pacing.
 - **Givers:** the elder, the board, and people around the sect; rumours point
   out into the world ("a cultivator's cave lies past the ruined bridge").
 
 ## Tribulations (heaven-defying only)
-Normal players break through with a bar, insight and a quiet ceremony.
+
+Players see the flag as **Defier of Heaven** (`Pacing.HeavenDefying.TITLE`; user,
+2026-10-24), never "heaven-defying", so it can't be confused with a Heaven-grade
+spirit root.
+Normal players break through with a bar and a quiet ceremony.
+A weak foundation grade makes the tribulation harder, never impossible.
 - **Who:** a player whose bloodline or spirit root is flagged `heavenDefying`.
   They face a tribulation at **every major** breakthrough.
 - **Why:** the heavens won't suffer them to exist. Lines are written per cause
@@ -188,26 +231,28 @@ No difficulty modes, no damage or reward scaling (user, 2026-10-22: difficulty
 stays pure skill). Instead, **nothing in the progression requires beating a
 boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
 - **Bosses are optional.** They exist for worldbuilding and as quest targets
-  ("slay the Elder Wolf King"). Killing one is a **faster road**: a big qi and
-  insight payout, a manual or weapon, a bounty reward. Skipping one only costs time.
+  ("slay the Elder Wolf King"). Killing one is a **faster road**: a big qi payout, a
+  Boss experience (counts double toward the foundation grade), a manual or weapon, a bounty reward. Skipping one only costs time.
 - **Two ways to climb, both complete:**
   - *The fighter:* hunt, bounties, bosses and events. Fast, with surprises.
   - *The gardener:* meditate, tend the spirit garden, run sect
     errands and chapter quests that need no combat. Slower, always sure.
   Pacing is tuned so the gardener's road reaches every wall, just later.
-- **Every wall has a non-combat road.** Insight, the thing a boss used to
-  gate, also comes from comprehension spots, Dao rain, quests, secret places
-  (explored, not fought), sect trials and rare elixirs from rifts and quests. First kills and
-  bosses are *one* source.
-- **A wall is a bar plus insight**, never a boss. QC9 and QR9 no longer say
-  "kill the boss"; they say "5 insight", which a boss can supply.
+- **Every wall has a non-combat road.** A wall is the bar, never a boss. The
+  foundation grade, the thing a boss speeds up, also comes from harvests, Dao
+  milestones, secret places (explored, not fought), events and quests. First kills
+  and bosses are *one* source, and a low grade never blocks a breakthrough.
 - **Quests offer the fight, they don't demand it.** A bounty to slay a boss
   pays well; the same chain has a peaceful sibling (a herb errand, an exploring task).
 - **Enemy difficulty stays what the designers set**, tuned per realm in
   `Pacing`. Fights can be hard; skipping them is always allowed.
-- **Dying is cheap** (no lost cultivation), so trying is free.
-- Open: how big the gardener's slowdown is (a proposal: 1.5-2x the fighter's
-  time), and whether to hint the peaceful road when a player keeps dying.
+- **Dying costs a little, never a stage.** A death spills about half of the haul
+  you haven't banked (raw qi, herbs, seeds, common items, Spirit Stones), recoverable
+  where you fell for 5 minutes; rare finds and the spirit ring's stacks are always
+  safe, and leaving mid-fight counts as a death (built, [haul](systems/haul.md)), so
+  trying stays cheap.
+- The gardener's road takes 1.5-2x the fighter's time (built in the curve,
+  2026-10-23). Open: whether to hint the peaceful road when a player keeps dying.
 
 ## World events
 The event look pass (`docs/vfx/world_events.md`) resumes with Heaven Split,
@@ -217,7 +262,7 @@ Beast Surge and the new events. Plan:
 - **Existing:** Thousand-Year Ginseng, Beast Surge, Auspicious Clouds, Violet
   Cloud Mist, Golden Auspicious Clouds.
 - **New (proposed):**
-  - *Secret Realm Rift:* a timed rift to a small zone with manuals and insight.
+  - *Secret Realm Rift:* a timed rift to a small zone with manuals and Discover experiences.
   - *Roaming Beast King:* a boss (the four existing ones, re-tiered) walks the
     wilds, announced server-wide.
   - *Dao Rain:* a storm that gives comprehension progress to those who sit in it.
@@ -232,24 +277,27 @@ Built 2026-10-22: QR1-9 and FE2-9 rows in `Pacing.Curve` (and combat qi), the
 `QiRefining` major in `Realms`, `data.heavenDefying` and the tribulation gate.
 
 Still open from that pass:
-- **Insight above 10 is unreachable without bosses** until non-combat sources
-  exist (comprehension spots, quests, secret places). First kills of the 8
-  non-boss types plus 2 milestones give 10. FE3 11 and FE6 13 wait for them.
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
   QR regions need the map.
-- **Thunder Ape and Nine-Tailed Fox** are tuned for the old FE1 player (500 HP,
-  power 3.0), which is now about QR5-6. Move their `realm` there, or lift their
-  stats, once playtested.
+- **Thunder Ape (QR5) and Nine-Tailed Fox (QR9)** moved off FE1 (2026-10-23): their
+  defs were rescaled from the old FE1 player (500 HP, power 3.0) to
+  `Pacing.BeastBaseline` at their new stage, keeping every hit's share of health and
+  the hits to kill. Unplayed at the new realms.
 - **Cultivator enemies** exist but aren't wired. They suit the QR and FE stages as
   human opponents and sect-quest targets.
-- Curve numbers are untuned (see the table in `Pacing.luau`).
+- Curve numbers are untuned in play (see the table in `Pacing.luau`).
+- Built 2026-10-23: the curve to the new targets, strength (+10% a minor, x2.25 a
+  major, beasts following through `Pacing.BeastBaseline`), realm suppression, the
+  heaven-defier's 1.5x bar and suppression resist, and herb floors.
 
 Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
-2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
+2. ~~Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.~~ (done, untuned; [garden](systems/garden.md)).
+   ~~Tier IV-V herbs, regional seed drops, the Herbarium and its rewards~~ (done
+   2026-10-23, untuned; models still to build).
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
-4. Make every wall's insight reachable without combat (comprehension spots, quests); turn bosses into quest targets.
+4. Phase A: foundation grades, the haul and spirit ring, the qi surge ([roadmap](roadmap.md); insight deletion done); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).
 6. World-event and tribulation vfx passes (`world-fx`).
 7. Elite and apex beast tiers: `enemy-designer`, `vfx` and `animator`, one per beast.

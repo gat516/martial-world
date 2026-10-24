@@ -38,9 +38,38 @@ local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirecti
 -- Danger tiers, picked by realm gap (Pacing.Danger). rim: the frame art (art/ui
 -- draw_ui.py eb_rim); tag/omen: text colours; omens: flavour lines, one picked
 -- per beast per tier (keep them under ~24 characters so they fit at 11px).
-type Style = { rim: string?, tag: Color3?, omen: Color3?, aura: boolean?, sheen: boolean?, skull: boolean?, omens: { string }? }
+-- word/mark/markColor (cowed, realm pressure): a short word on the omen
+-- row, led by a small tinted glyph (ReplicatedStorage.PressureMarks.BarMark), so the
+-- state reads in words, not only in the rim's colour.
+type Style = {
+	rim: string?,
+	tag: Color3?,
+	omen: Color3?,
+	aura: boolean?,
+	sheen: boolean?,
+	skull: boolean?,
+	omens: { string }?,
+	word: string?,
+	mark: string?,
+	markColor: Color3?, -- the word's colour, and the glyph's tint unless markTint
+	markTint: Color3?,
+	markSize: Vector2?, -- the glyph's box when not the template's (centred on the row)
+}
 local STYLES: { [string]: Style } = {
 	below = { rim = "rbxassetid://128483974781643", tag = Color3.fromRGB(176, 170, 160) },
+	-- a full major below you: it fears you (realm pressure, Pacing.Pressure)
+	cowed = {
+		rim = "rbxassetid://128483974781643",
+		tag = Color3.fromRGB(176, 170, 160),
+		omen = Color3.fromRGB(196, 190, 178),
+		omens = { "it fears you", "it shrinks back", "it dares not fight" },
+		word = "Cowed",
+		-- the kit's gold chevron pointing down: beneath you (sized/ornament_chevron_h20)
+		mark = "rbxassetid://99764920719361",
+		markColor = Color3.fromRGB(226, 186, 136),
+		markTint = Color3.new(1, 1, 1),
+		markSize = Vector2.new(15, 10),
+	},
 	even = { rim = "rbxassetid://117466583392103", tag = Color3.fromRGB(176, 228, 196) },
 	above = {
 		rim = "rbxassetid://132855087488496",
@@ -77,6 +106,8 @@ type Watched = {
 	tier: string?,
 	omens: { [string]: string }, -- the line picked per tier, so it never flickers
 	loops: { Tween },
+	omenAt: { UDim2 }?, -- the omen row's authored position and size (a pressure mark shifts it)
+	markAt: { UDim2 }?, -- the pressure mark's authored position and size
 }
 local watched: { [Model]: Watched } = {}
 
@@ -105,9 +136,8 @@ local function setBar(fill: GuiObject, trail: GuiObject?, value: number)
 	end
 end
 
-local function playerIndex(): number
-	local stage = Realms.byName(player:GetAttribute("Realm")) or Realms.Stages[1]
-	return Realms.index(stage.major, stage.minor)
+local function playerStage(): Realms.Stage
+	return Realms.byName(player:GetAttribute("Realm")) or Realms.Stages[1]
 end
 
 local function tierFor(gap: number): string
@@ -124,12 +154,48 @@ local function tierFor(gap: number): string
 	return "even"
 end
 
+-- The stage of the party member sheltering you (the server's ShelteredBy), or nil.
+local function patronStage(): Realms.Stage?
+	local id = player:GetAttribute("ShelteredBy")
+	local patron = if type(id) == "number" then Players:GetPlayerByUserId(id) else nil
+	return if patron then Realms.byName(patron:GetAttribute("Realm")) else nil
+end
+
+-- Overhead bars (not bosses) also read "cowed" (a full major below you: it fears
+-- you); bosses keep the five tiers BossThemes has lines for. While a party member
+-- shelters you, a beast above you reads at the stage you fight it at (the shelter's
+-- sync), in the usual tiers: no mark of its own (user, 2026-10-24).
 local function tierOfDef(def: Enemies.Def?): string
 	if not (def and def.realm) then
 		return "even"
 	end
 	local beast = Realms.ofBeast(def.realm)
-	return tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
+	local mine = playerStage()
+	local patron = patronStage()
+	if patron and Realms.majorIndex(beast.major) > Realms.majorIndex(mine.major) then
+		-- sheltered: you fight it at its own stage, capped at your patron's
+		if Realms.index(beast.major, beast.minor) <= Realms.index(patron.major, patron.minor) then
+			mine = beast
+		else
+			mine = patron
+		end
+	end
+	local gap = Realms.index(beast.major, beast.minor) - Realms.index(mine.major, mine.minor)
+	-- a higher major realm suppresses the player's blows (Pacing.Suppression):
+	-- one major up reads at least "far", two "deadly", however few stages apart;
+	-- a lower major (whose blows are suppressed) reads "below"
+	local majors = Realms.majorIndex(beast.major) - Realms.majorIndex(mine.major)
+	if majors >= 2 then
+		gap = math.max(gap, Pacing.Danger.DEADLY_AT)
+	elseif majors == 1 then
+		gap = math.max(gap, Pacing.Danger.FAR_AT)
+	elseif majors < 0 then
+		if not def.boss then
+			return "cowed"
+		end
+		gap = math.min(gap, Pacing.Danger.BELOW_AT)
+	end
+	return tierFor(gap)
 end
 
 local function loop(entry: Watched, inst: Instance, props: { [string]: any }, info: TweenInfo)
@@ -147,12 +213,12 @@ local function restyle(entry: Watched)
 	if entry.boss or not (plate and warning and def and def.realm) then
 		return
 	end
-	local beast = Realms.ofBeast(def.realm)
-	local tier = tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
+	local tier = tierOfDef(def)
 	if tier == entry.tier then
 		return
 	end
 	entry.tier = tier
+	local beast = Realms.ofBeast(def.realm) -- the stage on its realm tag
 	local style = STYLES[tier]
 	for _, tween in entry.loops do
 		tween:Cancel()
@@ -201,6 +267,45 @@ local function restyle(entry: Watched)
 	if style.omen then
 		label.TextColor3 = style.omen
 	end
+	-- cowed: the mark, then the word in its colour, then the short line
+	local mark = plate:FindFirstChild("PressureMark") :: ImageLabel?
+	if style.word and not mark then
+		local marks = ReplicatedStorage:FindFirstChild("PressureMarks")
+		local template = marks and marks:FindFirstChild("BarMark") :: ImageLabel?
+		if template then
+			local fresh = template:Clone()
+			fresh.Name = "PressureMark"
+			fresh.Parent = plate
+			mark = fresh
+		end
+	end
+	if mark then
+		entry.markAt = entry.markAt or { mark.Position, mark.Size }
+		local home = entry.markAt :: { UDim2 }
+		local size = style.markSize
+		mark.Visible = style.word ~= nil
+		mark.Image = style.mark or mark.Image
+		mark.ImageColor3 = style.markTint or style.markColor or mark.ImageColor3
+		if size then
+			mark.Size = UDim2.fromOffset(size.X, size.Y)
+			mark.Position = home[1] + UDim2.fromOffset(0, (home[2].Y.Offset - size.Y) / 2)
+		else
+			mark.Position, mark.Size = home[1], home[2]
+		end
+	end
+	entry.omenAt = entry.omenAt or { label.Position, label.Size }
+	local at = entry.omenAt :: { UDim2 }
+	label.RichText = style.word ~= nil
+	if style.word and mark then
+		local gap = mark.Position.X.Offset + mark.Size.X.Offset + 4 - at[1].X.Offset
+		label.Position = at[1] + UDim2.fromOffset(gap, 0)
+		label.Size = at[2] - UDim2.fromOffset(gap, 0)
+		label.Visible = true
+		local word = `<font color="#{(style.markColor or Color3.new(1, 1, 1)):ToHex()}">{style.word}</font>`
+		label.Text = if omen ~= "" then `{word} · {omen}` else word
+	else
+		label.Position, label.Size = at[1], at[2]
+	end
 	local aura = bar:FindFirstChild("Aura") :: ImageLabel
 	aura.Visible = style.aura == true
 	if style.aura then
@@ -230,7 +335,8 @@ local function watch(model: Instance)
 		return
 	end
 	local trail = bar:FindFirstChild("Trail", true) :: GuiObject?
-	local def = Enemies.Defs[model:GetAttribute("EnemyType") :: string? or ""]
+	-- a realm variant's own name ("Elite Spirit Wolf") and realm (Enemies.forModel)
+	local def = Enemies.forModel(model)
 	local entry: Watched = {
 		bar = bar,
 		model = model,
@@ -315,15 +421,18 @@ function EnemyBars.init(gui: ScreenGui)
 		task.spawn(watch, model)
 	end
 	CollectionService:GetInstanceAddedSignal("Enemy"):Connect(watch)
-	-- a breakthrough makes the same beast read less threatening
-	player:GetAttributeChangedSignal("Realm"):Connect(function()
+	-- a breakthrough makes the same beast read less threatening; a shelter starting or
+	-- ending changes how the beasts above you read
+	local function restyleAll()
 		for _, entry in watched do
 			restyle(entry)
 		end
 		if shownBoss then
 			BossBars.setTier(tierOfDef(Enemies.Defs[shownBoss:GetAttribute("EnemyType") :: string? or ""]))
 		end
-	end)
+	end
+	player:GetAttributeChangedSignal("Realm"):Connect(restyleAll)
+	player:GetAttributeChangedSignal("ShelteredBy"):Connect(restyleAll)
 
 	RunService.Heartbeat:Connect(function()
 		local now = os.clock()

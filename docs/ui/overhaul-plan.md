@@ -146,6 +146,7 @@ See [roadmap](../roadmap.md) section 3c (one card, three jobs).
 > glows (grey, jade, violet, gold). Empty centre and empty text areas.
 
 ## Phase 3: character, foundation and combat
+- *(Shelved by Phase A, [roadmap](../roadmap.md): no meter and no death-save prompt; the realm plaque glows for the qi surge.)*
 - **Foundation solidity meter:** a small addition next to the existing vitals bar (match its style, don't redraw it), with crack states (none, hairline, split,
   shattered) as overlays, and a jade "deep foundation" glow.
 - **Death-save prompt:** a large, centred tap button ("Break through to survive") with

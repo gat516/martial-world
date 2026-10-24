@@ -9,20 +9,22 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 
 | Remote | Kind | Direction | Server handler | Client user |
 |---|---|---|---|---|
-| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough", "method" id, "root" keepNew, "practiceStart/Finish/Cancel") | CirculationMinigame, BreakthroughView |
+| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough" (seated only), "surge" (the qi surge, `Cultivation.surge` -> `QiSurge.fire`), "method" id, "root" keepNew, "practiceStart/Finish/Cancel", "heartDemon", "heartDemonAnswer" choices, "heartDemonDecline": [heart-demon](systems/heart-demon.md#data); "sect", ... goes to `Sect.handle`; "title", "equip", id / "title", "unequip" goes to `Titles.handle` -> `(ok, equipped id or "")`, [titles](systems/titles.md)) | CirculationMinigame, BreakthroughView, HeartDemon |
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync; "guard" raises/lowers the guard) | CombatController |
-| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "reward" (a `Rewards.show` spec table: tier, kind, title...), "used", "bolt", "tribulationStart" (to all: player, center, strikes), "tribulationEnd", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md), "died" (`Combat.died` from Humanoid.Died: `{ cause = "enemy"/"fall"/"tribulation"/"unknown", source = enemy def id?, poisoned, respawn = seconds, hub }`; see ui/death-screen.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX, DeathScreen |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "manual", "weapon", "method", "boss", "reward" (a `Rewards.show` spec table: tier, kind, title...), "used", "bolt", "tribulationStart" (to all: player, center, strikes), "tribulationEnd", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md), "spill" (owner only: position, expires server time; the spilled haul, `Haul.died`), "spillGone" (owner: reclaimed?), "banked" (owner: Store all landed; the summary comes as a "reward" small float), "died" (`Combat.died` from Humanoid.Died: `{ cause = "enemy"/"fall"/"tribulation"/"unknown", source = enemy def id?, poisoned, respawn = seconds, hub }`; see ui/death-screen.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX, DeathScreen, HaulView |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land: shape, seconds, enemy or nil, attack name, server start time) | Telegraphs, EnemyFX |
-| PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
-| Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |
+| PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot; `foundation` = `Foundation.state`: `percent` (what the stage would get now, 100 = full, up to `max`, 200; the only form players see), `max`, `percents` (by stage key), `bonus` (summed share), `veiled` (true past `HIDDEN_FROM`, 110%: hints are empty, the rest are hidden), `hints` (up to 5 `{ category, text }`, categories Hunt, Boss, Home, Dao, Discover, World, Deed); at QC1-3 only `hidden` = true and `bonus`, see [cultivation](systems/cultivation.md#foundation-grade); `heartDemon` = `HeartDemon.state`: `open`, `name`, `atPeak`, `snoozed`, `trials`, see [heart-demon](systems/heart-demon.md#data); `titles` = `{ owned = { [id] = os.time() earned }, equipped = id or "" }`, defs in `Shared.Titles`, see [titles](systems/titles.md)) | State (everything reads State) | State (everything reads State) |
+| Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major, foundation percent of the stage left; nil leaving QC1-3) | BreakthroughView |
 | Notify | Event | S->C | toasts from everywhere | Hud |
 | QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
-| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
+| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend" (stones plus weapon Dao), "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view, "ring" itemId, inRing: a stack into or out of the spirit ring, `Haul.setRing`; "storeAll": bank the haul at a bank point, `Haul.storeAll`) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
+| PartyAction | Function | C->S | `Party.handle` ("state", "invite"/"accept"/"decline"/"kick"/"promote" userId, "leave", "card" userId, "people", "join"/"visit" userId -> `Travel.toPlayer`; [party](systems/party.md#ui-contract-to-build-ui-designer)) | none yet |
+| PartyState | Event | S->C | `Party` ("party" snapshot or nil, "invite" `{ from, name, realm, partySize, expires }`, "inviteGone" userId reason, "friendHere" `{ userId, name }`) | none yet |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only; trait* actions take a target player, see [identity](systems/identity.md)) | AdminPanel |
 | Look | Event | C->S | `HeadLook.start` (pitch, yaw in radians; rate-limited, clamped, sets the character's `Look` attribute) | HeadLook |
@@ -38,9 +40,9 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
-`BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
+`BreakthroughReady`, `BreakthroughBlock`, `SurgeReady`, `SurgeUntil` (server time), `SurgeRealm` (the qi surge, [cultivation](systems/cultivation.md#qi-surge)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)); character `Look` (head pitch and yaw, HeadLook), `WeaponClass`, `WeaponStowed`
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)), `HaulReady` (at a bank point with an unbanked haul: Store all is offered, [haul](systems/haul.md)), `InSafeZone` (sect grounds or a spirit peak, `SafeZone`), `Party` (party id, [party](systems/party.md)), `Title` and `TitleColor` (the worn title's name and rarity colour, nil for none; every namecard shows them, [titles](systems/titles.md)); character `Look` (head pitch and yaw, HeadLook), `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
 (see [enemies](systems/enemies.md), "Server and client"); workspace `Weather`,
@@ -49,9 +51,9 @@ player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/ide
 ## Server hook pattern
 
 Modules expose hook lists that `Main.server.luau` fills, which keeps modules from
-requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`,
-`.onInsightBlocked`; `EnemyService.onKill`; `Circulation.onFinished`;
-`Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Progression.onEarned`. Some are
+requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`;
+`EnemyService.onKill`; `Weapons.onLevelUp` (Progression learns kept manuals); `Circulation.onFinished`;
+`Tribulation.onFinished`; `Titles.onChanged` (the state push); `Quests.onBeat`, `.onClaimed`; `Haul.onBanked` (player, amounts, "store"/"travel"); `Travel.onTravel` (Haul banks quietly); `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
 (Meditation), `Cultivation.inCombat` (Combat), `CombatQi.fighting` (Combat), `Cultivation.startTribulation`
-(Tribulation), `Progression.slotTechnique` (Inventory).
+(Tribulation), `EnemyService.partyOf` (Party), `Cultivation.surgeStage` and `.surge` (QiSurge), `Progression.slotTechnique` (Inventory).

@@ -26,6 +26,7 @@ local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Config = require(ReplicatedStorage.Shared.Config).Build
+local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
 local MarketRange = require(script.Parent.MarketRange)
 local Menus = require(script.Parent.Menus)
@@ -242,6 +243,11 @@ end
 
 type Status = { locked: string?, note: string?, color: Color3, canBuy: boolean, canPlace: boolean, needsBuy: boolean }
 
+-- The local player's peak tier (the server's PeakTier attribute), for item caps.
+local function tier(): Peak.Tier
+	return Peak.tierById(player:GetAttribute("PeakTier")) or Config.TIERS[1]
+end
+
 local function statusOf(def: BuildItems.Def, owned: number, placed: number): Status
 	local ok, need = BuildItems.unlocked(def, realm())
 	if not ok then
@@ -254,8 +260,9 @@ local function statusOf(def: BuildItems.Def, owned: number, placed: number): Sta
 		end
 		return { note = if owned > 0 then `You own {owned}` else nil, color = NOTE_COLOR, canBuy = true, canPlace = false, needsBuy = true }
 	end
-	if def.limit and placed >= def.limit then
-		return { locked = "Limit", note = `Your peak holds at most {def.limit}`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = owned < 1 }
+	local cap = Peak.limit(tier(), def)
+	if cap and placed >= cap then
+		return { locked = "Limit", note = `Your peak holds at most {cap}`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = owned < 1 }
 	end
 	if owned < 1 then
 		if not affordable then
@@ -357,8 +364,9 @@ local function showDetail()
 		benefitLabel.Text = table.concat(benefits, "\n")
 		benefitLabel.Visible = #benefits > 0
 	end
-	local limit = if def.limit then `{placed}/{def.limit} placed` else `{placed} placed`
-	setText(detail, "InfoLabel", `{BuildCatalog.ruleText(def)}\nOwned {owned} · {limit} · peak cap {Config.MAX_ITEMS}`)
+	local cap = Peak.limit(tier(), def)
+	local limit = if cap then `{placed}/{cap} placed` else `{placed} placed`
+	setText(detail, "InfoLabel", `{BuildCatalog.ruleText(def)}\nOwned {owned} · {limit} · peak cap {tier().maxItems}`)
 	local statusLabel = find(detail, "StatusLabel") :: TextLabel?
 	if statusLabel then
 		statusLabel.Text = status.note or ""
@@ -404,8 +412,9 @@ function BuildCatalog.refresh()
 		countLabel.Text = `x{owned}`
 		countLabel.Visible = owned > 0
 		local placedLabel = find(tile, "PlacedLabel") :: TextLabel
-		placedLabel.Text = if def.limit then `{count}/{def.limit}` else tostring(count)
-		placedLabel.Visible = mode == "build" and (count > 0 or def.limit ~= nil)
+		local cap = Peak.limit(tier(), def)
+		placedLabel.Text = if cap then `{count}/{cap}` else tostring(count)
+		placedLabel.Visible = mode == "build" and (count > 0 or cap ~= nil)
 		-- the cost shows whenever buying is the way to get one
 		local showCost = mode == "shop" or owned < 1
 		local cost = find(tile, "CostLabel") :: TextLabel

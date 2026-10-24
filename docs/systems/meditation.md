@@ -7,7 +7,12 @@ circulation happen.
 ## Design intent
 - Idle-safe: you can leave it running. Where you sit matters: anywhere x1.5,
   your own peak x2.5, plus the best meditation seat or artifact within range on
-  your peak (BuildItems `meditation`), which gives building a progression payoff.
+  your peak (BuildItems `meditation`: cushion +0.75, mat +0.4, spirit stone +0.5,
+  incense +0.25), which gives building a progression payoff. On your peak the peak
+  score adds too (`Peaks.meditationBonus`: up to +0.36 at the QR cap, +0.6 at FE;
+  [build](build.md#peak-score-built-untuned)), and the garden's aura multiplies it
+  (x (1 + aura), capped by peak tier and lifted by the score; [garden](garden.md#aura)).
+  The spot carries `own` and `decor` (`Peaks.decorShare`) for `Cultivation.rate`.
 - Seated is a calm screen with the meditation menu (below): a row of tiles that
   only appear when they matter.
 - Seated locks the character: no walking, jumping or turning to the camera.
@@ -18,7 +23,7 @@ circulation happen.
 ## Key files
 - `src/server/Meditation.luau`: sessions, spot multiplier (`spotAt`, `bestItem`),
   1 s re-check; sets `Cultivation.meditation`.
-- `src/client/Meditation.luau`: the M key / tile, animations
+- `src/client/Meditation.luau`: the M key (it fires the qi surge instead while `SurgeReady`, [cultivation](cultivation.md#qi-surge)) / tile, animations
   (`Animations.Meditate`: Sit, Loop, GetUp), the seated tiles, the calm view, toasts.
 - `src/client/MeditationMenu.luau`: the Comprehend (Practice > Technique) / Method / Spirit Root panel;
   `src/client/Bottleneck.luau`: bottleneck checks and the comprehend call.
@@ -38,6 +43,7 @@ client fires `Meditate(false)`, or the server fires `Meditate(false)` to the cli
 - `Pacing.Meditation.ANYWHERE`, `ON_PEAK` (currently read through the
   `Config.Meditation` aliases).
 - `Config.Meditation.ITEM_RANGE`, `MAX_DRIFT`; BuildItems `meditation` per item.
+- `Pacing.PeakScore.MEDITATION` per point, capped by the peak tier's `scoreCap`.
 - `Meditation.luau`: `CALM_AFTER` (seconds before the HUD fades by itself),
   `TAP_DRIFT`, `TAP_SECONDS` (what counts as a tap that ends the calm view),
   `LOTUS_GAP` (px from the last seated tile to the lotus).
@@ -55,7 +61,7 @@ one row of tiles above them (`Hud.Stack.CultivatePrompt`, `src/client/Meditation
 |---|---|---|
 | Circulate | refine raw qi (the circulation minigame) | bar not full |
 | Break Through | `CultivationAction "breakthrough"` (`BreakthroughView.attempt`) | bar full (replaces Circulate) |
-| Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
+| Method (reads Seclusion without a method) | panel: on your own peak the Seclusion row first (Enter Seclusion, [seclusion](seclusion.md)), then owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation), or seated on your own peak |
 | Spirit Root | panel: the root's card and exact numbers (same text as the Self card), root pills, the reform choice; a seal dot while a choice waits | root tested |
 | Practice | swaps the row for the Practice tiles (below); a seal dot while a technique is at a bottleneck | either Practice action exists (a bottleneck, or the Dao drill is unlocked) |
 | Rise | stand up | always |
@@ -68,7 +74,7 @@ tiles in the same row (`CultivatePrompt.PracticeTechnique`, `.PracticeDao`,
 
 | Tile | Does | When it can't |
 |---|---|---|
-| Technique (`PracticeTechnique`, the gourd) | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | dimmed; toasts "No technique is at a bottleneck yet." |
+| Technique (`PracticeTechnique`, the gourd) | panel: techniques at a bottleneck, the weapon Dao they need and their stone cost, Comprehend (`InventoryAction "comprehend"`) | dimmed; toasts "No technique is at a bottleneck yet." |
 | Weapon Dao (`PracticeDao`, crossed jian) | Practice Dao drill (`CirculationMinigame.practice`); an m:ss countdown while resting, a tap toasts the wait | dimmed; toasts the stage it opens at, or that the Dao is mastered |
 | Back (`icon_back`) | back to the main row | always |
 
@@ -124,7 +130,7 @@ strikes whatever is due. Tuning: `Config.Circulation.Games.Forms` (weight 0, so
 circulation never picks it). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
 level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
 `daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
-at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
+at QR1 (`Pacing.DaoPractice.FROM`; moved from QC7 so QC teaches only the loop), never XP for sitting.
 
 *Stance (decided 2026-10-21):* once the server starts the drill the character
 gets up (Meditate `GetUp`) but stays in meditation: still locked in place, the

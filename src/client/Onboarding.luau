@@ -45,6 +45,9 @@ end
 
 local function renderBoard()
 	local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
+	if window:GetAttribute("Mode") == "Pavilion" then
+		return -- SectView has borrowed the window for the Pavilion
+	end
 	local rows: { ListWindow.Row } = {}
 	for _, g in goals do
 		table.insert(rows, {
@@ -62,6 +65,8 @@ end
 
 local function openBoard()
 	local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
+	window:SetAttribute("Mode", nil);
+	(window:FindFirstChild("Title") :: TextLabel).Text = "Quest Board"
 	renderBoard()
 	Menus.open(window)
 end
@@ -76,11 +81,17 @@ local function talk(t: any)
 		boardAt = #responses
 	end
 	table.insert(responses, { text = "Farewell.", icon = "leave", cancel = true })
+	-- walking away from him ends the conversation (a little past his prompt's reach)
+	local hub = workspace:FindFirstChild("Hub")
+	local elder = hub and hub:FindFirstChild("Elder") :: PVInstance?
+	local prompt = elder and elder:FindFirstChild("TalkPrompt", true) :: ProximityPrompt?
 	local choice = Dialogue.open({
 		speaker = "Elder Qingyun",
 		portrait = "elder_qingyun",
 		lines = t.lines,
 		responses = responses,
+		near = elder,
+		range = if prompt then prompt.MaxActivationDistance + 4 else nil,
 	})
 	if choice and choice == boardAt then
 		openBoard()
@@ -88,6 +99,9 @@ local function talk(t: any)
 end
 
 local function onState(state: any)
+	if state.sect or state.sectRankUp then
+		return -- the sect board's own payloads (SectView)
+	end
 	if state.openBoard then
 		openBoard()
 		return

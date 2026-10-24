@@ -42,6 +42,7 @@ local RunService = game:GetService("RunService")
 
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
+local ContextTile = require(script.Parent.ContextTile)
 local GuideFX = require(script.Parent.GuideFX)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -55,7 +56,8 @@ local BUTTONS: { [string]: { string } } = {
 	Cultivate = { "Buttons", "CultivateButton" },
 	Self = { "Buttons", "SelfButton" },
 	Inventory = { "Buttons", "InventoryButton" },
-	Travel = { "Buttons", "TravelButton" },
+	Travel = { "Buttons", "ContextButton" }, -- the contextual tile, asked to show Travel (ContextTile.prefer)
+	Build = { "Buttons", "ContextButton" }, -- the Build lesson (QR2): the contextual tile reads Build on your own peak
 	Attack = { "Play", "AttackButton" },
 	Circulate = { "Stack", "CultivatePrompt", "Circulate" },
 	Breakthrough = { "Stack", "CultivatePrompt", "Breakthrough" },
@@ -66,6 +68,10 @@ local BUTTONS: { [string]: { string } } = {
 	Method = { "Stack", "CultivatePrompt", "Method" },
 	SpiritRoot = { "Stack", "CultivatePrompt", "Root" },
 }
+-- the hotbar's slots, "Slot1".."Slot9" (the Cast beat points at the new technique's)
+for i = 1, 9 do
+	BUTTONS[`Slot{i}`] = { "Stack", "Hotbar", "Slots", `Slot{i}` }
+end
 
 -- Tiles inside the seated Practice row -> the main-row tile that opens it.
 local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeDao = "Practice" }
@@ -73,7 +79,7 @@ local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeD
 -- Controls inside a window -> the key of the control that opens that window.
 -- The control itself carries the attribute GuideKey = <key> (set by the window's
 -- script on the row it builds, e.g. MeditationMenu's pill rows).
-local INSIDE: { [string]: string } = { RootPill = "SpiritRoot" }
+local INSIDE: { [string]: string } = { RootPill = "SpiritRoot", Seclusion = "Method" }
 
 local HOLE_PAD = 6 -- clear space around the control before the veil starts
 local HOLE_FADE = 24 -- the hole art's soft edge (48px corners at SliceScale 0.5)
@@ -343,8 +349,10 @@ local function placeSpotlight(button: GuiButton)
 	local pos, size = baseBox(button)
 	pos -= origin
 	local margin = HOLE_PAD + HOLE_FADE
-	local l, t = pos.X - margin, pos.Y - margin
-	local r, b = pos.X + size.X + margin, pos.Y + size.Y + margin
+	-- whole pixels: the pulse puts the control on fractional ones, and the veil's
+	-- pieces then round apart or over each other (a seam flickering with the pulse)
+	local l, t = math.round(pos.X - margin), math.round(pos.Y - margin)
+	local r, b = math.round(pos.X + size.X + margin), math.round(pos.Y + size.Y + margin)
 	hole.Position = UDim2.fromOffset(l, t)
 	hole.Size = UDim2.fromOffset(r - l, b - t)
 	sides.Top.Position = UDim2.fromOffset(-FAR, -FAR)
@@ -466,6 +474,10 @@ local function pickPlace(key: string, from: Vector3): Instance?
 		return nearest(CollectionService:GetTagged("Enemy"), from, Hitbox.alive)
 	elseif key == "WeaponRack" then
 		return nearest(CollectionService:GetTagged("WeaponRack"), from)
+	elseif key == "MyPeak" then
+		-- your own peak's plateau (the testbed's refine spot, with no arrays to ride)
+		local peak = MyPeak.model()
+		return peak and peak:FindFirstChild("Plateau")
 	elseif key == "Garden" then
 		local peak = MyPeak.model()
 		return nearest(CollectionService:GetTagged("HerbPlot"), from, function(plot)
@@ -631,6 +643,9 @@ function Guide.set(g: any, elderLine: string?)
 	end
 	if key ~= oldKey then
 		guide = g
+		-- the contextual tile shows Travel while the guide points at it (your peak
+		-- would otherwise offer Build there)
+		ContextTile.prefer(if g and g.button == "Travel" then "Travel" else nil)
 		pressed = nil
 		lastPick = -math.huge
 		place = nil

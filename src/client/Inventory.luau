@@ -8,6 +8,10 @@
 --     universal arts, then the rest), each art its glyph on a seal disc.
 --   Pouch: one section per kind of item (herbs, cores, treasures, pills).
 -- The class rail and the search box (InventoryFilter) narrow every tab.
+-- After the tabs, a book tab (Tabs.HerbariumTab, the book-and-leaf glyph, leaf green)
+-- opens the Herbarium; closing the book comes back here (user, 2026-10-24: the
+-- Herbarium left the tile row for the Inventory). On a touch phone the search box
+-- goes (chips only, design review 2026-10-23) and the book tab has its room.
 -- Every cell is a plain slot with its rarity in colour (SlotArt, Rarity: bronze,
 -- silver, jade, violet, gold), names show under it (one size, two lines, then
 -- truncated), arts wear their class glyph, the weapon in hand its seal,
@@ -21,18 +25,23 @@
 -- Taps: choose a cell, then tap a hotbar slot (place it) or the weapon slot
 -- (wield it). With nothing placeable chosen, tapping a slot shows it here.
 -- A chosen art shows its level and XP bar; at a bottleneck (Techniques.bottleneck)
--- the bar turns cinnabar, the cost rows show, and Comprehend sits beside the
--- hotbar button (Bottleneck holds the shared logic).
+-- the bar turns cinnabar, the cost rows (weapon Dao, Spirit Stones) show, and
+-- Comprehend sits beside the hotbar button (Bottleneck holds the shared logic).
+-- A manual kept until its weapon Dao is reached (techniques.manuals) sits in
+-- Arts with "Dao N" in its corner; its detail says what it requires and shows
+-- that Dao's progress. It can't go on the hotbar until it's learned.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Bottleneck = require(script.Parent.Bottleneck)
 local Fresh = require(script.Parent.Fresh)
+local Herbarium = require(script.Parent.Herbarium)
 local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
 local InventoryFilter = require(script.Parent.InventoryFilter)
@@ -75,7 +84,6 @@ local COUNT = Color3.fromRGB(240, 242, 236)
 local BAR_GOLD = ColorSequence.new(Color3.fromRGB(246, 214, 140), Color3.fromRGB(178, 124, 52))
 local BAR_CINNABAR = ColorSequence.new(Color3.fromRGB(240, 120, 84), Color3.fromRGB(150, 46, 32))
 local STONE_ICON = "rbxassetid://93333997810513"
-local INSIGHT_ICON = "rbxassetid://88194737623136"
 local TIER_NAMES = { "Tier I", "Tier II", "Tier III", "Mastery" }
 local FIST_BLURB = "Palm and fist, always at hand. Choosing them puts your weapon away."
 local CATEGORY_ORDER = { "Herb", "Pill", "Core", "Treasure" }
@@ -97,6 +105,7 @@ local info: ScrollingFrame
 local actions: Frame
 local primary: ImageButton
 local secondary: ImageButton
+local ringButton: ImageButton -- items only: put the stack in the spirit ring or take it out
 local tabButtons: { [Tab]: ImageButton } = {}
 local daoList: Frame
 local daoRows: { [string]: Frame } = {}
@@ -104,9 +113,10 @@ local tab: Tab = "Weapons"
 local selected: string? = nil
 local shownEquipped: string? = nil -- the weapon in hand at the last render, to pop its seal when it changes
 local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate clone)
-local costRows: { insight: Frame, stones: Frame }
+local costRows: { dao: Frame, stones: Frame }
 local cells: { [string]: GuiObject } = {} -- the grid's cells by id, for NEW refreshes
 local newDot: GuiObject? -- the Inventory tile's NEW count
+local fitHotbar: () -> () -- phones: raise or lower the hotbar for the current choice (with the layout below)
 
 local function invoke(...: any)
 	local ok, message = inventoryRemote:InvokeServer(...)
@@ -131,6 +141,12 @@ local function isWeapon(id: string?): boolean
 end
 
 local gateOf = Bottleneck.gateOf
+
+-- A manual found but not learned yet (its weapon Dao isn't there).
+local function heldManual(id: string?): boolean
+	local manuals = State.current.techniques.manuals
+	return id ~= nil and manuals ~= nil and manuals[id] == true and State.current.techniques.owned[id] == nil
+end
 
 local function nameOf(id: string): string
 	local item = Items.Defs[id]
@@ -239,7 +255,7 @@ local function artSections(): { Section }
 	local s = State.current
 	local byClass: { [string]: Section } = {}
 	for _, id in Techniques.Order do
-		if s.techniques.owned[id] then
+		if s.techniques.owned[id] or heldManual(id) then
 			local key = SlotArt.techniqueClass(id) or "Any"
 			byClass[key] = byClass[key] or classSection(key)
 			table.insert(byClass[key].entries, id)
@@ -322,6 +338,11 @@ local function newCounts(): { [Tab]: number }
 	for id in s.techniques.owned do
 		count("Arts", id)
 	end
+	for id in s.techniques.manuals or {} do
+		if heldManual(id) then
+			count("Arts", id)
+		end
+	end
 	for _, id in Items.Order do
 		if Items.count(s, id) > 0 then
 			count("Pouch", id)
@@ -403,7 +424,7 @@ end
 -- The Dao rows: every class (only == nil) or just one.
 local function renderDao(only: string?, animate: boolean)
 	techniqueRow.Visible = false
-	costRows.insight.Visible = false
+	costRows.dao.Visible = false
 	costRows.stones.Visible = false;
 	(daoList:FindFirstChild("Header") :: GuiObject).Visible = only == nil
 	local _, equipped, dao = weaponState()
@@ -432,7 +453,7 @@ local function setHeader(id: string?)
 		return
 	end
 	local preview = header:FindFirstChild("Preview") :: GuiObject
-	SlotArt.paint(preview, id, nil, "")
+	SlotArt.paint(preview, id, nil, "", true)
 	local rarity = Rarity.of(id)
 	label("NameLabel").Text = nameOf(id)
 	local gradeRow = header:FindFirstChild("GradeRow", true) :: Frame
@@ -473,55 +494,43 @@ local function setText(name: string, text: string, color: Color3?)
 	end
 end
 
--- Where it is, in plain words.
+-- Where it is, in plain words; nothing when it's off the bar (how to slot things is
+-- not repeated under every description).
 local function placeText(id: string): string
-	local touch = Platform.isTouch()
 	local at = table.find(State.current.hotbar, id)
-	if at then
-		return `On your hotbar, slot {at}.`
-	end
-	return if touch
-		then "Not on your hotbar. Tap a hotbar slot to put it there."
-		else "Not on your hotbar. Drag it onto a slot to use it."
+	return if at then `On your hotbar, slot {at}.` else ""
+end
+
+-- The spirit ring (server Haul, docs/systems/haul.md): the ids kept safe even in
+-- the wilds, its size by realm, and whether an item is rare enough to be safe anyway
+-- (the server refuses those).
+local function ringState(): ({ string }, number)
+	local s = State.current :: any
+	return s.ring or {}, s.ringSlots or 0
+end
+
+local function safeFind(id: string): boolean
+	local item = Items.Defs[id]
+	local rarity = item and Items.Rarities[item.rarity]
+	return rarity ~= nil and rarity.order >= Pacing.Haul.SAFE_RARITY
 end
 
 local function showActions(shown: boolean)
 	actions.Visible = shown
+	ringButton.Visible = false -- the item branch shows it
 	info.Size = if shown then UDim2.new(1, 0, 1, -46) else UDim2.fromScale(1, 1)
 end
 
 local function renderWeaponDetail(id: string, animate: boolean)
 	local owned = weaponState()
 	local held = heldId()
-	local touch = Platform.isTouch()
 	local isHeld = id == held
 	local classId = Weapons.classOf(id)
 	local class = Weapons.Classes[classId]
 	local def = Weapons.Defs[id]
 	showActions(false)
 	daoList.Visible = true
-	if id == Weapons.FIST then
-		setText(
-			"Status",
-			if isHeld
-				then "In use: no weapon in hand."
-				elseif touch then "Tap the weapon slot, left of the hotbar, to put your weapon away."
-				else "Drag onto the weapon slot, left of the hotbar, to put your weapon away.",
-			STATUS
-		)
-	elseif isHeld then
-		setText(
-			"Status",
-			if touch then "In your hand. Tap the weapon slot to put it away." else "In your hand. Drag it off the weapon slot to put it away.",
-			STATUS
-		)
-	else
-		setText(
-			"Status",
-			if touch then "Tap the weapon slot, left of the hotbar, to wield it." else "Drag it onto the weapon slot, left of the hotbar, to wield it.",
-			STATUS
-		)
-	end
+	setText("Status", if isHeld then (if id == Weapons.FIST then "In use: no weapon in hand." else "In your hand.") else "", STATUS)
 	-- the arts that go with it
 	local arts = {}
 	for _, techniqueId in Techniques.Order do
@@ -559,9 +568,20 @@ end
 
 -- The art's level row (tier, Lv, XP bar) and, at a bottleneck, its cost rows and
 -- the Comprehend button (Secondary), which names what's missing while it can't.
+-- The Dao cost row: the class's glyph and Dao name ("Weapon Dao" for an
+-- any-weapon art, which counts the highest class), "need · you have".
+local function paintDaoCost(technique: any, gate: Bottleneck.Gate)
+	local classId = SlotArt.techniqueClass(technique.id)
+	local row = costRows.dao
+	local icon = row:FindFirstChild("Icon") :: ImageLabel
+	icon.Image = if classId then SlotArt.classGlyph(classId) else ""
+	icon.ImageColor3 = SlotArt.classColor(classId or "Any");
+	(row:FindFirstChild("NameLabel") :: TextLabel).Text = if classId then Weapons.Classes[classId].dao else "Weapon Dao"
+	paintCost(row, gate.dao, gate.daoHave)
+end
+
 local function renderTechnique(technique: any, owned: State.Technique, animate: boolean)
-	local s = State.current
-	local gate = gateOf(owned)
+	local gate = gateOf(technique.id, owned)
 	daoList.Visible = true
 	for _, row in daoRows do
 		row.Visible = false
@@ -599,7 +619,7 @@ local function renderTechnique(technique: any, owned: State.Technique, animate: 
 	end
 	secondary.Visible = gate ~= nil
 	if gate then
-		paintCost(costRows.insight, gate.insight, s.insight or 0)
+		paintDaoCost(technique, gate)
 		paintCost(costRows.stones, gate.stones, stones())
 		local short = Bottleneck.block(gate)
 		secondary.Image = if short then BUTTON_LACQUER else BUTTON_JADE
@@ -608,7 +628,7 @@ local function renderTechnique(technique: any, owned: State.Technique, animate: 
 		text.Text = short or "Comprehend"
 		text.TextTransparency = if short then 0.3 else 0
 	else
-		costRows.insight.Visible = false
+		costRows.dao.Visible = false
 		costRows.stones.Visible = false
 	end
 end
@@ -622,9 +642,11 @@ local function renderDetail(animate: boolean?)
 	local item = id and Items.Defs[id]
 	local technique = id and Techniques.Defs[id]
 	local ownedArt = technique and s.techniques.owned[technique.id]
+	local held = technique ~= nil and heldManual(technique.id)
 	local owned = weaponState()
 	local valid = (item ~= nil and Items.count(s, item.id) > 0)
 		or ownedArt ~= nil
+		or held
 		or id == Weapons.FIST
 		or (id ~= nil and (owned[id] or 0) > 0)
 	if not valid then
@@ -635,7 +657,9 @@ local function renderDetail(animate: boolean?)
 	if not id then
 		-- nothing chosen: what Dao comprehension stands at, on the Weapons tab
 		showActions(false)
-		setText("Status", "")
+		-- the Pouch's ring view: how many of its stacks are kept safe
+		local ring, slots = ringState()
+		setText("Status", if tab == "Pouch" and slots > 0 then `Spirit ring: {#ring}/{slots} stacks kept safe.` else "", STATUS)
 		setText("Pairs", "")
 		setText("Blurb", "")
 		setText("Lore", "")
@@ -653,8 +677,23 @@ local function renderDetail(animate: boolean?)
 	if item then
 		daoList.Visible = false
 		local count = Items.count(s, item.id)
-		setText("Status", placeText(item.id) .. (if count > 1 then ` You have {count}.` else ""), STATUS)
-		setText("Pairs", "")
+		local place = placeText(item.id)
+		local have = if count > 1 then `You have {count}.` else ""
+		setText("Status", if place ~= "" and have ~= "" then `{place} {have}` else place .. have, STATUS)
+		-- the spirit ring: the Ring button puts the stack in (its label counts the
+		-- slots) or takes it out; rare finds are safe without it
+		local ring, slots = ringState()
+		local inRing = table.find(ring, item.id) ~= nil
+		local safe = safeFind(item.id)
+		setText(
+			"Pairs",
+			if inRing then `In your spirit ring ({#ring}/{slots}): safe even in the wilds.`
+				elseif safe then "A rare find: it never spills, ring or not."
+				else "",
+			STATUS
+		)
+		ringButton.Visible = slots > 0 and (inRing or not safe)
+		caption(ringButton).Text = if inRing then "Take out" else `Ring {#ring}/{slots}`
 		setText("Blurb", item.blurb)
 		setText("Lore", item.lore or "")
 		primary.Visible = true
@@ -684,6 +723,17 @@ local function renderDetail(animate: boolean?)
 		primary.Visible = true
 		caption(primary).Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
 		renderTechnique(technique, ownedArt, animate == true)
+	elseif technique and held then
+		-- a kept manual: what it requires, and that Dao's progress below
+		showActions(false)
+		local need = Techniques.learnDao(technique)
+		local have = Bottleneck.daoLevel(technique.id)
+		setText("Status", "A manual you can't learn yet. You will learn it the moment your Dao is deep enough.", STATUS)
+		setText("Pairs", `Requires {Techniques.daoText(technique, need)}. Yours is {have}.`, STATUS_WARN)
+		setText("Blurb", technique.blurb)
+		setText("Lore", "")
+		daoList.Visible = true
+		renderDao(SlotArt.techniqueClass(technique.id), animate == true)
 	end
 end
 
@@ -709,18 +759,20 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 		SlotArt.paint(cell, id, owned[id])
 	elseif technique then
 		local known = s.techniques.owned[id]
-		SlotArt.paint(cell, id, nil, `Lv {known.level}`);
-		(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = if gateOf(known) then BOTTLENECK else COUNT
+		if known then
+			SlotArt.paint(cell, id, nil, `Lv {known.level}`);
+			(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = if gateOf(id, known) then BOTTLENECK else COUNT
+		else
+			-- a kept manual: the Dao it waits on
+			SlotArt.paint(cell, id, nil, `Dao {Techniques.learnDao(technique)}`);
+			(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = STATUS_WARN
+		end
 	else
-		SlotArt.paint(cell, id, Items.count(s, id))
+		SlotArt.paint(cell, id, Items.count(s, id), nil, true) -- herbs and pills as their models
 	end
-	-- the class glyph on arts (a weapon shows its model)
-	local badge = cell:FindFirstChild("WeaponBadge") :: ImageLabel
-	if technique then
-		SlotArt.gate(cell, id, true)
-	else
-		badge.Visible = false
-	end
+	-- the jade 戒 seal on Pouch stacks in the spirit ring (top-left, opposite NEW)
+	local ring = ringState();
+	(cell:FindFirstChild("RingMark") :: GuiObject).Visible = not weapon and technique == nil and table.find(ring, id) ~= nil
 	local mark = cell:FindFirstChild("EquipMark") :: ImageLabel
 	mark.Visible = weapon and id == held
 	if mark.Visible and equipChanged then
@@ -755,7 +807,7 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 		end
 	end)
 	HotbarView.draggable(cell, function()
-		return id
+		return if heldManual(id) then nil else id
 	end)
 	cells[id] = cell
 	return cell
@@ -831,6 +883,7 @@ local function render(animate: boolean?)
 	empty.Visible = listed == 0
 	renderDetail(animate)
 	refreshNew()
+	fitHotbar()
 end
 Inventory.render = render
 
@@ -846,7 +899,7 @@ local function tapSlot(i: number): boolean
 		HotbarView.equipWeapon(id)
 		return true
 	end
-	if id and (Techniques.Defs[id] or Items.Defs[id]) and not table.find(s.hotbar, id) then
+	if id and (Techniques.Defs[id] or Items.Defs[id]) and not heldManual(id) and not table.find(s.hotbar, id) then
 		invoke("slot", id, i)
 		return true
 	end
@@ -896,6 +949,14 @@ local function onPrimary()
 	end
 end
 
+local function onRing()
+	local id = selected
+	if id and Items.Defs[id] then
+		local ring = ringState()
+		invoke("ring", id, table.find(ring, id) == nil)
+	end
+end
+
 local function onSecondary()
 	if selected and Techniques.Defs[selected] then
 		Bottleneck.comprehend(selected)
@@ -913,16 +974,147 @@ end
 -- top-left never crowds Roblox's menu and chat buttons and the bar's row stays free
 -- for toasts. The title plaque (which rides on the window's top edge) is left out
 -- there: it would reach back into the bar, and the chosen tab already says where
--- you are.
+-- you are; the header rows (tabs, search, rail, sort) and the grid move up into
+-- its room, so the grid gets the height.
+-- Phone pass (user's device-emulator playtest, 2026-10-23: "the phone view got
+-- fucked up for inventory"): Platform.topbar read the bar 116 px deep (since
+-- fixed: it mixed two coordinate spaces) and a fixed 70 px hotbar allowance left
+-- ~40 px unused, so the window was 170 px tall with a 30 px grid. The bar's depth
+-- is also capped at TOPBAR_MAX (Roblox's 58 px bar), and the window runs down to
+-- the hotbar's real top.
+-- Phones (Platform.isSmall, 2026-10-24: "it's cramped"): the window is ~250 px tall
+-- there and two header rows left the grid one row of cells, so the rail and sort
+-- join the tabs in one toolbar row (rail scrolling sideways between them, sort by
+-- the close seal) and the search box is left out (a phone keyboard would cover the
+-- window anyway; the rail still narrows every tab). Grid, divider and detail start
+-- right under that row.
+-- Phones (2026-10-24, "just hide the whole hud so the inventory can take up more"):
+-- the hotbar is hidden while browsing and the window runs to the screen's bottom.
+-- Choosing anything that can go on the bar (a weapon, an art, an item), or picking
+-- one up to drag, brings the hotbar back and the window eases up to make room for
+-- it, keeping the chosen cell in view: the slots rising is the cue (the detail pane
+-- gives no how-to). A drop chooses what was dropped, so the bar stays to show it landed.
+-- Choosing nothing (tapping the chosen cell again, another tab) lowers it again.
 local TOUCH_TOP_GAP = 6
-local TOUCH_HOTBAR_ROOM = 70
+local TOUCH_BOTTOM_GAP = 8 -- the window's bottom while the hotbar is away
+local TOPBAR_MAX = 58
+local TOUCH_HOTBAR_GAP = 12 -- above the hotbar's top (the weapon slot's caption pokes 7 px up)
+local TOUCH_HOTBAR_ROOM = 70 -- fallback when the hotbar can't be measured
+local PLAQUE_ROOM = 22 -- how much higher the header rows sit without the plaque
+local SHIFTED = { "Tabs", "Search", "Rail", "SortButton", "Grid", "Empty", "Divider" }
+local GROWN = { Grid = true, Divider = true } -- keep their bottom where it was
+local TOOLBAR_GAP = 8 -- between the tabs, rail and sort in the phone toolbar row
+local TOOLBAR_SORT_WIDTH = 96
+local TOOLBAR_CLOSE_ROOM = 54 -- from the window's right edge to the sort button (the close seal)
+local BODY_GAP = 8 -- from the toolbar row's bottom to the grid and detail
+
+-- Phones: one toolbar row (see above). Runs once, after the plaque shift.
+local function compactHeader()
+	local tabs = window:FindFirstChild("Tabs") :: Frame
+	local rail = window:FindFirstChild("Rail") :: GuiObject
+	local sort = window:FindFirstChild("SortButton") :: GuiObject
+	local railLeft = tabs.Position.X.Offset + tabs.Size.X.Offset + TOOLBAR_GAP
+	local rowCentre = tabs.Position.Y.Offset + tabs.Size.Y.Offset / 2;
+	(window:FindFirstChild("Search") :: GuiObject).Visible = false
+	sort.AnchorPoint = Vector2.new(1, 0.5)
+	sort.Position = UDim2.new(1, -TOOLBAR_CLOSE_ROOM, 0, rowCentre)
+	sort.Size = UDim2.fromOffset(TOOLBAR_SORT_WIDTH, sort.Size.Y.Offset)
+	rail.AnchorPoint = Vector2.new(0, 0.5)
+	rail.Position = UDim2.fromOffset(railLeft, rowCentre)
+	rail.Size = UDim2.new(1, -(railLeft + TOOLBAR_GAP + TOOLBAR_SORT_WIDTH + TOOLBAR_CLOSE_ROOM), 0, rail.Size.Y.Offset)
+	-- the grid, divider and detail start under the row, keeping their bottom edge;
+	-- the empty note rides with the grid
+	local bodyTop = rowCentre + rail.Size.Y.Offset / 2 + BODY_GAP
+	local rise = (window:FindFirstChild("Grid") :: GuiObject).Position.Y.Offset - bodyTop
+	for _, name in { "Grid", "Divider", "Detail", "Empty" } do
+		local part = window:FindFirstChild(name) :: GuiObject
+		local p, s = part.Position, part.Size
+		local by = if name == "Empty" then rise else p.Y.Offset - bodyTop
+		part.Position = UDim2.new(p.X, UDim.new(p.Y.Scale, p.Y.Offset - by))
+		if name ~= "Empty" then
+			part.Size = UDim2.new(s.X, UDim.new(s.Y.Scale, s.Y.Offset + by))
+		end
+	end
+end
+
+local peek = false -- phones: the hotbar shows only while wanted
+local shortHeight = 0 -- the window's height with the hotbar up, and without it
+local fullHeight = 0
+
+local function hotbarWanted(): boolean
+	return HotbarView.dragging() ~= nil or (selected ~= nil and not heldManual(selected))
+end
+
+fitHotbar = function()
+	if not peek then
+		return
+	end
+	local want = hotbarWanted()
+	if Menus.isOpen(window) then
+		Menus.refresh()
+	end
+	local height = if want then shortHeight else fullHeight
+	local size = UDim2.new(window.Size.X, UDim.new(0, height))
+	if window.Size == size then
+		return
+	end
+	local shrink = window.Size.Y.Offset - height
+	if not window.Visible then
+		window.Size = size
+		return
+	end
+	-- keep the chosen cell above the hotbar (read next frame: render just rebuilt it)
+	local gridBottom = grid.AbsolutePosition.Y + grid.AbsoluteSize.Y - shrink
+	Motion.ease(window, { Size = size })
+	local cell = selected and cells[selected]
+	if shrink > 0 and cell then
+		task.defer(function()
+			local over = cell.AbsolutePosition.Y + cell.AbsoluteSize.Y - gridBottom
+			if over > 0 and cell.Parent then
+				Motion.ease(grid, { CanvasPosition = grid.CanvasPosition + Vector2.new(0, over) })
+			end
+		end)
+	end
+end
+
+local shifted = false
 local function layout()
-	if Platform.isTouch() then
-		local top = Platform.topbar(window.Parent :: GuiBase2d) + TOUCH_TOP_GAP
-		window.AnchorPoint = Vector2.new(0.5, 0)
-		window.Position = UDim2.new(0.5, 0, 0, top)
-		window.Size = UDim2.new(0.94, 0, 1, -(top + TOUCH_HOTBAR_ROOM));
-		(window:FindFirstChild("TitlePlaque") :: GuiObject).Visible = false
+	if not Platform.isTouch() then
+		return
+	end
+	local parent = window.Parent :: GuiBase2d
+	local top = math.min(Platform.topbar(parent), TOPBAR_MAX) + TOUCH_TOP_GAP
+	local stack = parent:FindFirstChild("Stack")
+	local hotbar = stack and stack:FindFirstChild("Hotbar") :: GuiObject?
+	local bottom = parent.AbsoluteSize.Y - TOUCH_HOTBAR_ROOM
+	if hotbar and hotbar.AbsoluteSize.Y > 0 then
+		bottom = hotbar.AbsolutePosition.Y - parent.AbsolutePosition.Y - TOUCH_HOTBAR_GAP
+	end
+	window.AnchorPoint = Vector2.new(0.5, 0)
+	window.Position = UDim2.new(0.5, 0, 0, top)
+	window.Size = UDim2.new(1, -16, 0, math.max(0, bottom - top));
+	(window:FindFirstChild("TitlePlaque") :: GuiObject).Visible = false
+	if Platform.isSmall() then
+		peek = true
+		shortHeight = math.max(0, bottom - top)
+		fullHeight = math.max(0, parent.AbsoluteSize.Y - TOUCH_BOTTOM_GAP - top)
+		window.Size = UDim2.new(1, -16, 0, if hotbarWanted() then shortHeight else fullHeight)
+	end
+	if not shifted then
+		shifted = true
+		for _, name in SHIFTED do
+			local part = window:FindFirstChild(name) :: GuiObject?
+			if part then
+				local p, s = part.Position, part.Size
+				part.Position = UDim2.new(p.X, UDim.new(p.Y.Scale, p.Y.Offset - PLAQUE_ROOM))
+				if GROWN[name] then
+					part.Size = UDim2.new(s.X, UDim.new(s.Y.Scale, s.Y.Offset + PLAQUE_ROOM))
+				end
+			end
+		end
+		if Platform.isSmall() then
+			compactHeader()
+		end
 	end
 end
 
@@ -973,7 +1165,7 @@ function Inventory.init(gui: ScreenGui)
 		return row
 	end
 	costRows = {
-		insight = costRow("Insight", INSIGHT_ICON, 2),
+		dao = costRow("Weapon Dao", "", 2),
 		stones = costRow("Spirit Stones", STONE_ICON, 3),
 	}
 	actions = detail:FindFirstChild("Actions") :: Frame
@@ -981,10 +1173,16 @@ function Inventory.init(gui: ScreenGui)
 	secondary = actions:FindFirstChild("Secondary") :: ImageButton
 	primary.Activated:Connect(onPrimary)
 	secondary.Activated:Connect(onSecondary)
+	ringButton = actions:FindFirstChild("Ring") :: ImageButton
+	ringButton.Activated:Connect(onRing)
 	InventoryFilter.init(window, function()
 		render()
 	end)
-	Menus.register(window, { keepHotbar = true })
+	Menus.register(window, {
+		keepHotbar = function()
+			return not peek or hotbarWanted()
+		end,
+	})
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
 	for _, name in TABS do
@@ -998,6 +1196,16 @@ function Inventory.init(gui: ScreenGui)
 				render()
 			end
 		end)
+	end
+	-- the book tab: the Herbarium, and back here when it closes
+	local bookTab = tabs:FindFirstChild("HerbariumTab") :: GuiButton
+	bookTab.Activated:Connect(function()
+		Herbarium.openMine(function()
+			setOpen(true)
+		end)
+	end)
+	if Platform.isTouch() and Platform.isSmall() then
+		(window:FindFirstChild("Search") :: GuiObject).Visible = false
 	end
 	local tile = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("InventoryButton") :: TextButton
 	newDot = tile:FindFirstChild("NewDot") :: GuiObject?
@@ -1037,6 +1245,17 @@ function Inventory.init(gui: ScreenGui)
 	end)
 	HotbarView.tapSlot = tapSlot
 	HotbarView.tapWeapon = tapWeapon
+	HotbarView.dragChanged = function(id: string)
+		if not peek or not window.Visible then
+			return
+		end
+		if HotbarView.dragging() == nil and selected ~= id then
+			choose(id) -- dropped: choose it, so the bar stays up to show where it went
+			render()
+		else
+			fitHotbar()
+		end
+	end
 	Players.LocalPlayer:GetAttributeChangedSignal("Weapon"):Connect(function()
 		if window.Visible then
 			render()

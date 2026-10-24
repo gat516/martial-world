@@ -264,6 +264,8 @@ local function watch(model: Instance)
 	end
 	local kind = model:GetAttribute("EnemyType")
 	local bodyName = model:GetAttribute("Template") or kind
+	local variantScale = model:GetAttribute("Scale")
+	variantScale = if type(variantScale) == "number" and variantScale > 0 then variantScale else 1
 	local family = FAMILIES[bodyName :: string]
 	if family and family.fox and not foxConfigured then
 		-- read the tails' ExtendAxis / ExtendMax / pivots from the unrotated template once
@@ -279,10 +281,12 @@ local function watch(model: Instance)
 		root = root,
 		joints = joints,
 		phase = math.random() * math.pi * 2,
-		-- big rigs (the Elder Wolf King) stride slower
-		scale = if family then family.scale else math.max(1, root.Size.Y / 2),
+		-- big rigs (the Elder Wolf King) stride slower; a realm variant's body is scaled by
+		-- its Scale attribute (EnemyMotion), so its root translations and strides are too
+		scale = if family then family.scale * variantScale else math.max(1, root.Size.Y / 2),
 		family = family,
-		def = if type(kind) == "string" then Enemies.Defs[kind] else nil,
+		-- a realm variant's own windups and recovers (they match the base def's; Enemies.forModel)
+		def = Enemies.forModel(model),
 		seed = math.random() * 100,
 		lastState = nil,
 		blendPose = nil,
@@ -518,19 +522,19 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 			targetYaw = math.atan2(-toTarget.X, -toTarget.Z),
 		}
 		if not poses.USES_HISTORY then -- serpents advance their wave in stepFamily
-			rig.phase += poses.gaitRate("circle", speed, family.scale) * dt
+			rig.phase += poses.gaitRate("circle", speed, rig.scale) * dt
 		end
 		return poses.loops.circle(rig.phase, speed, withExtras(rig, family, input))
 	elseif family.turnInPlace and speed < 0.6 and math.abs(rig.yawRate or 0) > 0.25 then
 		-- a standing turn: the feet shuffle round (+1 turns left, the way yaw increases)
-		rig.phase += poses.gaitRate("circle", 1, family.scale) * dt
+		rig.phase += poses.gaitRate("circle", 1, rig.scale) * dt
 		return poses.loops.circle(rig.phase, 1, withExtras(rig, family, { dir = if (rig.yawRate :: number) > 0 then 1 else -1, seed = rig.seed }))
 	elseif speed < 0.6 then
 		return poses.loops.idle(os.clock(), speed, withExtras(rig, family, { seed = rig.seed }))
 	end
 	local loop = if speed <= family.runFrom then "walk" else "run"
 	if not poses.USES_HISTORY then -- serpents advance their wave in stepFamily, in every state
-		rig.phase += poses.gaitRate(loop, speed, family.scale) * dt
+		rig.phase += poses.gaitRate(loop, speed, rig.scale) * dt
 	end
 	return poses.loops[loop](rig.phase, speed, withExtras(rig, family, { seed = rig.seed }))
 end
@@ -571,7 +575,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		-- through a windup (the move unwinds the coil it started from) and restarts after any
 		-- other keyed state, so a recover hands over to the S the move ended in.
 		if speed >= 0.6 then
-			rig.phase += family.poses.gaitRate(loop, speed, family.scale) * dt
+			rig.phase += family.poses.gaitRate(loop, speed, rig.scale) * dt
 			if (rig.still or 0) > 0 then
 				rig.rested = math.min(rig.still :: number, rig.calm or math.huge)
 				rig.travel = 0
@@ -670,8 +674,8 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 	if not target then
 		target = loopPose(rig, family, dt)
 	end
-	if family.scale ~= 1 then
-		target = family.poses.scaled(target, family.scale)
+	if rig.scale ~= 1 then
+		target = family.poses.scaled(target, rig.scale)
 	end
 	local alpha = math.min(1, dt * (if keyed then MOVE_SMOOTHING else (family.loopSmoothing or SMOOTHING)))
 	local blend = if family.keyedBlend then math.clamp(since / family.keyedBlend, 0, 1) else 1

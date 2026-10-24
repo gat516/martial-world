@@ -29,6 +29,9 @@ FAIL, one eye-level sheet (day and night). A brief missing a field from
 
 ## Read first
 
+- **Sect redo (main peak, spirit peaks):** [docs/map/new_build.md](../../docs/map/new_build.md)
+  is the brief. Don't read the old `main-peak.md` or `spirit-peaks.md` unless the user
+  says to.
 - `docs/systems/map.md` (core: layout, art direction, palette, lighting, hard
   constraints), then only the `docs/map/` file for your area; write what you
   learn into it. `docs/map/asset-catalogue.md` for dressing,
@@ -140,7 +143,13 @@ Nothing floats, sinks or hangs off an edge. For every placed prop:
 ## What to build with
 
 Meshes for shapes people look at, terrain for ground people walk on, parts for
-buildings.
+buildings, the library for greenery. One rule for every area (user, 2026-10-24:
+go-backs are expensive). Landforms go by size (2026-10-24): large special shapes
+(rock pillars, a hero spire) are Blender meshes; bulk landforms (valleys, mountains,
+cliffs) are smooth terrain; small rock is the library's boulders, enlarged and mixed
+([new_build](../../docs/map/new_build.md)).
+- **Greenery:** the library's trees, bushes and foliage first ("Assets" below); a
+  Blender mesh when nothing fits.
 - **Meshes** (the `mesh-pipeline` skill): peaks, spires, cliffs, floating
   islands, rock formations, crisp columns, overhang lips. Mesh collision is
   approximate, so keep walkable tops simple or back them with invisible
@@ -150,9 +159,9 @@ buildings.
   Build it by script (`Fill*` or a heightmap) so it re-runs; tint with
   `Terrain:SetMaterialColor` to the map.md families plus flat MaterialVariants.
   Grass decoration stays off (mobile) unless the user asks.
-- **Parts:** halls, houses, pavilions, walls, gates, stairs, railings. Curved
-  roofs and trims are meshes or re-coloured library structures; the body stays
-  parts.
+- **Parts:** platforms, steps, walls, railings, paving. Buildings (halls, gates,
+  houses, pavilions) are Blender meshes or parts, whichever reaches the style
+  references' bar ([new_build](../../docs/map/new_build.md) "Style targets").
 - **Seams:** sink mesh cliff bases into terrain and cover the join with rocks,
   shrubs and moss.
 

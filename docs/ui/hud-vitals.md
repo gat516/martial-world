@@ -40,11 +40,15 @@ short screens (`Platform.isSmall`, SMALL_HEIGHT_SHARE; 45% once, which on a
 landscape phone in the device emulator, which gets the PC layout, filled over
 half the screen), and 26% on a touch phone (TOUCH_SMALL_SHARE, phone HUD pass
 2026-10-23: 101 px tall and 381 wide at 844x390, slots 35 px; at 667x375 the
-stack is held by its width, the screen less the touch cluster's room, 347 px). Its box is aspect 3.758 with MaxSize 560x149, and
+stack is held by its width, the screen less the touch cluster's room, 347 px). In combat on a
+touch phone the realm plaque (`Crest`) fades away with the folding top-right
+tiles (the contextual tile and Cultivate; Inventory and Self stay) and comes back when they do (`TileFold`, the same `InCombat` attribute;
+user's pick of two options, 2026-10-23, after the vitals sat big over the
+character in a boss fight; the other was fading the plate while health is full). Its box is aspect 3.758 with MaxSize 560x149, and
 `Prompts.Dock` mirrors it.
 
 Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example
-page HUD is the target): on top the realm plaque (`Crest`, the character window shortcut); then the gold double-framed plate with glossy red
+page HUD is the target): on top the realm plaque (`Crest`, the character window shortcut; kept in the four-tile pass, 2026-10-24, beside the Self tile, which also holds Settings and People); then the gold double-framed plate with glossy red
 health (slanted segment cuts, red gems at the ends) and glossy sky-blue qi;
 the tan guard trough in the tab with a red gem seal; and the PC Dash/Strike
 chips as round dark gold-rimmed discs (a `Shade` clipped
@@ -91,19 +95,18 @@ Vitals box's own bar positions and fills its box exactly (Stretch, no slicing),
 so moving a bar means moving it in the Figma sheet too. Hotbar slots are the
 Inventory's plain slot (2026-10-23, [inventory](inventory.md) "Slots"): an ink well
 (`slot_plain`, empty slots at 35 % transparency) with the rarity as a thin tinted
-`Edge` and a faint `Wash`, the icon in a `Well` box (arts on their seal `Disc`), and
-the held item's `Halo` the same edge ring in cream, 3 px outside the slot. On PC the
-name is one line of Builder Sans Bold 11 in a strip at the bottom (truncated with an
-ellipsis; two lines left a 21 px icon), the well centred in the space above it
-(28 px, 0.00 px off centre, 12 px at the sides and 4.7 px above and below); on touch
-names hide and the well (64 %) is centred on the slot, 9.4 px from the edges
-(`Layout`). The weapon slot shows the model in hand (its `Model` viewport, 6 px
+`Edge` and a faint `Wash`, and the held item's `Halo` the same edge ring in cream,
+3 px outside the slot. Art slots are words, the short name in Oswald
+Bold (15 px PC, 11 at 844x390, 10 at 667x375), the full name in a tip on hover or
+hold ([inventory](inventory.md) "Hotbar words"); herb and pill slots show their 3D
+model in the `Well.Model` viewport (`Well` 64 %, at 0.57 down so tall herbs clear the
+count; [inventory](inventory.md) "Hotbar models"), as does a dragged weapon. The weapon slot shows the model in hand (its `Model` viewport, 6 px
 from the edges). On a touch phone the hotbar shrinks with the stack (35 px slots at
 844x390) and hides empty slots unless the Inventory is open. `draw_vitals.ps1`'s
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
 are no longer used, nor are `fill_sheen`/`fill_edge` (still drawn by
 `draw_vitals.py`, which now also draws the shaped fills).
-The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
+The seated tiles, lotus, Qi Surge pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
 on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
 left the fighting HUD: they show while seated, in the same spot
@@ -118,6 +121,23 @@ feel ready to break through" once (skipped when the server just said so),
 then again only while the player stands idle (no input for 25 s), at most
 every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
 
+## Qi surge button and notice
+Driven by `BreakthroughView`, both show only while the server's `SurgeReady` is true
+(in a fight, badly hurt, bar at 90%; [cultivation](../systems/cultivation.md#qi-surge)),
+never seated or with a menu open, and fire `CultivationAction "surge"`:
+- **Touch:** `Play.SurgeButton`, a round cluster button like Dash and Guard (50 px,
+  `hud_round_seal` ring, caption "Surge"), on the cluster's outer arc at 157.5 degrees
+  (`Layout`, LOCK_ARC out, mirroring Lock at 112.5), so nothing else moves. It pops in
+  (`Motion.appear`).
+- **PC:** the old Force Breakthrough pill (`Stack.BreakthroughButton`) is the notice,
+  "M to qi surge" (M surges instead of meditating while it's ready); a click fires it
+  too. Label padding 46 / 54 px so the "M" clears the left cap.
+- **Glyph:** `icon_surge.png` (`art/ui/draw_ui.py surge`), an ember flame with an
+  inner flame cut out ("burn your qi"), tinted warm cream (255, 214, 158) at the
+  hanzi glyphs' value and cropped to its drawn area (ImageRect 27,9 71x112). The
+  critic picked it over rising chevrons, which read as a second Break Through.
+While surging, the realm plaque shows the surged stage (`SurgeRealm`, `Hud.luau`).
+
 ## Seated bars and meditation tiles
 Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, the
 same notched plate with `hud_seat_rims.png`; `Menus.setSeated`): the realm on
@@ -125,7 +145,7 @@ the same crest the vitals wear (`TitleCrest`), one cultivation track with the
 breakthrough mark inside it at 80% and the overflow (cultivation beyond the
 bar, up to `CultivationCap`) as the paler stretch past the mark, and the
 dantian (raw qi) in the tab under it. The cultivation line reads the numbers, "Ready to break
-through" in gold, or what blocks a full bar (`BreakthroughBlock`: insight,
+through" in gold, or what blocks a full bar (`BreakthroughBlock`:
 method, peak). Then the meditation menu, a row of square tiles above them that
 appear only when relevant (Circulate or Break Through, Method, Spirit Root,
 Practice, Rise; Practice swaps in its own tiles: Technique, Weapon Dao,
@@ -133,8 +153,7 @@ Back), a small panel for Comprehend / Method / Spirit
 Root (root pills and the reform choice live on its Spirit Root page), and
 the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
 also after 20 s idle; a tap brings it back). See [meditation](../systems/meditation.md).
-The standing Force Breakthrough pill (`Stack.BreakthroughButton`) is the only
-breakthrough button outside the seat.
+Breakthroughs are seated only: there is no breakthrough button outside the seat.
 
 - The circulation overlay has a Leave pill at its header's right corner
   (`Circulation.Column.Header.Title.Leave`) that ends the run early for free.
@@ -172,7 +191,7 @@ against the Lock button's arc on a phone); GuardController binds it.
   rather than widening it.
 - The name plaque's removal (2026-10-22) was a file-only crop, not previewed
   in Studio: check the realm plaque isn't clipped at the stack's top, the seated
-  tiles, Force Breakthrough pill and calm lotus still sit just above the plate,
+  tiles, Qi Surge pill and calm lotus still sit just above the plate,
   the chips in the notch, and the touch prompt dock's list (`Prompts.Dock.List`
   at Y 0, now just above the realm plaque's top instead of the name row's).
 - The Figma reskin (2026-10-22) was previewed in edit view at PC size (560 px

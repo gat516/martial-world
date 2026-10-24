@@ -15,7 +15,9 @@
 --   "new", id          -> opens the creator on an empty (or unnamed) slot:
 --                         { id, mode = "new", progress } and the fate attributes
 --   "edit", id         -> opens it on a named slot's look: { id, mode = "edit", look, firstName }
---   "cancel"           -> back to the slot screen from the creator
+--   "editPlayed"       -> Edit look from the world: the creator on the played
+--                         slot's look, { id, mode = "edit", look, firstName, played = true }
+--   "cancel"           -> back to the slot screen (or the world) from the creator
 --   "play", id         -> plays a named slot (the join continues in Main)
 --   "deleteAsk", id    -> { token }: the hold-to-delete sends it back
 --   "delete", { id, token, name } -> moves the slot to the trash and saves
@@ -34,6 +36,7 @@ local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local PlayerData = require(script.Parent.PlayerData)
 local Traits = require(script.Parent.Traits)
+local Analytics = require(script.Parent.Analytics)
 
 local SlotConfig = Config.Slots
 
@@ -49,7 +52,7 @@ export type Summary = {
 	lastPlayed: number?,
 	look: { [string]: any }?,
 }
-export type Session = { id: string, mode: string } -- the creator open on a slot
+export type Session = { id: string, mode: string, played: boolean? } -- the creator open on a slot (played: from the world)
 
 local Slots = {}
 
@@ -205,7 +208,8 @@ local function defaultLook(): { [string]: any }
 end
 
 -- The testbed's first visit: a ready "Tester" in slot 1 and slot 2 left empty,
--- so the slot screen and the creator can both be tried at once.
+-- so the slot screen and the creator can both be tried at once. The Tester has the
+-- test kit and skips onboarding; a character made in slot 2 plays the real first session.
 local function seedTestbed(player: Player)
 	local account = PlayerData.account(player)
 	if not (Config.TESTBED and account and next(account.slots) == nil) then
@@ -214,6 +218,7 @@ local function seedTestbed(player: Player)
 	local data = PlayerData.createSlot(player, "1")
 	if data then
 		data.character = { firstName = "Tester", look = defaultLook() }
+		data.lessons.Tester = true -- the test kit and skipped onboarding (Main applyTestKit)
 		Slots.fate(player, "1")
 		account.last = "1"
 	end
@@ -269,7 +274,7 @@ end
 -- Called by the character screen's Enter World on a "new" session, after the
 -- look and name are checked: fills the slot (a fresh profile, or the unnamed
 -- migrated one keeps its progress), saves, and plays it.
-function Slots.commitNew(player: Player, look: { [string]: any }, firstName: string): (boolean, any)
+function Slots.commitNew(player: Player, look: { [string]: any }, firstName: string, nameSource: string?): (boolean, any)
 	local session = sessions[player]
 	if not (session and session.mode == "new") then
 		return false, "Pick a slot first"
@@ -282,7 +287,11 @@ function Slots.commitNew(player: Player, look: { [string]: any }, firstName: str
 	data.character = { firstName = firstName, look = look }
 	Slots.fate(player, session.id)
 	task.spawn(PlayerData.save, player)
-	return Slots.play(player, session.id)
+	local ok, result = Slots.play(player, session.id)
+	if ok then
+		Analytics.enteredWorld(player, nameSource or "Typed")
+	end
+	return ok, result
 end
 
 -- Edit look: only the look changes (the first name is locked once named).
@@ -330,13 +339,23 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 		local look = data and data.character and data.character.look
 		return true, if look and type(look.HairIds) == "table" then look.HairIds else {}
 	end
-	if not onScreen(player) then
-		return false, "Already in the world"
-	end
 	if action == "cancel" then
 		sessions[player] = nil
 		return true, nil
-	elseif action == "play" then
+	elseif action == "editPlayed" then
+		-- Edit look from the world (the Self card): only the played, named slot
+		local id = PlayerData.active(player)
+		local data = id and account.slots[id]
+		if onScreen(player) or not (id and data and named(data)) then
+			return false, "Nothing to edit"
+		end
+		sessions[player] = { id = id, mode = "edit", played = true }
+		return true, { id = id, mode = "edit", look = data.character.look, firstName = data.character.firstName, played = true }
+	end
+	if not onScreen(player) then
+		return false, "Already in the world"
+	end
+	if action == "play" then
 		return Slots.play(player, arg)
 	end
 	if busy[player] then
@@ -349,6 +368,7 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 				return false, "That slot is taken"
 			end
 			sessions[player] = { id = arg, mode = "new" }
+			Analytics.front(player, "CreatorOpened")
 			Slots.showIdentity(player, arg)
 			task.spawn(PlayerData.save, player) -- the draw is kept even if they leave now
 			return true, { id = arg, mode = "new", progress = account.slots[arg] ~= nil }

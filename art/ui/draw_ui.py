@@ -426,15 +426,15 @@ def plaque_button(name, top, bottom, rim):
     finish(img, name)
 
 
-def _seal_face(S, seed):
-    """A vermilion seal stamp face on a fresh SxS canvas, its edge nibbled
-    like a real chop."""
+def _seal_face(S, seed, top=(196, 52, 38), bot=(134, 26, 20)):
+    """A seal stamp face (vermilion unless `top`/`bot` say otherwise) on a fresh
+    SxS canvas, its edge nibbled like a real chop."""
     import random
     rnd = random.Random(seed)
     img = canvas(S, S)
     m = 14 * SS
     face = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    gradient_rect(face, [m, m, S * SS - m, S * SS - m], (196, 52, 38), (134, 26, 20), radius=12 * SS)
+    gradient_rect(face, [m, m, S * SS - m, S * SS - m], top, bot, radius=12 * SS)
     # rough inked edge: nibble the outline
     mask = face.getchannel("A")
     md = ImageDraw.Draw(mask)
@@ -481,6 +481,18 @@ def seal_mark():
     i = 24 * SS
     d.rounded_rectangle([i, i, S * SS - i, S * SS - i], radius=6 * SS, outline=(246, 226, 196, 210), width=4 * SS)
     finish(shadow_under(img, blur=3, offset=2, alpha=140), "seal_mark.png")
+
+
+def seal_mark_jade():
+    """The spirit-ring mark on a Pouch cell (Inventory RingMark): seal_mark's chop in
+    jade, glyph 戒 as a TextLabel on top. Same nibbled edge and paper rim, so it
+    reads as the 佩 seal's sibling. 128px, stretched, shown at ~22px (sized h48)."""
+    S = 128
+    img = _seal_face(S, 11, (58, 150, 112), (24, 88, 64))
+    d = ImageDraw.Draw(img)
+    i = 24 * SS
+    d.rounded_rectangle([i, i, S * SS - i, S * SS - i], radius=6 * SS, outline=(234, 240, 214, 210), width=4 * SS)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "seal_mark_jade.png")
 
 
 def weapon_badge():
@@ -781,6 +793,28 @@ def self_icon():
     finish(img, "self_icon.png")
 
 
+def people_icon():
+    """The People seal's glyph (the Self card header, party.md), 128px: the Self
+    icon's bust doubled, composited from self_icon.png (run `self` first), not
+    redrawn: a second bust behind and to the upper right, a shade darker so the two
+    read apart, the front one at the lower left. White, tinted in Studio through
+    ImageColor3 like the other glyphs. ScaleType Fit."""
+    S = 128
+    bust = Image.open(os.path.join(OUT, "self_icon.png")).convert("RGBA")
+    k = 0.78
+    small = bust.resize((round(S * k), round(S * k)), Image.LANCZOS)
+    back = small.copy()
+    r, g, b, a = back.split()
+    shade = lambda v: int(v * 0.72)
+    back = Image.merge("RGBA", (r.point(shade), g.point(shade), b.point(shade), a))
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    m = 3  # a clear margin on every side
+    img.alpha_composite(back, (S - small.width - m, m))
+    img.alpha_composite(small, (m, S - small.height - m))
+    img.save(os.path.join(OUT, "people_icon.png"))
+    print("wrote people_icon.png", img.size)
+
+
 def prompt_art():
     key_cap()
 
@@ -869,6 +903,86 @@ def icon_breakthrough():
     def deco(d, u):
         d.line([(c - 3 * u, 24 * u), (c - 16 * u, 44 * u)], fill=SHINE, width=3 * u)
     _tile_icon(mask, "icon_breakthrough.png", deco)
+
+
+def icon_surge():
+    """Qi surge: an ember flame leaping up ("burn your qi"), its tip swaying right,
+    a smaller inner flame cut out of its belly. Picked over rising chevrons, which
+    read as a second Break Through (critic, 2026-10-23). White, tinted ember
+    (255, 182, 120) in Studio: Play.SurgeButton Icon, Stack.BreakthroughButton Icon."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+
+    def flame(cx, base, height, half, sway):
+        left, right = [], []
+        steps = 80
+        for i in range(steps + 1):
+            t = i / steps  # 0 at the base, 1 at the tip
+            w = half * (1 - t) ** 0.85 * min(1.0, (t + 0.06) / 0.34) ** 0.5
+            x = cx + sway * math.sin(t * math.pi * 1.1) * t
+            y = base - t * height
+            left.append((x - w, y))
+            right.append((x + w, y))
+        return left + right[::-1]
+
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    md.polygon(flame(c, 112 * u, 94 * u, 31 * u, 9 * u), fill=255)
+    md.polygon(flame(c - 3 * u, 106 * u, 51 * u, 14 * u, -5 * u), fill=0)
+
+    def deco(d, u):
+        d.arc([c - 30 * u, 50 * u, c + 10 * u, 112 * u], 165, 225, fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_surge.png", deco)
+
+
+def icon_herbarium():
+    """The Herbarium glyph (the Inventory's book tab, Inventory.Tabs.HerbariumTab; it was
+    a top-right tile until 2026-10-24). A closed book
+    standing upright, a spine band on its left and the page edges on its right,
+    with a herb leaf cut out of the cover. White, tinted leaf green in Studio,
+    shown like the other tiles' icons (22 px PC, 28 px touch)."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    x0, x1, y0, y1 = 26 * u, 100 * u, 14 * u, 114 * u
+    md.rounded_rectangle([x0, y0, x1, y1], radius=8 * u, fill=255)
+    # the leaf, cut out of the cover: two arcs meeting at the tips, tilted, with a stem
+    leaf = Image.new("L", (N, N), 0)
+    ld = ImageDraw.Draw(leaf)
+    cx, cy = 66 * u, 62 * u
+    pts = []
+    for i in range(41):
+        t = i / 40
+        x = -26 + 52 * t
+        w = 15 * math.sin(math.pi * t) ** 0.9
+        pts.append((x, -w))
+    pts += [(x, -y) for x, y in reversed(pts)]
+    a = math.radians(-50)
+    ld.polygon([(cx + (x * math.cos(a) - y * math.sin(a)) * u, cy + (x * math.sin(a) + y * math.cos(a)) * u) for x, y in pts], fill=255)
+    sx, sy = cx + (-26 * math.cos(a)) * u, cy + (-26 * math.sin(a)) * u
+    ld.line([(sx, sy), (sx - 8 * u, sy + 10 * u)], fill=255, width=5 * u)
+    mask = ImageChops.subtract(mask, leaf)
+
+    def deco(d, u):
+        # the spine band and the page edges
+        d.line([(38 * u, y0 + 4 * u), (38 * u, y1 - 4 * u)], fill=GROOVE, width=4 * u)
+        for y in (y0 + 10 * u, y1 - 10 * u):
+            d.line([(x0 + 3 * u, y), (38 * u, y)], fill=GROOVE, width=3 * u)
+        # the leaf's midrib, inside the cut
+        d.line([(cx - 12 * math.cos(a) * u, cy - 12 * math.sin(a) * u), (cx + 14 * math.cos(a) * u, cy + 14 * math.sin(a) * u)], fill=GROOVE, width=2 * u)
+        d.line([(x0 + 18 * u, y0 + 6 * u), (x1 - 10 * u, y0 + 6 * u)], fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_herbarium.png", deco)
+
+
+def ring_art():
+    seal_mark_jade()
+
+
+def surge_art():
+    icon_surge()
 
 
 def icon_comprehend():
@@ -2277,8 +2391,20 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "meditation":
         meditation_art()
         sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "surge":
+        surge_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "herbarium":
+        icon_herbarium()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "ring":
+        ring_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "self":
         self_icon()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "people":
+        people_icon()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "garden":
         garden_art()

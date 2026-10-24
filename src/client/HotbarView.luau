@@ -12,8 +12,16 @@
 -- window puts it away (bare fists). Both go through WeaponAction, which the server
 -- validates.
 -- One row along the bottom on every device; the Stack frame sizes it.
--- An art whose weapon class isn't in hand dims and wears that class's badge; it
--- still casts, and the server answers "Requires a ...".
+-- Words for arts (user, 2026-10-23: "you can't fit either [icon or words]... words only
+-- makes the most sense here"): each art slot is its short name (Hotbar.label),
+-- centred; a herb or pill slot is its 3D model (user, 2026-10-24: "since we have
+-- actual model views for herbs and pills"; SlotArt.paint with itemModels, the slot's
+-- Well.Model), other items their short name. The key number top-left on keyboards,
+-- the count top-right, the cooldown a darkening sweep with the seconds over the words. The full name shows in Hotbar.NameTip above the slot
+-- while the mouse is over it, or while a finger holds it (touch, Inventory closed:
+-- a hold of PEEK_SECONDS shows the name and doesn't cast; a quicker tap still casts).
+-- An art whose weapon class isn't in hand dims; it still casts, and the server
+-- answers "Requires a ...".
 -- An art the player hasn't the combat qi for (Qi < Techniques.qiCost) dims too; it
 -- still casts, and the qi bar flashes the refusal (Hud, QiDenied).
 
@@ -51,8 +59,10 @@ local KEYS = {
 	Enum.KeyCode.Nine,
 }
 local DRAG_PIXELS = 10 -- a press that moves this far becomes a drag
-local SHORT_ICON = 0.6 -- icon transparency on an art the player can't pay for
-local SHORT_FRAME = 0.3
+local SHORT_FRAME = 0.3 -- frame transparency on an art the player can't use right now
+local PEEK_SECONDS = 0.5 -- touch: a hold this long on a slot shows its full name instead of casting
+local TIP_GAP = 6 -- px between the name tip and the slot's top
+local COOLING_WORDS = 0.85 -- the words' transparency under a cooldown's seconds
 
 local HotbarView = {}
 
@@ -63,6 +73,7 @@ local slots: { TextButton } = {}
 local weaponSlot: TextButton -- Stack.Hotbar.WeaponSlot, shown while the Inventory is open
 local lastDragEnd = -math.huge
 
+local showTip: (GuiObject?, string?) -> () -- defined with the tip below; the drag starts use it first
 local function invoke(...: any)
 	local ok, message = inventoryRemote:InvokeServer(...)
 	if not ok and message then
@@ -199,6 +210,14 @@ function HotbarView.justDragged(): boolean
 	return drag ~= nil or os.clock() - lastDragEnd < 0.15
 end
 
+-- What is being dragged, if anything, and a hook run when a drag starts or ends
+-- with what it carries (the Inventory raises the hotbar on a phone while one is
+-- under way, and chooses what was dropped).
+function HotbarView.dragging(): string?
+	return if drag then drag.id else nil
+end
+HotbarView.dragChanged = nil :: ((id: string) -> ())?
+
 local function inventoryWindow(): GuiObject?
 	local window = gui:FindFirstChild("Inventory") :: GuiObject?
 	return if window and window.Visible then window else nil
@@ -285,8 +304,8 @@ local function pickUp(id: string, from: (number | string)?, source: GuiObject, t
 	local size = math.max(source.AbsoluteSize.X, 44) * GHOST_SCALE
 	g.Size = UDim2.fromOffset(size, size)
 	g.ZIndex = 50
-	SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
-	SlotArt.gate(g, id, true);
+	SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "", true)
+	SlotArt.words(g, id, Hotbar.label(id), false);
 	(g:FindFirstChild("KeyLabel") :: GuiObject).Visible = false
 	for _, part in g:GetDescendants() do
 		if part:IsA("GuiObject") then
@@ -311,6 +330,10 @@ local function pickUp(id: string, from: (number | string)?, source: GuiObject, t
 	end
 	g.Parent = gui
 	drag = d
+	showTip(nil, nil)
+	if HotbarView.dragChanged then
+		HotbarView.dragChanged(id)
+	end
 	moveGhost(d, position)
 	-- a short lift so the pick-up reads (a hold on touch has no other feedback)
 	local scale = g:FindFirstChild("Motion") :: UIScale?
@@ -335,6 +358,9 @@ local function endDrag(drop: boolean)
 	end
 	lastDragEnd = os.clock()
 	d.finish()
+	if HotbarView.dragChanged then
+		HotbarView.dragChanged(d.id)
+	end
 	local target = d.target
 	if not drop or not target then
 		return
@@ -466,20 +492,20 @@ local function render()
 	for i, slot in slots do
 		local id = s.hotbar[i] or ""
 		local item = Items.Defs[id]
-		SlotArt.paint(slot, if id ~= "" then id else nil, if item then Items.count(s, id) else nil)
-		SlotArt.gate(slot, id, false)
-		if short(id) then
-			key[i] = "1"
-			local well = SlotArt.well(slot)
-			local icon = well:FindFirstChild("Icon") :: ImageLabel
-			icon.ImageTransparency = math.max(icon.ImageTransparency, SHORT_ICON)
-			local disc = well:FindFirstChild("Disc") :: ImageLabel?
-			if disc then
-				disc.ImageTransparency = math.max(disc.ImageTransparency, SHORT_ICON)
-			end
+		local count = if item then Items.count(s, id) else nil
+		-- herbs and pills as their model (ModelView skips what a slot already shows)
+		SlotArt.paint(slot, if id ~= "" then id else nil, count, nil, true)
+		local poor = short(id)
+		key[i] = if poor then "1" else "0"
+		local dim = poor or SlotArt.weaponMissing(id) or (count ~= nil and count <= 0)
+		SlotArt.words(slot, if id ~= "" then id else nil, Hotbar.label(id), dim)
+		local words = slot:FindFirstChild("NameLabel") :: TextLabel
+		if words:GetAttribute("Cooling") then
+			words.TextTransparency = COOLING_WORDS
+			words.TextStrokeTransparency = COOLING_WORDS
+		end
+		if dim then
 			(slot:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = SHORT_FRAME
-		else
-			key[i] = "0"
 		end
 		slot.Visible = showEmpty or id ~= ""
 	end
@@ -519,9 +545,39 @@ local function tick()
 		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / total, 0, 1))
 		label.Visible = remaining > 0
 		label.Text = string.format("%d", math.ceil(remaining))
+		-- the seconds read over the words: fade them while it cools (render sets the rest)
+		local words = slot:FindFirstChild("NameLabel") :: TextLabel
+		local cooling = remaining > 0
+		if cooling ~= (words:GetAttribute("Cooling") == true) then
+			words:SetAttribute("Cooling", cooling)
+			render()
+		end
 		-- the cream ring: the held item's slot, and the slot a drag would land on
 		local halo = slot:FindFirstChild("Halo") :: GuiObject
 		halo.Visible = (heldId ~= nil and heldId == id) or slot == dropTarget
+	end
+end
+
+--[[ Full names ]]
+-- Hotbar.NameTip (BuffTip's look) above the slot, with the def's full name.
+
+local tip: GuiObject
+local tipSlot: GuiObject? = nil
+
+local function fullName(id: string): string
+	local def: any = Techniques.Defs[id] or Items.Defs[id]
+	return if def then def.name else ""
+end
+
+showTip = function(slot: GuiObject?, id: string?)
+	local name = if slot and id then fullName(id) else ""
+	tipSlot = if name ~= "" then slot else nil
+	tip.Visible = tipSlot ~= nil
+	if slot and tipSlot then
+		(tip:FindFirstChild("Text") :: TextLabel).Text = name
+		local x = slot.AbsolutePosition.X + slot.AbsoluteSize.X / 2 - bar.AbsolutePosition.X
+		local y = slot.AbsolutePosition.Y - bar.AbsolutePosition.Y - TIP_GAP
+		tip.Position = UDim2.fromOffset(x, y)
 	end
 end
 
@@ -530,13 +586,51 @@ function HotbarView.init(screenGui: ScreenGui)
 	bar = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("Hotbar") :: Frame
 	local holder = bar:FindFirstChild("Slots") :: Frame
 	template = holder:FindFirstChild("SlotTemplate") :: TextButton
+	tip = bar:FindFirstChild("NameTip") :: GuiObject
 	for i = 1, Hotbar.SIZE do
 		local slot = holder:FindFirstChild(`Slot{i}`) :: TextButton
 		local key = slot:FindFirstChild("KeyLabel") :: TextLabel
 		key.Text = tostring(i)
 		key.Visible = not Platform.isTouch()
+		-- the full name: while the mouse is over the slot, or a finger holds it (then
+		-- the release doesn't cast)
+		local peeked = false
+		slot.MouseEnter:Connect(function()
+			if not Platform.isTouch() and not drag then
+				showTip(slot, State.current.hotbar[i])
+			end
+		end)
+		slot.MouseLeave:Connect(function()
+			if tipSlot == slot then
+				showTip(nil, nil)
+			end
+		end)
+		slot.InputBegan:Connect(function(input)
+			if input.UserInputType ~= Enum.UserInputType.Touch or inventoryWindow() then
+				return
+			end
+			peeked = false
+			local hold = task.delay(PEEK_SECONDS, function()
+				peeked = true
+				showTip(slot, State.current.hotbar[i])
+			end)
+			local ended: RBXScriptConnection
+			ended = UserInputService.InputEnded:Connect(function(release)
+				if release == input then
+					ended:Disconnect()
+					task.cancel(hold)
+					if tipSlot == slot then
+						showTip(nil, nil)
+					end
+				end
+			end)
+		end)
 		slot.Activated:Connect(function()
 			if HotbarView.justDragged() then
+				return
+			end
+			if peeked then
+				peeked = false
 				return
 			end
 			local tapSlot = HotbarView.tapSlot

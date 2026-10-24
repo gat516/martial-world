@@ -1,11 +1,12 @@
 --!strict
 -- The teleport formation menu, once the elder has taught the formation. Two ways
--- in: the Travel button, shown anywhere on the sect's safe ground (so a gardener
--- can hop between their peak and the main peak from wherever they are), and a
--- Travel prompt on every teleport array (Hud.TravelPrompt, cloned onto each
--- TravelGate-tagged array), the only way to travel out in the wilds. The menu
+-- in: the contextual tile (ContextTile "Travel"), offered standing on any array and
+-- anywhere on the sect's safe ground (so a gardener can hop between their peak and
+-- the main peak from wherever they are; your own peak shows Build there instead,
+-- except on its array), and a Travel prompt on every teleport array
+-- (Hud.TravelPrompt, cloned onto each TravelGate-tagged array). The menu
 -- closes when you leave both. Every button under the menu's List named after a
--- gate id travels there (List.Sect and List.Wilds group them); the array you're
+-- gate id travels there (List.Columns.Sect and .Wilds group them); the array you're
 -- standing on hides its own button. Each button has a Label (the name), a
 -- Detail line and a Seal: realm-gated arrays show the realm they open at, and
 -- while the player's realm is short of it the button greys out under a cinnabar
@@ -13,6 +14,9 @@
 -- you stand on the Sect Gate's array or a wilds array (Gates.leadsOut): you
 -- leave the sect through its gate. A trip fades the screen out (Veil), travels,
 -- and fades back in at the destination.
+-- In a party, a row of "Join <name>" buttons (List.Party, one per other member, jade)
+-- tops the list: the join ride to that member (Social.join, PartyAction "join";
+-- refusals come back as a toast). Hidden when solo; the window grows by the row.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -20,12 +24,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local ContextTile = require(script.Parent.ContextTile)
 local GateMarkers = require(script.Parent.GateMarkers)
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
+local Social = require(script.Parent.Social)
 local Veil = require(script.Parent.Veil)
 
 local remote = ReplicatedStorage.Remotes.TravelAction :: RemoteFunction
@@ -143,16 +149,60 @@ local function travel(window: Frame, gate: Gates.Gate)
 	busy = false
 end
 
+-- The Join rows (List.Party): one per other party member, rebuilt on every party push.
+-- The window's height cap grows by the row while it shows.
+local function bindParty(window: Frame)
+	local list = window:FindFirstChild("List") :: Frame
+	local row = list:FindFirstChild("Party") :: Frame
+	local template = row:FindFirstChild("JoinTemplate") :: ImageButton
+	template.Visible = false
+	local cap = window:FindFirstChildOfClass("UISizeConstraint") :: UISizeConstraint
+	local base = cap.MaxSize
+	local layout = list:FindFirstChildOfClass("UIListLayout") :: UIListLayout
+	local grow = row.Size.Y.Offset + layout.Padding.Offset
+	local function render(party: any)
+		for _, child in row:GetChildren() do
+			if child:IsA("GuiButton") and child ~= template then
+				child:Destroy()
+			end
+		end
+		local count = 0
+		for i, m in (if party then party.members else {}) do
+			if not m.self then
+				count += 1
+				local join = template:Clone()
+				join.Name = `Join{m.userId}`
+				join.LayoutOrder = i
+				join.Visible = true;
+				(join:FindFirstChild("Label") :: TextLabel).Text = `Join {m.name}`;
+				(join:FindFirstChild("Detail") :: TextLabel).Text = m.realm or ""
+				local userId = m.userId
+				join.Activated:Connect(function()
+					if busy then
+						return
+					end
+					Menus.close(window)
+					Social.join(userId)
+				end)
+				join.Parent = row
+			end
+		end
+		row.Visible = count > 0
+		cap.MaxSize = if count > 0 then Vector2.new(base.X, base.Y + grow) else base
+	end
+	render(Social.party())
+	Social.onParty(render)
+end
+
 function TravelMenu.init(gui: ScreenGui)
 	local window = gui:FindFirstChild("TravelMenu") :: Frame
 	Menus.register(window)
 	ListWindow.bindClose(window)
 	GateMarkers.init(gui)
-	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("TravelButton") :: TextButton
-	button.Visible = false
-	button.Activated:Connect(function()
+	ContextTile.offer("Travel", function()
 		Menus.toggle(window)
 	end)
+	bindParty(window)
 
 	-- a Travel prompt on every array; arrays stream in and out, so follow the tag
 	local promptTemplate = gui:FindFirstChild("TravelPrompt") :: ProximityPrompt
@@ -246,7 +296,10 @@ function TravelMenu.init(gui: ScreenGui)
 				array, here = standingOn(root)
 				inSect = Gates.inSect(root.Position)
 			end
-			button.Visible = inSect
+			ContextTile.set(
+				"Travel",
+				if array then ContextTile.RANK_ARRAY elseif inSect then ContextTile.RANK_SECT else 0
+			)
 			if not (array or inSect) and window.Visible then
 				Menus.close(window)
 			end

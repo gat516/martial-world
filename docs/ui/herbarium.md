@@ -5,17 +5,46 @@ building is [build](../systems/build.md). Composed from the Codex cuts directly 
 is no Figma mock of these screens (the old kit file hit its MCP limit at the start of
 this pass, 2026-10-23).
 
-## The Herbarium (ready to wire)
-The collection book of roadmap §5 / Phase B. The herb tiers and the collection
-record don't exist yet, so nothing in the game opens it; the system that owns the
-record calls it.
+## The Herbarium
+The collection book of roadmap §5 / Phase B, wired 2026-10-23. **H** toggles the
+player's own book (`Herbarium.openMine`). On every device the Inventory's **book tab**
+(`Hud.Inventory.Tabs.HerbariumTab`, after Pouch: a 44 px lacquer tab with the book
+glyph, a book with a leaf cut out of its cover, `icon_herbarium.png` from
+`art/ui/draw_ui.py herbarium`, tinted leaf green) opens it, and closing the book by its
+seal goes back to the Inventory (`Menus.openFrom`). It was a top-right tile until the
+four-tile row (user, 2026-10-24; [ui](../systems/ui.md)): a once-a-day book doesn't get
+a permanent tile. While open it
+follows the record, so a harvest or reward shows at once.
+
+### The record and rewards (server `src/server/Herbarium.luau`)
+- `data.herbarium.herbs[id] = { n, l, m }`: harvested in all, the largest size seen,
+  the mutation ids seen. Filled by `Herbarium.record` from `Garden.harvest` (count,
+  the plant's size and mutations), wild sprouts and the guarded-herb event (size 1).
+  It goes to the client in the PlayerState push as `herbarium`.
+- **Discovered** = harvested or gathered once. Each discovery pays
+  `Pacing.Herbarium.DISCOVER` Spirit Stones by tier (15, 40, 120, 300; tier V's 800 is parked).
+- **A tier is a page.** The player's book gives each tier its own page (blank entries
+  pad it; tiers I-III have 5 herbs and IV has 4, so one page each, two spreads). Tier V
+  is deferred (owner, 2026-10-24: names past Foundation Establishment wait for those
+  realms): its herbs aren't in `Herbs.Order`, so the book has no tier V page until they
+  return. Discovering every
+  herb of a tier completes the page once (`data.herbarium.tiers["<n>"]`):
+  `Pacing.Herbarium.TIER` stones (150, 400, 1200, 3000; 8000 parked) and the Home foundation
+  experience `home:book:<tier>` ([cultivation](../systems/cultivation.md) "Foundation
+  grade"). Both are toasted; the footer lists completed pages ("Complete: I II").
+  First guess for the roadmap's open question (small stones plus a foundation
+  experience, no cosmetics); untuned.
+- Profiles from before the record start empty: past harvests aren't counted.
 
 ### API (`src/client/Herbarium.luau`)
 ```lua
-Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"? })
+Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"?, done = { tier, ... }? })
+Herbarium.openMine()      -- the player's book from State (Herbarium.fromState)
+Herbarium.toggle()        -- H
+Herbarium.fromState(record) -- a Book from a PlayerState `herbarium` record
 Herbarium.close()
 Herbarium.isOpen()
-Herbarium.preview() -- sample book, from the client console in play:
+Herbarium.preview() -- a made-up record, from the client console in play:
 -- require(game.Players.LocalPlayer.PlayerScripts.Client.Herbarium).preview()
 
 type Entry = {
@@ -26,19 +55,12 @@ type Entry = {
 	largest: number?,      -- the biggest size seen (×)
 	mutations: { string }?,-- Herbs.Mutations ids seen on this herb
 	name: string?,         -- overrides the def's name (a herb not in Herbs.Defs yet)
+	blank: boolean?,       -- an empty slot (pads a tier to its own page)
 }
 ```
-Entries show in the order given (sort by tier, then Herbs.Order). It registers with
-`Menus`, so opening it closes other windows and hides the gameplay HUD.
-
-### What the real system must provide
-- A per-player record per herb: discovered, harvest count, largest size, mutations
-  seen (the server knows all of these at harvest time, `Garden.luau`).
-- A `tier` per herb (Herbs.luau gains it with the Phase B herb tiers).
-- Undiscovered herbs as entries too (`discovered = false`), so the book shows the
-  gaps; their name stays hidden, their tier shows.
-- Rewards for completing a page or tier are not drawn yet (open question in the
-  roadmap: cosmetic only, or small solidity).
+Entries show in the order given (`fromState`: by tier, then `Herbs.Order`).
+Undiscovered herbs show as the greyed card with their tier; their name stays hidden.
+It registers with `Menus`, so opening it closes other windows and hides the gameplay HUD.
 
 ### Layout
 `StarterGui.Herbarium` (`assets/Herbarium.rbxmx`): `Canvas` (fitted by `UiScale`) >
@@ -51,14 +73,44 @@ plaque on the top edge, 50 tall, fitted to the title by `Ribbon.fit`, style `gol
 at the ends), `Footer` (page and discovered count on the bottom cover edge) and the
 hidden `CardTemplate`.
 
-The card (`herb_card`, 565x869): the herb's icon (or glyph in its colour) in the art
-window, the tier shield on the window's top-left corner with a live numeral, the name
+The card (`herb_card`, 565x869): the herb's real 3D model in the art window
+(`Art.Model`, a ViewportFrame filling the window; see "Model display"), or its icon
+(or glyph in its colour) when it has no model, the tier shield on the window's top-left corner with a live numeral, the name
 (Merriweather, ink brown), the rarity gem and word, a diamond divider, "Harvested n"
 and "Largest ×n", and one row of mutation ribbons (what doesn't fit is clipped).
-Undiscovered: `herb_card_empty`, a grey question glyph, "Undiscovered", the tier
-shield greyed. Phone cards are about 81x125: the gem moves to the art window's
+Undiscovered: `herb_card_empty`, the model's flat dark silhouette (the question
+glyph when there's no model), "Undiscovered", the tier shield greyed. The
+question glyph carries `LintIgnore = "edge-margin"`: it's a glyph, wholly inside
+its 2 px source margin, not a cropped ornament. Phone cards are about 81x125: the gem moves to the art window's
 top-right corner, the rarity word and divider go, the name gets two lines (floor 9 px)
 and one stat line shows (the largest size when known).
+
+### Model display (`src/client/ModelView.luau`)
+The user (2026-10-23): "you know how we display weapons? should be the same for herbs
+and plants" (and pills). Like the Inventory's `WeaponView`, a live ViewportFrame, not a
+thumbnail:
+```lua
+ModelView.herb(frame, herbId, opts?) -> boolean -- Herbs.template: HerbModels, HerbModelsExtra, stand-in (tinted)
+ModelView.item(frame, itemId, opts?) -> boolean -- ItemModels first, then the herb models
+ModelView.show(frame, template, opts?) -> boolean -- any Model template
+ModelView.clear(frame)
+opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number?, well = boolean? } -- margin default 0.04
+```
+False means no model: the frame is cleared and hidden and the caller shows its icon.
+Showing what a frame already shows does nothing (its `Shows` attribute), and the
+camera refits when the frame resizes. **Upright** (default, picked over diagonal by the
+critic: diagonal made the lotus and lily read as cuttings and the bamboo as a sword)
+stands the model on its base, turned 25 degrees and seen 14 degrees from above;
+`diagonal` adds the weapons' 45-degree roll. Lit from the upper left, ambient low
+enough that pale petals shade off the cream paper; `well = true` (slot wells: the
+Inventory, the hotbar) lights brighter for a dark background. The camera fits every visible
+part's corners with the margin on each side. `silhouette` drops all light (neon
+turned plastic) and fades the frame 45 %, a dark shape on the grey card. Scripts,
+sounds, particles, beams, trails, lights and GUIs are stripped from the clone.
+
+Cost: the book makes its twelve cards once and refills them in place, so a state push
+while it's open redraws nothing and a page turn redraws twelve static clones (470
+parts on the busiest sandbox spread; herbs 15-85 parts, items 4-10). No per-frame work.
 
 Measured (Edit view): desktop page 450x482, cards 132x204, page margins left/right
 13.7/13.7 and top/bottom 25.2/25.2; phone page 275x295, cards 81x125, margins 8.4/8.4
@@ -117,7 +169,19 @@ C1 `herbarium_book`, `herb_card`, `herb_card_empty`, `herb_tier_1`..`5`, `tag_*`
 `glyph_plant`, `glyph_harvest`, `glyph_rush`, `glyph_lock`, `glyph_question`. Missing
 art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 
+## Known gaps
+- No peak lectern opens the book yet (the review's other home for it).
+- The herbs added 2026-10-23 have no slot icons yet (glyphs show where a herb has neither model
+  nor icon); icons for the new herbs go on the next Codex sheet.
+- Thin herbs (Duskwind Thistle, Starfall Bamboo, Seven-Star Grass) fill little of
+  the art window's width on a phone; fitted by height (critic polish note).
+- The hotbar doesn't use `ModelView` (words only, user decision); the Inventory's herb
+  and pill cells and detail preview do, see [inventory](inventory.md).
+
 ## Untested
-Not played: the Herbarium's `preview()` and page turns, the seed picker's packet
+Not played: the herb models on the cards (seen only in Edit-mode previews in a
+sandbox, which lacks the place's `HerbModels`: tier I-III herbs from it, their
+stand-ins and the frame-rate cost on a real phone are unseen); the wired book (H, live refresh, the tier-page layout, discovery and page
+rewards), the Herbarium's `preview()` and page turns, the seed picker's packet
 taps, set tabs (no item has a set yet) and the peak gauge (no server sets the
 attribute yet) were only seen in Edit-mode previews.

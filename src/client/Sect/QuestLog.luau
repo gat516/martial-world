@@ -18,13 +18,13 @@
 -- }
 -- Quest = {
 --   id = string,
---   kind = "chapter" | "daily" | "weekly" | "spirit" | "other",
+--   kind = "chapter" | "daily" | "weekly" | "bonus" (the daily seal with 赏) | "spirit" | "other",
 --   name = string,
 --   giver = string?, place = string?,  -- "From <giver> · <place>"
 --   description = string,
 --   status = string?,                  -- the row's second line (default: the first open objective)
 --   objectives = { { text = string, progress = number?, goal = number?, done = boolean? } },
---   rewards = { { kind = "contribution" | "stones" | "qi" | "insight", amount = number } },
+--   rewards = { { kind = "contribution" | "stones" | "qi", amount = number } },
 -- }
 
 local Art = require(script.Parent.Art)
@@ -61,7 +61,6 @@ local REWARD_ICON = {
 	contribution = { "contribution_token", nil },
 	stones = { "glyph_spirit_stone", JADE },
 	qi = { "glyph_qi", JADE },
-	insight = { "glyph_quest", GOLD },
 }
 
 local current: Log? = nil
@@ -87,14 +86,14 @@ local function paintIcon(icon: Frame, kind: string)
 	local char = seal:FindFirstChild("Char") :: TextLabel
 	scroll.Visible = kind == "chapter"
 	seal.Visible = kind ~= "chapter"
-	if kind == "daily" or kind == "weekly" then
-		seal.Image = Art.Id[kind .. "_seal"]
+	if kind == "daily" or kind == "weekly" or kind == "bonus" then
+		seal.Image = Art.Id[if kind == "weekly" then "weekly_seal" else "daily_seal"]
 		seal.ImageColor3 = Color3.new(1, 1, 1)
 		-- the seal copies keep a clear margin (4 px round 72 px of art, art/ui/sized)
 		-- so the stamp's edge isn't cut flat: the image is that much bigger than the badge
 		seal.Size = UDim2.fromScale(SEAL_GROW, SEAL_GROW)
 		seal.Position = UDim2.fromScale((1 - SEAL_GROW) / 2, (1 - SEAL_GROW) / 2)
-		char.Text = if kind == "weekly" then "周" else "日"
+		char.Text = if kind == "weekly" then "周" elseif kind == "bonus" then "赏" else "日"
 	else
 		-- the white quest glyph, tinted gold, at its own aspect (306x354)
 		seal.Image = Art.Id.glyph_quest
@@ -308,7 +307,7 @@ function QuestLog.preview()
 				place = "Misty Pines",
 				description = "A small light drifts between the pines at dusk, as if looking for something.",
 				objectives = { { text = "Follow the light" } },
-				rewards = { { kind = "insight", amount = 1 } },
+				rewards = { { kind = "qi", amount = 40 } },
 			},
 		},
 		onTrack = function(id)

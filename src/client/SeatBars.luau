@@ -24,7 +24,6 @@ local BLOCKED = Color3.fromRGB(255, 170, 140)
 -- what stops a full bar (Cultivation.luau BreakthroughBlock; "bar" means not full)
 local BLOCK_TEXT: { [string]: string } = {
 	peak = "The peak of this path",
-	insight = "Needs more insight",
 	method = "Your method can go no further",
 }
 

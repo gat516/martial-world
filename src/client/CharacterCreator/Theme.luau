@@ -55,11 +55,20 @@ Theme.Fit = {
 	PanelHeight = 760, -- tallest the panel gets (design px)
 	Margin = 16, -- px from the screen edges (and between the preview and the panel)
 	CompactBelow = 600, -- a panel shorter than this (design px; phones) drops the footer divider
+	EnterHeight = 76, -- the first-character page's Enter World (61 px at the phone floor)
 }
 
--- The creator's steps (user, 2026-10-23). New: Appearance, Hair, Fate (race,
--- its free looks, clan), Name (Enter World on Name). Edit: the same four, the
--- name locked, Save look on every step.
+-- The title on the gold plaque above the panel: the slot screen's, and the
+-- first-character page's (no step tabs there).
+Theme.Titles = {
+	Slots = "Choose your cultivator",
+	New = "Your fate",
+}
+
+-- The creator's steps for Edit look (user, 2026-10-23): Appearance, Hair, Fate
+-- (race, its free looks, clan), Name (locked), Save look on every step. A new
+-- character doesn't walk them: it gets the one first-character page (Tabs/Begin,
+-- user 2026-10-24) and changes its look later.
 Theme.Steps = {
 	{ Id = "Appearance", Label = "Appearance" },
 	{ Id = "Hair", Label = "Hair" },

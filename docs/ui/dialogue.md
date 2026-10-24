@@ -1,11 +1,11 @@
 # Dialogue screen and interaction prompts
 
 The dialogue screen (`StarterGui.Dialogue`, `src/client/Dialogue.luau`) and the world
-prompt cards (`StarterGui.Prompts`, `src/client/WorldPrompts.luau`), both in the kit's
-style from the house reference
-([dialogue_prompt_reference.webp](../reference/ui/dialogue_prompt_reference.webp)).
-Built 2026-10-23. Composed from the cut art in Studio (the Figma kit was over its plan
-limit that day), by `tools/build_dialogue.luau` and `tools/build_prompts.luau`.
+prompt cards (`StarterGui.Prompts`, `src/client/WorldPrompts.luau`). The dialogue is in
+the kit's style from the house reference
+([dialogue_prompt_reference.webp](../reference/ui/dialogue_prompt_reference.webp)),
+composed from the cut art by `tools/build_dialogue.luau`. The prompt cards use no art
+(plain shapes, `tools/build_prompts.luau`; see "Interaction prompts").
 
 ## Dialogue: API
 Its first user is Elder Qingyun's Talk prompt (wired 2026-10-23, see
@@ -20,6 +20,7 @@ local choice = Dialogue.open({
 	speaker = "Elder Qingyun",   -- nil or "" shows "???"
 	portrait = "elder_qingyun",  -- elder_qingyun, herbalist, weapon_rack_keeper, unnamed, unknown, or an rbxassetid
 	lines = { "You have the look of someone who has hit a wall.", "Have you completed your root test?" },
+	near = elder,                -- optional: walking more than `range` studs (default 14) away closes it
 	responses = {                -- optional, at most 4
 		{ text = "I have completed it.", icon = "quest", highlight = true },
 		{ text = "Can you tell me more?", icon = "talk" },
@@ -52,11 +53,22 @@ local choice = Dialogue.open({
   or gamepad A finishes the typing, then goes to the next line; the gold chevron bobs
   while there's more (or, with no responses, to close).
 - After the last line the responses fade in, staggered. Mouse: hover lights one, click
-  picks. Keyboard: Up/Down or W/S move the lit one, Enter/Space/E pick, 1-4 pick directly
-  (the number shows on the button, keyboards only). Gamepad: d-pad or left stick, A
-  picks, B picks the `cancel` response. Touch: tap; only the recommended one is lit.
+  picks. Keyboard: Up/Down move the lit one, Enter/Space/E pick, 1-4 pick directly
+  (the number shows on the button, keyboards only). Gamepad: d-pad, A picks, B picks
+  the `cancel` response. Touch: tap; only the recommended one is lit.
 - While open it holds those keys (ContextActionService, high priority), so Space
-  doesn't jump and W/S don't walk.
+  doesn't jump. WASD and the left stick stay free so the player can walk off: with
+  `near`, going past `range` studs ends the conversation (`open` returns nil). The
+  elder's range is his TalkPrompt's reach + 4 (user, 2026-10-24).
+- On a touch phone (the phone layout on a touch screen) Roblox's touch controls
+  (thumbstick and jump) are hidden while it's open (`GuiService.TouchControlsEnabled`),
+  so the bar and column can reach into the bottom-left (user, 2026-10-24: "take the
+  joystick away if dialogue pops up so we can take up more screen"). `finish` gives
+  them back, and every way out runs it: a response, the last tap, walking away, another
+  menu opening, `Dialogue.close()`, and dying or respawning (`CharacterRemoving`,
+  `Humanoid.Died`). With the stick gone a phone player leaves by a response; if every
+  response is disabled, a tap on the bar ends it. Tablets get the desktop layout, which
+  already clears the stick, so they keep it and can still walk away.
 
 ## Dialogue: layout
 A bar centred along the bottom of the screen with the responses in a column to its
@@ -67,40 +79,50 @@ shouldn't be way taller than the dialogue"). It started from the user's mockup
 screen like in figma") and replaced a panel in the screen's centre. The gameplay HUD
 is hidden while it's open (Menus), so the bottom is free. Laid out at a baseline
 inside `Canvas` and fitted by `UiScale` (one `UiScale` UIScale); `UiScale.isPhone()`
-picks the layout once and the other is destroyed. The layout root is the bar plus
+picks the layout once and the other is destroyed, and the canvas is fitted at that
+layout's baseline; the phone layout is capped at 1x, since a PC window under 600 px tall
+gets it too and it filled half the screen there at 1.3x (2026-10-24). The layout root is the bar plus
 the name tab, anchored at its bottom centre (AnchorPoint 0.5,1); `Responses` hangs
 off its right edge.
 
 | | Desktop (1920x1080) | Phone (844x390) |
 |---|---|---|
-| Bar | 1000 x 196, centred, 24 above the bottom | 486 x 172, 8 above the safe bottom; centred while lines show, 155 left while the responses show |
+| Bar | 1000 x 196, centred, 24 above the bottom | 486 x 172, 8 above the safe bottom; centred while lines show, 163 left while the responses show |
 | Window corners | 173 x 91 (rails 18) | 100 x 53 (rails 10) |
 | Portrait | 156 square, 20 in, centred | 136 square, 18 in |
 | Text box | portrait + 14 to 20 from the right (790 x 156); text 24, line height 1.08, padding 26/22, 24 kept for the chevron | portrait + 10 to 18 in (304 x 136); text 22, padding 16/12, 20 kept for the chevron |
 | Name tab | 58 tall at x 30, its bottom 16 px over the top rail, fitted to the name (Merriweather Bold 24), at most 60 % of the bar | 40 tall at x 16 (19 px) |
-| Responses | a column 12 px right of the bar, 420 x 196: four 46-tall buttons, 4 apart, centred on the bar's height | 10 px right, 300 x 172: four 40-tall buttons |
+| Responses | a column 12 px right of the bar, 420 x 196: four 46-tall buttons, 4 apart, centred on the bar's height | 8 px right, 318 x 172: four 40-tall buttons |
 
-Phone slide: there's no room for a centred bar and the column beside it (796 of 844
-wide with 24 margins), so the phone layout is authored as it looks with the responses
-up (the pair centred, the root at x -155, so the lint checks the column on screen) and
-its `ChoiceShift` attribute (-155) says how far that sits from the centred bar.
+Phone slide: there's no room for a centred bar and the column beside it (812 of 844
+wide with 16 margins: the column grew 18 into the old 24 margins and the gap, for
+the response text, and the hidden stick frees the bottom-left), so the phone layout
+is authored as it looks with the responses up (the pair centred, the root at x -163,
+so the lint checks the column on screen) and its `ChoiceShift` attribute (-163) says
+how far that sits from the centred bar.
 `Dialogue.open` puts the bar centred (home minus the shift); `showResponses` slides it
 back to home over 0.2 s as the column fades in. Desktop has room (the column ends 28
 px from the edge), so its shift is 0.
 
 Footprint: on PC the bar and tab take the bottom 24 % of the screen; on a phone the
-unit covers the bottom 204 of 390 rows (52 %, stopping at row 186, under the middle).
+unit covers the bottom 204 of 390 rows (52 %, stopping at row 186, under the middle)
+and 812 of 844 columns with the responses up (796 before the stick went), and Roblox's
+thumbstick and jump no longer sit over the bar's left end.
 
 Pages: a line too long for the text box is split at word breaks into pages (each a
 click or tap), measured with `TextService:GetTextBoundsAsync` against the box's width
 in layout units (Line has a fixed authored height, so width = on-screen width x
 authored height / on-screen height) and the rows that fit (4 on both layouts).
 
-Response labels stay on their plate: the label runs from past the icon ring to 0.8 of
-the right cap's width before the edge (clear of the lit chevron). On keyboards the
-number key takes that slot and the label shrinks by the key's width. Too wide a label
-shrinks from 20 px to its `MinTextSize` attribute (18), then truncates with an
-ellipsis (`fitLabel`). "What should I aim for next?" fits at 20 on PC and 18 on a phone.
+Response labels stay on their plate: the label runs from past the icon ring to where
+the right cap starts (phone 61 to 55 from the edge, PC 70 to 63). The cap's art is
+plain only for its first ~10 % (the lit chevron starts there, the clouds at 30-35 % in
+the text's rows), so text must never run into it; the old label ran 20 % in and
+"What should I aim for next?" touched the clouds on a phone (2026-10-24). On keyboards
+the number key sits on the cap's plain edge and the label stops 4 px short of it.
+Too wide a label shrinks from 20 px to its `MinTextSize` attribute (18), then
+truncates with an ellipsis (`fitLabel`). "What should I aim for next?" (215 px at 20,
+195 at 18) fits at 20 on PC and 18 in the phone's 202 px label.
 
 Phone choice (2026-10-23): `UiScale.isPhone()` used to need a touch screen. The Studio
 device emulator reports a mouse and keyboard, so it got the desktop layout squeezed to
@@ -143,36 +165,48 @@ All cut art, never repainted (ids in `art/ui/assets.json`):
 ## Interaction prompts
 `WorldPrompts` keeps its behaviour (one target in focus, keys muted elsewhere, billboard
 on the target with a mouse, keyboard or gamepad, the touch Dock otherwise). The card
-(`Prompts.Board.List.Card`, 300 x 52 on the billboard) is now:
-- `Banner`: the kit's `prompt_banner` with plain ends (40 tall), tucked behind the plate
-  from its centre and nudged 2 px down so its interior's middle is the card's (26.3 of 52).
-  The ends are `prompt_banner_capL_plain` (the left cap's outer rail and serif, cropped
-  at source x 64, before the cap's top-left shine) and `capR_plain` (that crop mirrored),
-  11 x 40 each; `Mid` stretches between them. The cut's cloud cap (`prompt_banner_capR`)
-  is no longer used: at 40 tall its cloud swallowed the banner's right third and ran into
-  the glyph, and the user finds that much ornament tacky.
-- `Key`: the round `keyplate` (52). The key letter is live text on its cream tile (the
-  gamepad button image when one exists); on touch the tile shows the action's glyph
-  instead (a hand when there's none) and the whole card is the button.
-- `Icon`: the action's white glyph (20), tinted cream, inside the banner's right end:
-  6 px from the body text and 6.4 from the right rail's inner edge, centred on the card
-  (keyboard and gamepad; on touch the plate shows it). `Glyphs.forPrompt`
-  picks it from the action text's first word (Talk, Harvest/Pick/Gather, Plant/No seeds,
-  Grow now, Read, Browse/Trade, Claim, Take, Study, Touch, Travel, "Gather Qi"...), or a
-  prompt's `Glyph` attribute.
-- `Key.Hold`: for a prompt with a HoldDuration, the `hold_ring` cut round the plate: a
-  dim track and a lit copy swept clockwise from the top while held (two clipped halves,
-  each a UIGradient with a hard edge, rotated `min(p, 0.5) * 360` and `max(p, 0.5) * 360`).
-- `Body`: object line (13 px, top 10) over the action (17 px, top 24), 6 px right of the
-  plate and 6 px left of the glyph (200 wide on a 300 card); with no glyph it widens by
-  26 to stop 6.4 px short of the rail. Both lines truncate. The two-line block centres at
-  26.25 and one line at 26.5, against the interior's 26.3.
+(`Prompts.Board.List.Card`, 52 tall) is a plain rounded slab with no kit art (user,
+2026-10-24: the medallion plate, the bracket-ended banner and then the fading band
+with a ringed key all read "tacky"; "clean and readable, restrained"). Plain
+UICorner/UIStroke shapes beat cut art here: the outline must be traced exactly by the
+hold line at any width, and they stay crisp at the billboard's and the phone's sizes.
+- `Plate`: #0e1117 at 14 % transparency, radius 10, a faint top-lit `Sheen` gradient
+  and a 1 px gold `Edge` hairline (#d6ac5c, 72 %), drawn inside the edge.
+- `Key` (keyboard and gamepad only): a 30 px dark cap (#363d4a, radius 7, 1 px cream
+  hairline) with the live key letter in cream, 11 px from the left (= its top pad).
+  Long key names (Space, Enter) widen the cap (letter width + 9 px a side) instead of
+  shrinking. A gamepad button shows its own image with no cap behind it.
+- `Glyph` (touch only): no cap and no letter; the action's 24 px cream glyph
+  (`Glyphs.forPrompt`, a hand when there's none) where the cap was. The whole card is
+  the button.
+- `Body`: object line (14 px, pale gold #e6ca92) over the action (18 px, cream), soft
+  dark strokes, vertically centred (9 px above and below at 52). Both truncate.
+- Width: each card wants its text's width plus the key or glyph and an 18 px right pad
+  (`Want` attribute, measured with `TextService:GetTextSize`); every card on a board
+  takes the widest want, at least 150 and at most the board's or column's width / 1.05
+  (room for the hover growth). The billboard list is centred, the dock's right-aligned.
+- `Hold`: a 2 px light-gold line that runs once round the card's whole outline,
+  clockwise from the top centre, as the hold fills (`src/client/PromptHold.luau`). Nine
+  pieces trace the outline: five straight runs (Frames) and four corners (an r x r clip
+  holding a 2r round Frame with an Inner UIStroke whose UIGradient has a hard edge;
+  turning the gradient sweeps the quarter arc open). Each piece fills by its share of
+  the outline's length, so the line moves at one speed at any card width. The rest
+  hairline is the track.
+- Layout numbers the code reads are attributes on the card (`TextLeftGlyph`,
+  `PadRight`, `Gap`, `KeyPad`) and the key (`Fill`).
+- Prompt-like world billboards elsewhere were checked and left alone: `GateMarkers`
+  (a seal and name over teleport arrays), `PlantTag` (an info card), the event pins and
+  the guide marker are labels, not buttons. Every interactable in the world is a
+  ProximityPrompt drawn by this card.
 
 Touch Dock: its box still mirrors `Hud.Stack` (aspect 3.75839, max 560 x 149). Its
-`List` is 280 wide, cards bottom-up with a 6 px gap; `Lift` (same box) is where a
+`List` is 280 wide, cards bottom-up and right-aligned with a 6 px gap; `Lift` (same box) is where a
 leaving card fades. Both carry a `Fit` UIScale that WorldPrompts sets to the dock's
 height / 149, clamped to 0.85..1, so on a phone the cards are 44 px tall (as before)
-and on a full-size stack 52.
+and on a full-size stack 52. Fitting the width to the text took a typical phone card
+from 238 x 44 to about 160 x 44.
+Not yet seen in play: the hold line's sweep in motion, cards over dark or busy
+scenery, gamepad button images on the card, a real phone.
 
 ## Known gaps
 - On a real iPhone 13 the 844-wide phone layout is fitted to the 750 x 369 safe area at
@@ -181,14 +215,20 @@ and on a full-size stack 52.
   layout would fix it; the centred bar with the column beside it needs the full width.
 - The red ribbon on the response buttons' right caps is in the art; a Codex
   regeneration without it is the fix if the user wants it gone.
-- Fixed 2026-10-23: the export in e056f64 shipped the ScreenGui with `Enabled=false` (a
-  review-stage leftover with its `_rs_Enabled` attribute), so the screen may not have
-  shown in play since; `Enabled` is back to true.
-- Not play-tested: the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
+- The export in e056f64 shipped the ScreenGui with `Enabled=false` (a review-stage
+  leftover). The fix dropped the property (true is the default), and Rojo doesn't sync
+  a property the file omits, so places synced in between kept it off: Talk hid the HUD
+  and nothing showed (2026-10-24). The file now states `Enabled` true, and `init`
+  re-enables a disabled copy with a warning (and warns about duplicate copies).
+- Not play-tested: hiding the touch controls on a real phone (and getting them back
+  after each way out), the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
   ring's sweep under a real hold, and the Dock's Fit on a real phone.
 - Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,
   wait on Codex sheet A7; the `gold` plaque style can stand in for masters.
 - Pressed and disabled response states are tints of the normal art.
+- The keyboard number key sits 4-11 px into the right cap on the phone layout (a PC
+  window under 600 px tall) and -5-13 px on PC, over where the lit cap draws its
+  chevron; not changed in the 2026-10-24 label fix.
 - No Figma composition of the bar: built from the user's mockup and the cut art.
   `tools/build_dialogue.luau` is stale (see its header); the template was re-laid out
   from the export by hand. The

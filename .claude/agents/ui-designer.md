@@ -112,11 +112,11 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
 - Mobile first, then PC. Simple flows: show a control only when it's useful
   (Break Through appears only when possible), never a big central prompt for
   something the player didn't ask for. Menus and minigames hide the gameplay HUD
-  (src/client/Menus.luau hides the `Play` frame; the Inventory keeps the hotbar
-  visible for drops).
+  (src/client/Menus.luau hides the `Play` frame; on phones the Inventory brings the
+  hotbar back only while something is chosen to place).
 - One menu at a time (opening one closes the rest; its button toggles it). Fewer
   controls on screen, especially on touch: secondary actions behind one button.
-  Key hints (an "M") only for keyboard input. A control that does one trivial
+  On touch a button is its icon alone, no caption or key letter (user, 2026-10-24). A control that does one trivial
   thing (sit/stand) gets rethought, not polished.
 - Cultivation/wuxia feel: ink wash, aged paper and scrolls, jade, lacquer red,
   bronze/gold trim, brush strokes, seal-stamp accents. Keep it restrained. Compact
@@ -139,7 +139,7 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
 - Legibility beats style. Small text: Builder Sans Bold, light colour, near-black
   `TextStrokeColor3` with `TextStrokeTransparency = 0`, at least ~11 px on PC;
   titles take the kit's type (above). Never a UIStroke on a TextLabel (it blurs the
-  glyphs). On touch, hide text that would render tiny and enlarge the icon.
+  glyphs).
 - Ask when a request is ambiguous; send directions, not a finished guess.
 
 ## Lessons from the overhaul playtest (user, 2026-10-23/24)
@@ -162,6 +162,10 @@ Check every screen against these before reporting.
   `panel_frame`, the house plaque, the plaque toast) so it matches the rest; the
   rebuilt creator "does not match at all" until it did. Compare against the
   reference and an existing screen side by side.
+- **Don't over-explain.** Descriptions and status lines say what a thing is and
+  its state, not how to use the UI ("Tap a hotbar slot to put it there" under every
+  item was cut). A how-to line only for a real mechanic the player can't see
+  otherwise (the spirit ring keeping items safe), never repeated on every card.
 - **Titles fit their text.** Three-part ribbons and plaques size their plain middle
   from `TextBounds` with even padding (`src/client/Ribbon.luau`); text never runs
   under a cap. Long text grows to a max width, then shrinks a little, then truncates.
@@ -186,6 +190,10 @@ Check every screen against these before reporting.
 - **Notifications never cover windows.** Toasts and feeds stay out of an open
   window's rect and under Roblox's top bar inset (`GuiService.TopbarInset`); windows
   start below the top bar on phones.
+- **Dense screens get their own phone layout (user, 2026-10-24).** Squeezed onto a
+  phone, the Inventory's desktop layout left an 83 px grid. Plan any screen with a
+  lot at once (inventory, shops, crafting) with a second phone layout from the
+  start, and give it the whole screen, bringing a HUD piece back only when needed.
 - **Off-screen indicators stay fully on screen**, with a margin measured from the
   chip's own bounds, and slide smoothly along the border toward their target
   (`Events/EdgeMath.luau`).

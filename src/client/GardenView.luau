@@ -169,11 +169,10 @@ local function growNow(plot: Instance, u: string)
 end
 
 local function addPlant(plot: Instance, anchor: BasePart, plant: Herbs.Plant): PlantView?
-	local template = herbModels:FindFirstChild(plant.h) :: Model?
-	if not template then
+	local model, templateScale = Herbs.clone(herbModels, plant.h) -- its own model or a tinted stand-in
+	if not model then
 		return nil
 	end
-	local model = template:Clone()
 	model.Name = "Plant"
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
@@ -191,7 +190,7 @@ local function addPlant(plot: Instance, anchor: BasePart, plant: Herbs.Plant): P
 		plant = plant,
 		model = model,
 		root = root,
-		baseScale = template:GetScale(),
+		baseScale = templateScale,
 		scale = 0,
 		mutations = "",
 		prompt = prompt,

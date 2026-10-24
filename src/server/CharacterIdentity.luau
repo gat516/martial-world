@@ -19,16 +19,19 @@
 --   "defaults"           -> once: { skin, hairs = { {id, accessory} } } from the
 --                           player's own avatar, the screen's starting look
 --   "reroll", kind       -> kind "Race" | "Surname", for the slot the screen has
---                           open (new or edit). Live product: returns { productId },
+--                           open (new or edit); refused while Config.PAID_REROLLS
+--                           is off (for now). Live product: returns { productId },
 --                           the slot is remembered (Account.rerollFor) and the client
 --                           prompts the purchase; the reroll happens in the receipt
 --                           handler. Mock (id 0): rerolls at once, Studio and testbed only.
 --   "confirm", look      -> checks the look (RaceLook against the slot's race's
 --                           Looks). New slot: also the first name, then the
 --                           slot is filled and played. Edit: the look only (the first
---                           name is locked once a slot is named).
+--                           name is locked once a slot is named; an edit from the
+--                           world also dresses the character). NameSource ("Kept",
+--                           "Rolled", "Typed") is for analytics only.
 --   "slotHairs", id      -> { {id, accessory} } preview copies of a slot's hairs
---   slot actions         -> Slots.handle ("slots", "new", "edit", "cancel", "play",
+--   slot actions         -> Slots.handle ("slots", "new", "edit", "editPlayed", "cancel", "play",
 --                           "deleteAsk", "delete")
 -- Where Players.CharacterAutoLoads is off (the test place) `enter` spawns the
 -- character once a slot is played, and the dead respawn from here.
@@ -402,7 +405,18 @@ local function confirm(player: Player, raw: any): (boolean, any)
 		RaceLook = Registry.lookPicks(race, raw.RaceLook), -- Traits.applyBody wears these (Registry.cosmetics)
 	}
 	if editing then
-		return Slots.commitEdit(player, stored)
+		local ok, result = Slots.commitEdit(player, stored)
+		local current = looks[player]
+		if ok and session.played and current then
+			-- Edit look from the world: the character wears it now and on every spawn
+			local look = table.clone(stored) :: any
+			look.FirstName = current.FirstName
+			looks[player] = look
+			if Rules.APPLY_TO_CHARACTER then
+				task.spawn(dress, player, look)
+			end
+		end
+		return ok, result
 	end
 	local name, why = Rules.checkFirstName(if type(raw.FirstName) == "string" then raw.FirstName else "")
 	if not name then
@@ -412,7 +426,8 @@ local function confirm(player: Player, raw: any): (boolean, any)
 		return false, "Choose a different name"
 	end
 	-- fills the slot and plays it; Main's join continues and calls `enter`
-	return Slots.commitNew(player, stored, name :: string)
+	local source = if raw.NameSource == "Kept" or raw.NameSource == "Rolled" then raw.NameSource else "Typed"
+	return Slots.commitNew(player, stored, name :: string, source)
 end
 
 -- The join has finished on the played slot: show its identity, keep its look
@@ -490,6 +505,9 @@ function CharacterIdentity.handle(player: Player, action: any, arg: any): (boole
 		local entry = KINDS[arg]
 		if not entry then
 			return false, "Bad request"
+		end
+		if not Rules.PAID_REROLLS then
+			return false, "Not available" -- gated off for now (Config.PAID_REROLLS)
 		end
 		local session = Slots.session(player)
 		local account = PlayerData.account(player)

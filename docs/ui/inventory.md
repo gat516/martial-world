@@ -45,16 +45,66 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   upload step. The client reads `ReplicatedStorage.WeaponModels` (the same
   `assets/WeaponModels.rbxm` as `ServerStorage.WeaponModels`, mapped twice). Bare
   Fists (no model) show the Fist class glyph.
-- Names: one fixed size per context, never `TextScaled`: cells Builder Sans Bold 12,
-  two lines then truncated; the hotbar 11, one line then truncated (its 52 px slot
-  can't hold two lines and an icon).
+- Herbs and pills (wired 2026-10-24: Inventory cells, the detail preview, hotbar
+  slots and the drag ghost): the same live viewport, the slot's `Well.Model`,
+  through `ModelView` (src/client/ModelView.luau, also the Herbarium's cards):
+  `SlotArt.paint(slot, id, count, countText, true)` calls `ModelView.item(frame, itemId)`
+  for the Herb and Pill kinds (cores and treasures keep icons), upright, at 0.6
+  transparency with none held, in ModelView's `well` light (ambient 215,208,196, light
+  255,244,222: the cream-paper light left thin dark herbs near black on the dark
+  well; the critic still found Starfall Bamboo, a dark-blue model, weak at phone
+  size); SlotArt keeps each viewport's authored light and puts
+  it back before a weapon is drawn there. Cells are re-made on each render, so a state
+  push while the Pouch is open re-clones its models (herbs 15-85 parts, items 4-10);
+  unprofiled on a low-end phone. `ModelView.item`: `ReplicatedStorage.ItemModels`
+  first (pills, cores, dew, jade, peach), then the herb models (`Herbs.template`:
+  `HerbModels`, `HerbModelsExtra`, the tinted stand-in). It returns false (and hides
+  the frame) when there's no model, so the cell keeps its icon. Pose `upright`
+  (default; plants stand) or `diagonal` (the weapons' lie); re-calling with what the
+  frame already shows does nothing; the camera refits when the frame resizes. API in
+  [herbarium](herbarium.md) "Model display".
+- Names: cells Builder Sans Bold 12, one fixed size, two lines then truncated.
+- **Hotbar models** (user, 2026-10-24: "since we have actual model views for herbs
+  and pills... instead of words we're showing their model view in the hotbar"): a
+  herb or pill slot shows its model (above) in the slot's `Well.Model` (every
+  `Slot1-9` and `SlotTemplate`, authored), no words; `SlotArt.words` words a slot only
+  when its viewport shows no model. The `Well` is authored at 64 % of the slot,
+  centred across and at 0.57 down (the viewport is 1.2x the well, so the model's box
+  is 77 % of the slot), bottom-weighted so tall herbs clear the count row: at 52 px
+  (PC) the box is 39.9 px with 6.0 px left and right, 9.7 top, 2.4 bottom; on a
+  touch phone (35 px slots) about 27 px. Picked over a centred 84 % box, where flower
+  tips ran into the count (critic). A state push redraws nothing (ModelView's `Shows`),
+  at most nine static clones. Cores, treasures and items with no model keep words.
+- **Hotbar words** (user, 2026-10-23: "it doesn't make sense to fit icon and words
+  in; you can't fit either... words only makes the most sense here"): a hotbar art
+  slot (and an item with no model) shows only its short name (`Hotbar.label`: the def's `short` in
+  `Techniques`, `Items` or `Herbs`, else the name's first two words), one word per
+  line, centred in the box under the key and count row (`NameLabel`, y 0.28-0.92 of
+  the slot, 2 px in from each side, under the cooldown sweep's ZIndex). Oswald Bold
+  (condensed), cream, near-black stroke at 0.6 transparency (a full one filled the
+  letters in at 11 px), `TextScaled` capped 15 px on PC and 11 on touch (`Layout`):
+  measured 15 px at 1920x1080 and 1366x768, 11 at 844x390, 10 at 667x375, the same
+  in every slot. Rule for a new `short`: one or two words, each at most 27 px wide in
+  Oswald Bold 11 (about 7 letters; "Moonflash" is 33, "Bamboo" 27). Chosen by the
+  critic over Builder Sans Bold, which held 10 px at 844 only by running "Heaven",
+  "Phoenix" and "Ginseng" onto the slot's ring and fell to 8 px at 667
+ . The key number stays top-left (keyboards),
+  the count top-right (inset to 0.88, 0.07); while an art cools the words fade to
+  0.85 under the seconds; a dimmed art (weapon not in hand, short of qi) or an item
+  with none left fades them to 0.55. The full name shows in `Hotbar.NameTip`
+  (BuffTip's pill) above the slot while the mouse is over it, or while a finger holds
+  it 0.5 s with the Inventory closed (that release doesn't cast; a quicker tap does).
+  Arts stay words; herbs and pills show their model (above); the weapon slot and a
+  dragged weapon show the weapon model.
 - The chosen cell and the hotbar's held item wear the same plain ring (`slot_edge`
   tinted cream, 3 px outside). NEW is a small crimson chip (kit `chip.png` tinted).
 
 ## Layout (`StarterGui.Hud.Inventory`, 760x500 max, centred; touch: fills the space between Roblox's top bar and the hotbar)
 
 - Left column (60 %): a tab row (**Weapons**, **Arts**, **Pouch**, each with a
-  crimson NEW count) and the **Search** box; a chip **Rail** (All, then one chip per
+  crimson NEW count, then the 44 px **book tab** that opens the Herbarium and comes
+  back here when it closes, [herbarium](herbarium.md)) and the **Search** box (100 px
+  at 760 wide; hidden on touch phones, which keep the chips: design review 2026-10-23); a chip **Rail** (All, then one chip per
   section) and the **Sort** button; then the **Grid**, a scrolling list of sections.
 - Weapons sections, one per weapon class: the class glyph, name and Dao level in the
   class colour, a gold rule, the class's weapons (Bare Fists under Fist), the class
@@ -65,7 +115,9 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
 - Pouch sections, one per kind (spirit herbs, pills, cores, heavenly treasures);
   items on the hotbar are listed too.
 - Cells (72x94): the plain slot (62x62) with its 40 px well centred on it, the name
-  under it (12 px, two lines, PC and touch), the class glyph top-left on arts,
+  under it (12 px, two lines, PC and touch), no weapon badge on arts (user,
+  2026-10-23: "we have plenty of indication what techniques belong where": the class
+  sections say it),
   `Lv n` (cinnabar at a bottleneck) or `xN` bottom-right, the slot number bottom-left
   (keyboards), the cinnabar 佩 seal top-right on the weapon in hand, and a crimson
   NEW chip top-right. The chosen cell wears the plain ring.
@@ -73,16 +125,40 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   preview (72 px, 48 px well); name; grade gem and
   label ("Spirit grade", "Rare"); class glyph and kind ("Sword · weapon", "Sword art",
   "Universal art", "Spirit herb"); where it is ("In your hand", "On your hotbar,
-  slot 3", "Not on your hotbar. Drag it onto a slot to use it."); what goes with it
+  slot 3"; nothing when it's off the bar, user 2026-10-24: no how-to under every
+  description); what goes with it
   (a weapon's arts; an art's required weapon and whether it is in hand); what it does
   (for weapons with the grade multiplier); then the Dao row (weapons, or every class
   with nothing chosen on the Weapons tab) or the art's level row, cost rows and buttons. Items keep
-  Eat/Use and Hold; arts keep Add to / Remove from hotbar and Comprehend at a
+  Eat/Use and Hold, plus **Ring** (below); arts keep Add to / Remove from hotbar and Comprehend at a
   bottleneck. Weapons have **no buttons**.
 - Touch: the window starts 6 px below Roblox's top bar (`Platform.topbar`, from
   `GuiService.TopbarInset`), so its top-left never crowds Roblox's menu and chat
   buttons and the bar's row stays free for toasts; the title plaque (which rides on
   the window's top edge and would reach back into the bar) is hidden there.
+  Phone fix (user's device-emulator playtest, 2026-10-23: tabs, search and sort
+  crammed, the section header cut off, the grid 30 px tall): the bar's depth counts
+  at most 58 px (the emulator reported about 130, which pushed the window's top to
+  136 px), the window runs down to 12 px above the hotbar's real top (it kept a
+  fixed 70 px, 40 px more than the hotbar needs) and is the screen less 8 px a side,
+  and without the plaque the tab and search row, the rail and sort row and the grid
+  sit 22 px higher (the grid 22 px taller). At 844x390 the window is about 734x244
+  from y 64 and the grid about 124 px: a section header and a full row of cells.
+  Phones (`Platform.isSmall`, 2026-10-24, "it's cramped": the emulator's 749x388
+  left a 733x203 window and an 83 px grid, under one row): one toolbar row, the tabs,
+  then the rail scrolling sideways, then Sort (96 px) beside the close seal; the
+  search box is hidden (the rail still filters). Grid, divider and detail start 8 px
+  under the row with their bottoms kept, so the grid gains 44 px (127 px there; at
+  844x390 about 168). Tablets keep the two header rows.
+  Hotbar on demand (phones, 2026-10-24, "just hide the whole hud so the inventory
+  can take up more"): the hotbar is hidden while browsing and the window runs to
+  8 px above the screen's bottom (grid about 240 px in the emulator). Choosing
+  anything that can go on the bar, or picking one up to drag, fades the hotbar in
+  and the window eases up to its old height, scrolling the chosen cell above it;
+  a drop chooses what was dropped, so the bar stays to show it landed. Choosing
+  nothing (the chosen cell again, another tab) lowers it. Unread manuals don't
+  raise it. Menus' `keepHotbar` takes a function for this; `Menus.refresh()`
+  re-asks it, and `HotbarView.dragChanged` reports drags.
 - Measured 2026-10-23 in a sandbox preview at 1920x1080, 1366x768 (PC) and 844x390,
   667x375 (touch, 44 px top bar): window 760x500 at 580,290 / 303,134; 760x270 and
   626x255 at y 50 (6 px under the bar). Content 22 px from the window on both sides
@@ -111,9 +187,9 @@ and stack are the same pixel size at 1366x768):
 | Window (`panel_frame`) | 760x500 | 1024, 0.30 (3.3x) | `_h512`, Rect(100,100,412,412), 0.60 (1.7x) |
 | Title plaque, close seal | 320x40, 44 | 1024x128, 128 (3.2x, 2.9x) | `_h80` (2x), `_h96` (2.2x) |
 | NEW chip, seal mark, art disc | 14, 22, 28-48 | 64, 128, 128 (4.5-5.8x) | `_h32`, `_h48`, `_h96` (2-3.4x) |
-| Weapon badge, class glyphs | 22, 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
+| Class glyphs (the weapon badge is gone) | 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
 | Dao bar rim | 16 | 0.17 (6x) | `_h32`, Rect(12,12,116,20), 0.67 (2x) |
-| Grade gems, insight and stone icons | 13-22 | 303-317, 128 | `_h40`, `_h48` |
+| Grade gems and stone icon | 13-22 | 303-317, 128 | `_h40`, `_h48` |
 
 Item icons stay at 128 px (40 px in a cell, 28 on the hotbar: 3.2-4.6x); redrawing
 `draw_icons.py` at 64 px would bring them in line.
@@ -151,21 +227,20 @@ Bare Fists have no grade: a dim neutral edge. The colours are the `Items.Raritie
 and `Weapons.Grades` colours, so slot edges, text, the reward feed's discs and the
 detail pane's gem agree; the B2 `tile_*` frames are no longer used for slots.
 Arts gained a `grade` (Techniques defs; nil = Mortal):
-the starter and kill-milestone basics are Mortal; Twin Phoenix Cannon (first boss),
+the starter and kill-milestone basics are Mortal; Twin Phoenix Cannon (first-boss fallback),
 Moonflash Draw (60 kills) and the boss-pool class arts are Spirit.
 
 ## Class glyphs and colours (`SlotArt.classGlyph`, `SlotArt.classColor`)
 
-One mark per weapon class, white and tinted: the glyph marks arts (cell badge,
-hotbar badge), section headers, rail chips, the detail pane and Dao rows, and stands
-in for a weapon whose model is missing (and for Bare Fists).
+One mark per weapon class, white and tinted: the glyph marks section headers, rail
+chips, the detail pane and Dao rows, and stands in for a weapon whose model is missing
+(and for Bare Fists). Arts carry no badge (removed 2026-10-23, above).
 Fist ivory, Sword azure, Saber red, Greatsword orange, Guandao teal, Spear rose,
 Staff green; universal arts a neutral cream. Glyphs: `art/ui/glyphs/class_*.png`
 (`art/ui/draw_class_glyphs.py`): the kit's white weapon cuts for Fist, Sword, Saber,
 Spear and Staff, padded square; Greatsword and Guandao are white silhouettes of
 their item icons until Codex draws them (codex-sheets "Class glyphs and art icons").
-Every class art on the hotbar now wears its badge (not only while unarmed); the
-slot still dims while the class isn't in hand.
+A class art on the hotbar dims while its class isn't in hand (`SlotArt.weaponMissing`).
 
 ## Weapons: drag, no buttons
 
@@ -241,10 +316,20 @@ not on the hotbar. A v9 profile counts everything it owned as seen (migration 9)
 A chosen art shows its tier, level and XP bar (a `DaoList` row cloned from
 `RowTemplate`). At a bottleneck (XP full at level 3, 6 or 9) the bar turns cinnabar
 and reads "Bottleneck", the cell's "Lv" turns the same colour, two cost rows
-(insight and Spirit Stones icons, "need · you have") show up, and the Secondary button
-becomes Comprehend (jade). While it can't run it stays lacquer and dimmed and its
-caption is the reason ("Meditate to comprehend", "Need insight", "Need stones"); a
-tap toasts the longer reason. Comprehending belongs to the seated Practice row's
+(the class's Dao, with its glyph, or "Weapon Dao" for an any-weapon art; and Spirit
+Stones; "need · you have") show up, and the Secondary button becomes Comprehend
+(jade). While it can't run it stays lacquer and dimmed and its caption is the reason
+("Meditate to comprehend", "Need Sword Dao 4", "Need stones"); a tap toasts the
+longer reason.
+
+## Kept manuals
+
+A manual found before its weapon Dao (`techniques.manuals` in the snapshot) shows in
+Arts like an art, its corner reading "Dao 8" in warning orange. Its detail says it
+will be learned once the Dao is deep enough, the Pairs line reads "Requires Saber
+Dao 8. Yours is 0.", and the Dao row of that class (every class for an any-weapon
+art) shows the progress. No actions: it can't go on the hotbar (drag and slot taps
+are ignored) until the server learns it on the level-up. Comprehending belongs to the seated Practice row's
 Technique tile; the button here still works while seated (`Bottleneck` holds the
 shared logic). Success is the server's notify.
 
@@ -253,7 +338,26 @@ weapon skills' are drawn in `art/ui/draw_techniques.py`. Twin Phoenix Cannon,
 Dragon-Piercing Thrust and Great Sage Awakening read poorly at hotbar size; a Codex
 request for a matching art-icon set is in codex-sheets.
 
+## Spirit ring ([haul](../systems/haul.md))
+
+- `Detail.Actions` holds three kit buttons that share the row equally (the list's
+  `HorizontalFlex` Fill, each authored 40 px wide): Eat/Use (gold), Hold (lacquer) and
+  **Ring** (jade, `button_jade_h64`), items only. Ring reads "Ring n/m" (stacks in the
+  ring / `ringSlots`) and puts the stack in; on a ringed stack it reads "Take out".
+  It fires `InventoryAction ("ring", id, true|false)`; refusals (a full ring) toast.
+  Hidden on rare finds (rarity order >= `Pacing.Haul.SAFE_RARITY`, which the server
+  refuses as already safe); their Pairs line says "A rare find: it never spills, ring
+  or not." A ringed stack's Pairs line: "In your spirit ring (n/m): safe even in the
+  wilds."
+- Pouch cells in the ring wear a jade 戒 seal top-left (`RingMark`, `seal_mark_jade_h48`,
+  the 佩 seal's sibling, mirrored to (10, 8)); the glyph is Heavy and near white so it
+  holds at 22 px.
+- With nothing chosen on the Pouch tab, the Status line reads "Spirit ring: n/m stacks
+  kept safe."
+
 ## Known gaps
+
+- The Ring button, its labels, the mark and the toasts are untested in play.
 
 - Not playtested: drags (hold-to-pick-up, the ghost, drop rings, cancel, the inset-safe
   hit test), taps, NEW clearing, sort persistence, the top-bar inset

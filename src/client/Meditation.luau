@@ -4,8 +4,12 @@
 -- Seated is a calm screen with only what you can do there: the meditation menu,
 -- one row of tiles above the vitals (Stack.CultivatePrompt) that appear only when
 -- they matter: Circulate (an active minigame, played seated; when the realm bar
--- is full it gives way to Break Through), Method (once you own one), Spirit Root
+-- is full it gives way to Break Through; at a major's stage 9 the heart demon may ask
+-- first, HeartDemon.luau, which also offers itself on sitting), Method (once you own one), Spirit Root
 -- (once tested; a seal dot while a reformed element waits for a choice),
+-- Seclusion (the Method tile: on your own peak it opens the panel with Enter
+-- Seclusion; it reads Seclusion until a method is owned; in seclusion only it and
+-- Rise stay),
 -- Practice, and Rise.
 -- Practice (shown while either of its actions exists; a seal dot while a
 -- technique is at a bottleneck) swaps the row for its own tiles (user decision,
@@ -17,10 +21,10 @@
 -- after) and Back. An action that isn't available shows dimmed and toasts why.
 -- The main row comes back after a drill or the panel, on Back, and on standing.
 -- Technique, Method and Spirit Root open a small panel (MeditationMenu).
--- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
+-- The calm view: the eye toggle (Stack.CalmToggle) folds the tiles away and
 -- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
 -- comes on by itself after CALM_AFTER seconds without input. A tap anywhere, a
--- key, the lotus again, or standing up brings everything back. Passive
+-- key, the eye again, or standing up brings everything back. Passive
 -- cultivation runs either way.
 -- The touch combat cluster hides while seated; the tile reads "Rise". The vitals
 -- step aside for the cultivation bars (SeatBars: realm, progress to the next
@@ -45,11 +49,13 @@ local BreakthroughView = require(script.Parent.BreakthroughView)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
 local Guide = require(script.Parent.Guide)
+local HeartDemon = require(script.Parent.HeartDemon)
 local Hud = require(script.Parent.Hud)
 local Layout = require(script.Parent.Layout)
 local MeditationMenu = require(script.Parent.MeditationMenu)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Platform = require(script.Parent.Platform)
 local SelfCard = require(script.Parent.SelfCard)
 local State = require(script.Parent.State)
 
@@ -61,7 +67,7 @@ local BLEND = 0.2 -- seconds each animation fades into the next
 local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by itself
 local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
-local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
+local CALM_ICON = 0.55 -- the eye toggle's transparency while the view is calm
 local RESTING = 0.5 -- a Practice-row tile's transparency while resting or unavailable
 local LOTUS_GAP = 22 -- px from the last tile's edge to the lotus (the row's own tile gap)
 
@@ -76,7 +82,7 @@ local strikes: { [string]: { AnimationTrack } } = {} -- a class's chain steps, l
 local strikeStep = 0
 local button: TextButton
 local row: Frame -- Stack.CultivatePrompt: the seated tiles
-local calmToggle: ImageButton -- Stack.CalmToggle: the lotus
+local calmToggle: ImageButton -- Stack.CalmToggle: the eye
 local wasCalm = false
 local practiceRow = false -- the Practice tiles show instead of the main row
 local lastInput = os.clock()
@@ -128,11 +134,15 @@ end
 
 -- The Weapon Dao tile's caption is its countdown while resting; dimmed while
 -- resting or locked. The Technique tile is dimmed with nothing to comprehend.
+-- Touch tiles are icons alone (user, 2026-10-24: no letters on buttons on mobile),
+-- so there the caption shows only for the countdown.
 local function paintPractice()
 	local t = tile("PracticeDao")
 	local wait = practiceWait()
-	local resting = daoOpen() and wait > 0;
-	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Weapon Dao"
+	local resting = daoOpen() and wait > 0
+	local caption = t:FindFirstChild("Caption") :: TextLabel
+	caption.Text = if resting then clock(wait) else "Weapon Dao"
+	caption.Visible = resting or not Platform.isTouch()
 	dim(t, resting or not daoOpen())
 	dim(tile("PracticeTechnique"), not techniqueReady())
 end
@@ -185,13 +195,15 @@ local function refresh()
 		practiceRow = false
 	end
 	local main = not practiceRow
-	tile("Circulate").Visible = main and not full
-	tile("Breakthrough").Visible = main and full
-	for _, page in { "Method", "Root" } do
-		tile(page).Visible = main and relevant[page] == true
-	end
+	-- in seclusion only the Seclusion tile (the Method tile) and Rise are left
+	local secluded = player:GetAttribute("Secluded") == true
+	tile("Circulate").Visible = main and not full and not secluded
+	tile("Breakthrough").Visible = main and full and not secluded
+	tile("Method").Visible = main and relevant.Method == true;
+	(tile("Method"):FindFirstChild("Caption") :: TextLabel).Text = if MeditationMenu.ownsMethod() then "Method" else "Seclusion"
+	tile("Root").Visible = main and relevant.Root == true and not secluded;
 	(tile("Root"):FindFirstChild("Badge") :: GuiObject).Visible = MeditationMenu.rootPending()
-	tile("Practice").Visible = main and anyPractice;
+	tile("Practice").Visible = main and anyPractice and not secluded;
 	(tile("Practice"):FindFirstChild("Badge") :: GuiObject).Visible = relevant.Comprehend == true
 	tile("Rise").Visible = main
 	for _, name in { "PracticeTechnique", "PracticeDao", "Back" } do
@@ -249,6 +261,7 @@ function Meditation.sit()
 		if token == mine then
 			phase = "seated"
 			tracks.Loop:Play(BLEND)
+			HeartDemon.onSeated() -- an unfaced heart demon may ask to talk
 		end
 	end)
 	refresh()
@@ -426,6 +439,17 @@ end
 
 -- The calm view's clock and its way back: any input restarts the idle clock; a
 -- key, or a tap that isn't a camera drag (and didn't land on our GUI), ends it.
+-- Tell the server a person is here (input seen), at most every AWAKE_PING seconds,
+-- so online play never counts as AFK (Pacing.Income.AFK_AFTER).
+local lastPing = -math.huge
+local function pingAwake()
+	local now = os.clock()
+	if now - lastPing >= Pacing.Income.AWAKE_PING then
+		lastPing = now
+		remote:FireServer("awake")
+	end
+end
+
 local function watchInput()
 	local presses: { [InputObject]: { at: number, pos: Vector3 } } = {}
 	local function pointer(input: InputObject): boolean
@@ -433,6 +457,7 @@ local function watchInput()
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
 		lastInput = os.clock()
+		pingAwake()
 		if pointer(input) then
 			if not processed then
 				presses[input] = { at = os.clock(), pos = input.Position }
@@ -446,6 +471,7 @@ local function watchInput()
 		if kind == Enum.UserInputType.MouseMovement or kind == Enum.UserInputType.MouseWheel or kind == Enum.UserInputType.Touch
 			or (kind.Name:match("^Gamepad") and input.Position.Magnitude > 0.2) then
 			lastInput = os.clock()
+			pingAwake()
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
@@ -473,12 +499,26 @@ function Meditation.init(gui: ScreenGui)
 	local stack = gui:FindFirstChild("Stack") :: Frame
 	row = stack:FindFirstChild("CultivatePrompt") :: Frame
 	calmToggle = stack:FindFirstChild("CalmToggle") :: ImageButton
+	-- touch: icons alone (paintPractice brings the Weapon Dao countdown back)
+	if Platform.isTouch() then
+		for _, t in row:GetChildren() do
+			local caption = t:FindFirstChild("Caption")
+			if caption and caption:IsA("GuiObject") then
+				caption.Visible = false
+			end
+		end
+	end
 	local actions: { [string]: () -> () } = {
 		Circulate = function()
 			task.spawn(circulate)
 		end,
 		Breakthrough = function()
-			task.spawn(BreakthroughView.attempt)
+			task.spawn(function()
+				-- at a major's stage 9 the heart demon may ask first (never blocks it)
+				if HeartDemon.beforeBreakthrough() then
+					BreakthroughView.attempt()
+				end
+			end)
 		end,
 		Practice = function()
 			showPractice(true)
@@ -527,9 +567,15 @@ function Meditation.init(gui: ScreenGui)
 		Menus.setCalm(not Menus.isCalm())
 	end)
 	watchInput()
+	-- M meditates, except while the qi surge is ready (server SurgeReady, only
+	-- ever true standing in a fight): then it surges (BreakthroughView)
 	ContextActionService:BindAction("Meditate", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
-			Meditation.toggle()
+			if BreakthroughView.surgeReady() then
+				task.spawn(BreakthroughView.surge)
+			else
+				Meditation.toggle()
+			end
 		end
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.KeyCode.M)
@@ -539,6 +585,7 @@ function Meditation.init(gui: ScreenGui)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
 	player:GetAttributeChangedSignal("Root"):Connect(refresh)
 	player:GetAttributeChangedSignal("Realm"):Connect(refresh)
+	player:GetAttributeChangedSignal("Secluded"):Connect(refresh)
 	-- the Practice countdown ticks while seated
 	task.spawn(function()
 		while true do
@@ -567,7 +614,7 @@ function Meditation.init(gui: ScreenGui)
 		local multiplier = spot and spot.multiplier
 		if spot and multiplier ~= shown then
 			local where = if spot.place ~= "" then ` {spot.place}` else ""
-			Hud.toast(`Meditating{where}: passive cultivation ×{spot.multiplier}`)
+			Hud.toast(`Cultivation ×{spot.multiplier}{where}`) -- short: one line on a phone
 		end
 		shown = multiplier
 	end)

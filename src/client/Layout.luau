@@ -23,7 +23,8 @@ local EDGE = 12 -- touch: the cluster's gap from the screen edge
 -- Touch cluster (phone HUD pass, 2026-10-23): Strike (70) in the corner, Jump, Dash and
 -- Guard (50 each) on one arc around it, ARC px from Strike's centre at 180, 135 and 90
 -- degrees, so the cluster is a 146 px quarter instead of a 211 px column; Lock (shown
--- only with something to lock) sits outside the arc at 112.5 degrees, LOCK_ARC out.
+-- only with something to lock) sits outside the arc at 112.5 degrees, LOCK_ARC out, and
+-- Qi Surge (shown only while SurgeReady, BreakthroughView) mirrors it at 157.5.
 local STRIKE = 70
 local ARC = 74
 local LOCK_ARC = 128
@@ -35,6 +36,18 @@ local SMALL_HEIGHT_SHARE = 0.31 -- on short screens (Platform.isSmall), phones a
 -- A touch phone (short and touch) keeps less: the user couldn't see the world past the
 -- HUD (2026-10-23). Readability comes from contrast, never from size.
 local TOUCH_SMALL_SHARE = 0.26
+-- the hotbar words' largest size (Oswald Bold): touch 11 px (every short name's words
+-- fit 32 px slots at 667x375 at 11), PC 15 (52 px slots), as authored
+local TOUCH_WORDS_MAX = 11
+-- The top-right tiles' scale on a touch phone: 56 px tiles at 44 px, Roblox's own
+-- top-bar button height (they were 50, 0.9, and read too large next to them).
+local TOUCH_SMALL_TILES = 0.78
+-- Seated on a touch phone (2026-10-24, "cultivation bar is looking rough for mobile"):
+-- the Dantian line scaled to its 9 px box (8 px text), so its box grows to fill the
+-- space between the cultivation bar and the hotbar (12 px text, still centred on the
+-- dantian bar). The seated tiles' captions, which sat on the realm crest, are gone on
+-- touch (Meditation).
+local PHONE_DANTIAN_TEXT = { top = 0.685, height = 0.28 } -- of SeatBars' height
 
 local player = Players.LocalPlayer
 
@@ -42,6 +55,7 @@ local Layout = {}
 
 local gui: ScreenGui
 local clusterShown = true -- false while seated (Meditation)
+local authored: { [GuiObject]: { position: UDim2, size: UDim2 } } = {} -- before the phone seat changes
 
 local function find(name: string): GuiObject
 	return gui:FindFirstChild(name, true) :: GuiObject
@@ -78,17 +92,29 @@ function Layout.apply()
 		dock.Size = stack.Size
 	end
 
-	-- on touch the slots are too small for names: a bigger icon well, centred, instead.
-	-- PC: the well sits centred in the space above the one-line name strip.
+	-- hotbar art slots are words (HotbarView), under the key number and count row on
+	-- every device (as authored), at most TOUCH_WORDS_MAX px on touch. The well (herb
+	-- and pill models, a dragged weapon) is authored in the GUI.
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
 	for _, slot in slots:GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
-		if name and slot.Name ~= "SlotTemplate" then
-			name.Visible = not touch
-			local well = slot:FindFirstChild("Well") :: GuiObject
-			well.Size = if touch then UDim2.fromScale(0.64, 0.64) else UDim2.fromScale(0.54, 0.54)
-			well.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.355)
+		if name then
+			name.Visible = true
+			if touch then
+				(name:FindFirstChildOfClass("UITextSizeConstraint") :: UITextSizeConstraint).MaxTextSize = TOUCH_WORDS_MAX
+			end
 		end
+	end
+
+	-- seated on a touch phone: a readable Dantian line
+	local seatBars = stack:FindFirstChild("SeatBars") :: Instance
+	local dantianText = seatBars:FindFirstChild("DantianText") :: GuiObject
+	authored[dantianText] = authored[dantianText] or { position = dantianText.Position, size = dantianText.Size }
+	dantianText.Position, dantianText.Size = authored[dantianText].position, authored[dantianText].size
+	if touch and Platform.isSmall() then
+		local p, size = dantianText.Position, dantianText.Size
+		dantianText.Position = UDim2.new(p.X, UDim.new(PHONE_DANTIAN_TEXT.top, 0))
+		dantianText.Size = UDim2.new(size.X, UDim.new(PHONE_DANTIAN_TEXT.height, 0))
 	end
 
 	-- touch: the big Dash and Strike buttons show their own cooldowns, so the mini
@@ -116,6 +142,7 @@ function Layout.apply()
 		onArc(dodge, 135, ARC)
 		onArc(block, 90, ARC)
 		onArc(find("LockButton"), 112.5, LOCK_ARC) -- LockOn shows it when there's something to lock
+		onArc(find("SurgeButton"), 157.5, LOCK_ARC) -- BreakthroughView shows it while a surge is ready
 		hideDefaultJump()
 	end
 	-- key hints are for keyboards only
@@ -141,8 +168,16 @@ function Layout.apply()
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")
 	if tiles then
-		-- touch: tiles stay thumb-sized (about 50px); PC: a little smaller
-		tiles.Scale = if touch then 0.9 elseif Platform.isSmall() then 0.75 else 0.85
+		-- touch: tiles stay thumb-sized (about 50px; 44 px on a phone, where the
+		-- user found 50 "a bit too large", 2026-10-23: the top bar's own buttons'
+		-- height); PC: a little smaller
+		local small = Platform.isSmall()
+		tiles.Scale = if touch then (if small then TOUCH_SMALL_TILES else 0.9) elseif small then 0.75 else 0.85
+		-- the objective and buffs column keeps its 8 px gap under the smaller tiles
+		local tracker = find("Tracker")
+		if touch and small and tracker then
+			tracker.Position = UDim2.new(1, -12, 0, math.round(12 + 56 * TOUCH_SMALL_TILES + 8))
+		end
 	end
 end
 

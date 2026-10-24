@@ -118,7 +118,8 @@ The garden dies at QC6 because herb qi is flat. Fix:
 - **Herb tiers, by region.** I Common (QC), II Spirit (QR1-5), III Rare (QR6-FE3),
   IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
-  matters but never replaces hunting.
+  matters but never replaces hunting. Built (untuned): `Herbs.luau` `tier`,
+  `Pacing.Herbs.EAT_SHARE`; today's herbs are tiers I-III.
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out
   feeds the garden; the garden saves trips. Sect errands ask for herbs (home
   turns into quests).
@@ -250,7 +251,7 @@ Still open from that pass:
 
 Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
-2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
+2. ~~Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.~~ (done, untuned; [garden](systems/garden.md)).
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
 4. Phase A: foundation grades, the haul and spirit ring, the qi surge ([roadmap](roadmap.md); insight deletion done); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).

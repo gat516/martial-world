@@ -14,12 +14,23 @@ consumables: spirit cores from beasts and heavenly treasures.
   their weather.
 - The garden feeds cultivation (aura, buffs, qi) without replacing the active loop
   (aura capped at `Config.Garden.AURA_CAP`).
+- Herb tiers I-V by region (I Common, II Spirit, III Rare, IV Treasure, V Heavenly;
+  [progression](../progression.md)). A qi herb (`eat.qi = true`) gives a fixed share
+  of the eater's current stage dantian by tier (`Pacing.Herbs.EAT_SHARE`: 6, 9, 12,
+  16, 20%), so a herb matters at every stage but never replaces hunting. Raw qi only
+  fills the room left in the dantian; a qi-only herb is refused when it's full. Size
+  and mutations multiply the harvest (herbs per pick), not the qi per herb.
+  Buff-only herbs (Spirit Grass, Cloud Mint, Moonpetal Orchid, Purple Bamboo) give no qi.
+- Current tiers: I Spirit Grass, Cloud Mint, Jade Lotus, Purple Bamboo; II Blood
+  Ginseng, Moonpetal Orchid, Violet Cloud Fungus, Spirit Peach; III Nine-Leaf Lingzhi,
+  Thousand-Year Ginseng, Rift Lotus. No IV or V herbs yet.
 - One prompt key (F) for beds and ripe plants; G buys "Grow now" (see
   [monetization](monetization.md)).
 
 ## Key files
-- `src/shared/Herbs.luau`: plant defs (soil, grow time, yield, aura, eat effect,
-  seed cost, sell price, mutation chain), sizes, mutations, `progress`, `growNowTier`.
+- `src/shared/Herbs.luau`: plant defs (tier, soil, grow time, yield, aura, eat effect,
+  seed cost, sell price, mutation chain), sizes, mutations, `eatShare` (and the qi part
+  of each qi herb's blurb, built at load from the share), `progress`, `growNowTier`.
 - `src/shared/Items.luau`: every consumable (herbs mirrored in, spirit cores,
   treasures) and its `use`.
 - `src/shared/Hotbar.luau`: nine slots of techniques and items.
@@ -60,6 +71,7 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 
 ## Tuning knobs
 - `Herbs.luau`: everything per plant; `Sizes`, `Mutations`, `GOLDEN_CHANCE`, `MAX_SIZE`.
+- `Pacing.Herbs.EAT_SHARE`: qi per herb as a share of the dantian, by tier.
 - `Items.luau`: core and treasure effects, `treasureWeight`, `USE_COOLDOWN`.
 - `Items.HERB_EAT_SECONDS` (1.05 s) sets the herb use cooldown and animation duration;
   `HERB_BITE_SECONDS` (0.4 s) removes the morsel. Reach/chew/return poses and
@@ -74,4 +86,6 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 - The Herbarium (`StarterGui.Herbarium`) is built but nothing opens it: it waits for
   herb tiers and a per-player collection record (discovered, harvested, largest,
   mutations seen); contract in [herbarium](../ui/herbarium.md).
-- Herb and item qi are flat per item, not scaled by stage.
+- Herb tiers exist but aren't tied to regions yet: no tier IV-V herbs, and seeds
+  don't come from their region's beasts (roadmap section 5).
+- Item qi (cores, treasures) is per item, set in `Items.luau`.

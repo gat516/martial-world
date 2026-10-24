@@ -12,10 +12,12 @@
 -- window puts it away (bare fists). Both go through WeaponAction, which the server
 -- validates.
 -- One row along the bottom on every device; the Stack frame sizes it.
--- Words only (user, 2026-10-23: "you can't fit either [icon or words]... words only
--- makes the most sense here"): each art or item slot is its short name (Hotbar.label),
--- centred, the key number top-left on keyboards, the cooldown a darkening sweep with
--- the seconds over the words. The full name shows in Hotbar.NameTip above the slot
+-- Words for arts (user, 2026-10-23: "you can't fit either [icon or words]... words only
+-- makes the most sense here"): each art slot is its short name (Hotbar.label),
+-- centred; a herb or pill slot is its 3D model (user, 2026-10-24: "since we have
+-- actual model views for herbs and pills"; SlotArt.paint with itemModels, the slot's
+-- Well.Model), other items their short name. The key number top-left on keyboards,
+-- the count top-right, the cooldown a darkening sweep with the seconds over the words. The full name shows in Hotbar.NameTip above the slot
 -- while the mouse is over it, or while a finger holds it (touch, Inventory closed:
 -- a hold of PEEK_SECONDS shows the name and doesn't cast; a quicker tap still casts).
 -- An art whose weapon class isn't in hand dims; it still casts, and the server
@@ -294,7 +296,7 @@ local function pickUp(id: string, from: (number | string)?, source: GuiObject, t
 	local size = math.max(source.AbsoluteSize.X, 44) * GHOST_SCALE
 	g.Size = UDim2.fromOffset(size, size)
 	g.ZIndex = 50
-	SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
+	SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "", true)
 	SlotArt.words(g, id, Hotbar.label(id), false);
 	(g:FindFirstChild("KeyLabel") :: GuiObject).Visible = false
 	for _, part in g:GetDescendants() do
@@ -477,7 +479,8 @@ local function render()
 		local id = s.hotbar[i] or ""
 		local item = Items.Defs[id]
 		local count = if item then Items.count(s, id) else nil
-		SlotArt.paint(slot, if id ~= "" then id else nil, count)
+		-- herbs and pills as their model (ModelView skips what a slot already shows)
+		SlotArt.paint(slot, if id ~= "" then id else nil, count, nil, true)
 		local poor = short(id)
 		key[i] = if poor then "1" else "0"
 		local dim = poor or SlotArt.weaponMissing(id) or (count ~= nil and count <= 0)

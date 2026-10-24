@@ -91,7 +91,7 @@ ModelView.herb(frame, herbId, opts?) -> boolean -- Herbs.template: HerbModels, H
 ModelView.item(frame, itemId, opts?) -> boolean -- ItemModels first, then the herb models
 ModelView.show(frame, template, opts?) -> boolean -- any Model template
 ModelView.clear(frame)
-opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number? } -- margin default 0.04
+opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number?, well = boolean? } -- margin default 0.04
 ```
 False means no model: the frame is cleared and hidden and the caller shows its icon.
 Showing what a frame already shows does nothing (its `Shows` attribute), and the
@@ -99,7 +99,8 @@ camera refits when the frame resizes. **Upright** (default, picked over diagonal
 critic: diagonal made the lotus and lily read as cuttings and the bamboo as a sword)
 stands the model on its base, turned 25 degrees and seen 14 degrees from above;
 `diagonal` adds the weapons' 45-degree roll. Lit from the upper left, ambient low
-enough that pale petals shade off the cream paper. The camera fits every visible
+enough that pale petals shade off the cream paper; `well = true` (slot wells: the
+Inventory, the hotbar) lights brighter for a dark background. The camera fits every visible
 part's corners with the margin on each side. `silhouette` drops all light (neon
 turned plastic) and fades the frame 45 %, a dark shape on the grey card. Scripts,
 sounds, particles, beams, trails, lights and GUIs are stripped from the clone.

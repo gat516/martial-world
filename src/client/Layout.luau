@@ -85,9 +85,9 @@ function Layout.apply()
 		dock.Size = stack.Size
 	end
 
-	-- hotbar slots are words (HotbarView), under the key number and count row on every
-	-- device (as authored), at most TOUCH_WORDS_MAX px on touch. The well only shows a
-	-- dragged weapon's model, centred.
+	-- hotbar art slots are words (HotbarView), under the key number and count row on
+	-- every device (as authored), at most TOUCH_WORDS_MAX px on touch. The well (herb
+	-- and pill models, a dragged weapon) is authored in the GUI.
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
 	for _, slot in slots:GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
@@ -96,9 +96,6 @@ function Layout.apply()
 			if touch then
 				(name:FindFirstChildOfClass("UITextSizeConstraint") :: UITextSizeConstraint).MaxTextSize = TOUCH_WORDS_MAX
 			end
-			local well = slot:FindFirstChild("Well") :: GuiObject
-			well.Size = UDim2.fromScale(0.64, 0.64)
-			well.Position = UDim2.fromScale(0.5, 0.5)
 		end
 	end
 

@@ -12,8 +12,10 @@
 --       (a herb in the pouch is an item with the herb's id).
 --   ModelView.show(frame, template, opts?) -> boolean   any Model template
 --   ModelView.clear(frame)
---   opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number? }
---   (margin: each side, as a share of the frame; default 0.04)
+--   opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number?,
+--            well = boolean? }
+--   (margin: each side, as a share of the frame; default 0.04. well: lit brighter for
+--   a dark slot well, the Inventory's cells and the hotbar; default is the cream paper)
 --
 -- Each returns whether a model is shown; false (no model) clears and hides the frame,
 -- so the caller shows its icon instead. Showing what the frame already shows does
@@ -41,7 +43,8 @@ local ModelView = {}
 export type Options = {
 	pose: string?, -- "upright" (default) or "diagonal"
 	silhouette: boolean?, -- a flat dark shape (undiscovered)
-	margin: number?, -- each side, as a share of the frame (default 0.06)
+	margin: number?, -- each side, as a share of the frame (default 0.04)
+	well: boolean?, -- on a dark slot well: brighter light (default: the cream paper's)
 }
 
 local FOV = 20
@@ -52,6 +55,10 @@ local ROLL = math.rad(-45) -- diagonal: base at the lower left, top at the upper
 local LIGHT = Vector3.new(1, -1.2, -0.8) -- in camera space: from the upper left, in front
 local AMBIENT = Color3.fromRGB(125, 120, 112) -- low enough that pale petals shade off the cream paper
 local LIGHT_COLOR = Color3.fromRGB(190, 184, 172)
+-- on a dark slot well the paper's light left thin dark herbs (bamboo, grasses) near
+-- black at the phone hotbar's 26 px
+local WELL_AMBIENT = Color3.fromRGB(215, 208, 196)
+local WELL_LIGHT_COLOR = Color3.fromRGB(255, 244, 222)
 local SHADOW = Color3.new(0, 0, 0)
 local SILHOUETTE_FADE = 0.45 -- the dark shape lets the card's paper through
 local CORNERS = {
@@ -164,15 +171,16 @@ local function place(frame: ViewportFrame, model: Model, opts: Options)
 		end)
 	end
 	frame.LightDirection = view:VectorToWorldSpace(LIGHT.Unit)
-	frame.Ambient = if silhouette then SHADOW else AMBIENT
-	frame.LightColor = if silhouette then SHADOW else LIGHT_COLOR
+	frame.Ambient = if silhouette then SHADOW elseif opts.well then WELL_AMBIENT else AMBIENT
+	frame.LightColor = if silhouette then SHADOW elseif opts.well then WELL_LIGHT_COLOR else LIGHT_COLOR
 	frame.ImageTransparency = if silhouette then SILHOUETTE_FADE else 0
 	model.Parent = frame
 end
 
 local function present(frame: ViewportFrame, key: string?, make: () -> Model?, opts: Options?): boolean
 	local o: Options = opts or {}
-	local full = if key then `{key}|{o.pose or "upright"}|{if o.silhouette then "s" else "m"}` else nil
+	local look = if o.silhouette then "s" elseif o.well then "w" else "m"
+	local full = if key then `{key}|{o.pose or "upright"}|{look}` else nil
 	if full and frame:GetAttribute("Shows") == full and frame:FindFirstChildOfClass("Model") then
 		frame.Visible = true
 		return true -- already showing it

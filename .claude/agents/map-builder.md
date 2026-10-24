@@ -29,6 +29,9 @@ FAIL, one eye-level sheet (day and night). A brief missing a field from
 
 ## Read first
 
+- **Sect redo (main peak, spirit peaks):** [docs/map/new_build.md](../../docs/map/new_build.md)
+  is the brief. Don't read the old `main-peak.md` or `spirit-peaks.md` unless the user
+  says to.
 - `docs/systems/map.md` (core: layout, art direction, palette, lighting, hard
   constraints), then only the `docs/map/` file for your area; write what you
   learn into it. `docs/map/asset-catalogue.md` for dressing,

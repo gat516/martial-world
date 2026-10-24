@@ -15,6 +15,7 @@ ones your task touches. For the setting in brief, read
 ## Index
 | File | Covers | Read it when |
 |---|---|---|
+| [new_build](../map/new_build.md) | the sect redo of the main peak and spirit peaks: the process, areas, references, agreed shape | any main peak or spirit peak work (read instead of the two below unless the user says) |
 | [main-peak](../map/main-peak.md) | plaza, courts, grand stairs, ring terrace, summit, falls, landform, terrain colours | working on the main peak or `art/main_peak/` |
 | [spirit-peaks](../map/spirit-peaks.md) | the spirit-peak template, its dressing and rebuild scripts; the rope bridges | touching a `Peak_N` or a bridge |
 | [cloud-sea](../map/cloud-sea.md) | `Map.Clouds`: plane, wisps, mounds, banks, budget, mist spots | adding clouds or placing anything on the cloud plane |

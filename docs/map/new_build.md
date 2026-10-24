@@ -94,19 +94,23 @@ Roblox parts. The sheet above says *what* goes where; these say *how it looks*.
   gray tiled roofs, wood lattice and red lanterns; a stone embankment with a
   balustrade; shallow river with grass islands and low-poly rocks; huge cliffs with
   layered strata and hanging ivy, willows, and depth in layers of blue haze.
+- [part_temple](../reference/sect/style/part_temple.jpg): a temple built from
+  parts: red columns and railings, layered roofs with upswept eave corners from
+  wedges, gold ridge and eave trims, an octagon window, a raised plinth.
 What they share, and what we copy: painted, stylized textures on the meshes (not
 flat colours); dense grass; big rounded moss-capped rock; strong atmospheric haze
 and bloom; few hero buildings with lots of nature around them.
-**Open:** terrain grass decoration (the references rely on it; it was off for phones)
-and how textured the meshes are next to the flat-colour palette above.
+**Grass decoration** is on, with a player setting to turn it off (user, 2026-10-24;
+check that a client can switch it at runtime before relying on it). **Open:** how
+textured the meshes are next to the flat-colour palette above.
 
 ## What to build with (user, 2026-10-24)
 The map-builder's rule ("What to build with" in `.claude/agents/map-builder.md`),
 confirmed for the redo. One rule for every area: go-backs are expensive.
 - **Floor:** smooth terrain (lawns, plaza fill, ledges, valley floors), built by script.
-- **Structures:** buildings are Blender meshes (halls, gates, houses, pavilions, roofs,
-  as in the style references); parts for simple pieces (platforms, steps, walls,
-  railings, paving) beside them (user, 2026-10-24).
+- **Structures:** buildings are Blender meshes or parts, whichever reaches the bar
+  (user, 2026-10-24: "buildings can be stud too"; `part_temple` is the part-built
+  bar). Parts for the simple pieces (platforms, steps, walls, railings, paving).
 - **Greenery:** the existing library assets and meshes (`ServerStorage.AssetLibrary`,
   place-only), or made in Blender when nothing fits.
 - **Landforms, by size (decided 2026-10-24):**

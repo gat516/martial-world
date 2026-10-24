@@ -31,6 +31,8 @@ local IMG = {
 	note = "rbxassetid://119446469150241", -- sized/note_panel_h96 (Rect 24,24,168,72)
 	band = "rbxassetid://77034028645753", -- nameplate_band (704x128, stretch)
 	seal = "rbxassetid://108501117687747", -- seal_mark (cinnabar stamp, 128)
+	shelterShield = "rbxassetid://70393328505917", -- sized/shelter_shield_h28 (the kit shield's silhouette)
+	qiSwirl = "rbxassetid://86512540519668", -- sized/ornament_glyph_qi_h28
 	plaque = "rbxassetid://106177972063212", -- sized/title_plaque_h80
 }
 
@@ -333,6 +335,21 @@ local function pipRow(parent, name, health, leader, near, order)
 	}, band)
 	local fill = frame("Fill", { Size = UDim2.fromScale(health, 1), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0 }, trough)
 	new("UIGradient", { Color = HEALTH }, fill)
+	-- the party shelter's marks (Social.refreshShelter shows one): a jade shield on a
+	-- sheltered member, the jade qi swirl on their patron; white glyphs, tinted here
+	for _, mark in { { "Sheltered", IMG.shelterShield }, { "Patron", IMG.qiSwirl } } do
+		new("ImageLabel", {
+			Name = mark[1],
+			Image = mark[2],
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Fit,
+			ImageColor3 = Color3.fromRGB(150, 230, 190),
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -17, 0, 1),
+			Size = UDim2.fromOffset(16, 18),
+			Visible = false,
+		}, band)
+	end
 	if not near then
 		band.ImageTransparency = 0.5
 	end

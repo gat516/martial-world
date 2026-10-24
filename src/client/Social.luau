@@ -7,7 +7,9 @@
 --                     HUD's People tile shown in safe zones)
 --   the invite prompt a small card under the top bar with a countdown, Accept / Decline
 --   party pips        a tiny stack at the left edge: each member's name, a health sliver,
---                     the leader's seal, dimmed when not near; tap your own for Leave
+--                     the leader's seal, dimmed when not near; tap your own for Leave;
+--                     the party shelter's marks (a jade shield on a sheltered member, the
+--                     jade qi swirl on the one sheltering them; player attribute ShelteredBy)
 --   friend toast      "<name> is on this mountain" through the HUD toast
 -- Laid out at the phone baseline (844x390) and fitted by UiScale (max 1.3), like Sect.
 --
@@ -61,6 +63,7 @@ local card: Frame
 local people: Frame
 local invitePrompt: Frame
 local pips: Frame
+local refreshShelter: () -> ()
 local leave: GuiButton
 local templates: Frame
 
@@ -474,6 +477,48 @@ end
 
 local rowsByUser: { [number]: GuiButton } = {}
 
+-- The party shelter on the pips (docs/systems/combat.md "Realm pressure"): a jade
+-- shield on a member a stronger one shelters, the jade qi swirl on that patron. From
+-- each member's ShelteredBy attribute (the patron's UserId; Social.preview's members
+-- carry `shelteredBy` instead).
+local NAME_WIDTH = UDim2.new(1, -36, 0, 16) -- PlayerName as authored
+local NAME_WIDTH_MARKED = UDim2.new(1, -52, 0, 16) -- clear of the mark
+
+local function shelteredBy(m: any): number?
+	if type(m.shelteredBy) == "number" then
+		return m.shelteredBy
+	end
+	local other = Players:GetPlayerByUserId(m.userId)
+	local id = other and other:GetAttribute("ShelteredBy")
+	return if type(id) == "number" then id else nil
+end
+
+refreshShelter = function()
+	local members = if party then party.members else {}
+	local patrons: { [number]: boolean } = {}
+	local sheltered: { [number]: boolean } = {}
+	for _, m in members do
+		local id = shelteredBy(m)
+		if id then
+			sheltered[m.userId] = true
+			patrons[id] = true
+		end
+	end
+	for userId, row in rowsByUser do
+		local band = row:FindFirstChild("Band") :: ImageLabel
+		local shield = band:FindFirstChild("Sheltered") :: GuiObject?
+		local swirl = band:FindFirstChild("Patron") :: GuiObject?
+		local isSheltered, isPatron = sheltered[userId] == true, patrons[userId] == true and not sheltered[userId]
+		if shield then
+			shield.Visible = isSheltered
+		end
+		if swirl then
+			swirl.Visible = isPatron
+		end
+		(band:FindFirstChild("PlayerName") :: GuiObject).Size = if isSheltered or isPatron then NAME_WIDTH_MARKED else NAME_WIDTH
+	end
+end
+
 local function renderPips(snap: any)
 	party = if type(snap) == "table" and type(snap.members) == "table" then snap else nil
 	for _, fn in partyListeners do
@@ -524,6 +569,7 @@ local function renderPips(snap: any)
 			rowsByUser[userId] = nil
 		end
 	end
+	refreshShelter()
 	updatePipsShown()
 end
 
@@ -610,6 +656,14 @@ function Social.init()
 		Menus.close(people)
 	end)
 	Menus.onChanged(updatePipsShown)
+	-- the shelter marks follow every player's ShelteredBy
+	local function watchShelter(other: Player)
+		other:GetAttributeChangedSignal("ShelteredBy"):Connect(refreshShelter)
+	end
+	for _, other in Players:GetPlayers() do
+		watchShelter(other)
+	end
+	Players.PlayerAdded:Connect(watchShelter)
 	-- rows size the list's canvas (AutomaticCanvasSize misses them; docs/systems/ui.md)
 	local list = people:FindFirstChild("List") :: ScrollingFrame
 	local layout = list:FindFirstChildOfClass("UIListLayout") :: UIListLayout
@@ -711,7 +765,7 @@ function Social.preview()
 	renderPips({
 		members = {
 			{ userId = -2, name = "Li Wei", health = 0.8, leader = true, near = true },
-			{ userId = player.UserId, name = "You", health = 1, near = true, self = true },
+			{ userId = player.UserId, name = "You", health = 1, near = true, self = true, shelteredBy = -2 },
 			{ userId = -3, name = "Mo Lan", health = 0.35, near = false },
 		},
 	})

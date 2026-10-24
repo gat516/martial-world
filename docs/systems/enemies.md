@@ -166,8 +166,8 @@ against their stage. Bosses keep the five tiers below (BossThemes has lines for 
 | above | +2 to +3 | gold frame, gem end and lozenge cap on the left, omen line |
 | far | +4 to +5 | violet frame, crimson gem drawn out into a talisman tip, pulsing qi aura, sheen sweep, omen line |
 | deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
-| cowed | a major below you | the below frame and tag, with a muted omen ("It fears your realm") |
-| sheltered | above your major, within your patron's stage | the even frame, jade tag and a jade omen ("Sheltered by a friend") |
+| cowed | a major below you | the below frame and tag; on the omen row a gold down-chevron and "Cowed · it fears you" (the word bronze) |
+| sheltered | above your major, within your patron's stage | the even frame and jade tag; on the omen row a jade shield and "Sheltered · strike as equals" |
 
 Omen lines are short xianxia warnings under the bar (under the skull for
 deadly), one picked at random per beast per tier so it never flickers; the pools

@@ -1030,6 +1030,15 @@ local function staggerFor(enemy: Enemy, seconds: number)
 	enemy.stateUntil = math.max(enemy.stateUntil, os.clock() + seconds)
 end
 
+-- Tells the clients a beast just quailed before a player (PressureFX draws a ripple
+-- at the player's feet): the enemy model's `Awed` attribute, "<userId> <kind> <n>"
+-- (kind "flinch" or "wave"; n only makes each cue a change).
+local aweCount = 0
+local function cueAwe(enemy: Enemy, player: Player, kind: string)
+	aweCount += 1
+	enemy.model:SetAttribute("Awed", `{player.UserId} {kind} {aweCount}`)
+end
+
 -- An idle beast feels the players a major or more above it within its aggro: it
 -- flinches when one arrives (again after Pressure.REARM unseen), and runs from one
 -- two majors up. True when it acted (think stops there).
@@ -1039,7 +1048,7 @@ local function feelPressure(enemy: Enemy, now: number): boolean
 	end
 	local position = enemy.root.Position
 	local fleeFrom: Vector3? = nil
-	local flinch = false
+	local flinch: Player? = nil
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
 		if root and (root.Position - position).Magnitude <= enemy.def.aggro then
@@ -1049,7 +1058,7 @@ local function feelPressure(enemy: Enemy, now: number): boolean
 			elseif majors == 1 then
 				local seen = enemy.awedBy[player]
 				if not seen or now - seen > Pressure.REARM then
-					flinch = true
+					flinch = player
 				end
 				enemy.awedBy[player] = now
 			end
@@ -1070,6 +1079,7 @@ local function feelPressure(enemy: Enemy, now: number): boolean
 	end
 	if flinch then
 		staggerFor(enemy, Pressure.FLINCH)
+		cueAwe(enemy, flinch, "flinch")
 		return true
 	end
 	return false
@@ -2823,6 +2833,7 @@ table.insert(Cultivation.onBreakthrough, function(player: Player, stage: Realms.
 			and (enemy.root.Position - root.Position).Magnitude <= Pressure.WAVE_RADIUS
 		then
 			staggerFor(enemy, Pressure.WAVE_STAGGER)
+			cueAwe(enemy, player, "wave")
 		end
 	end
 end)

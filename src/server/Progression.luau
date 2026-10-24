@@ -153,6 +153,7 @@ function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	if not data.firstKills[def.id] then
 		data.firstKills[def.id] = true
 	end
+	data.stats.slain[def.id] = (data.stats.slain[def.id] or 0) + 1 -- the heart-demon trial names them
 	if def.boss then
 		data.stats.bossKills += 1
 		if data.stats.bossKills == 1 then

@@ -550,4 +550,21 @@ Pacing.Foundation = {
 	HINT_ABOVE = 2, -- ...to this many above (bosses too, as "the fast road")
 }
 
+-- The heart-demon trial (server HeartDemon, docs/systems/heart-demon.md): an
+-- optional, choice-based reflection at each major's stage 9 that tempers old
+-- foundation grades. Never costs a stage or cultivation.
+Pacing.HeartDemon = {
+	QUESTIONS = 4, -- the most asked: the path question, then the record's strongest
+	TEMPER_CALM = 3, -- old grades a calmed demon (no denials) raises one step each, lowest first
+	TEMPER_ROUGH = 1, -- the least a finished trial tempers, however many denials
+	-- each denial (an answer the record contradicts) tempers one fewer, down to TEMPER_ROUGH
+	HARVEST_WEIGHT = 2, -- one harvest weighs as this many kills when reading the path
+	HUNTER_SHARE = 0.65, -- kills / (kills + weighted harvests) from here up: a hunter
+	GARDENER_SHARE = 0.35, -- and up to here: a gardener (between: both roads)
+	LEAN_MIN = 6, -- below this many kills + weighted harvests: the still road (sat, little else)
+	SLAIN_MIN = 10, -- kills before the demon names the beasts you slew
+	STILL_MIN_HOURS = 0.5, -- hours seated before stillness is a question
+	OFFER_COOLDOWN = 20 * 3600, -- seconds after "Not now" before the seat offers it again
+}
+
 return Pacing

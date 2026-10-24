@@ -129,6 +129,10 @@ local function onPlayerAdded(player: Player)
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		humanoid.Died:Connect(function()
 			player:SetAttribute("Died", true)
+			local profile = PlayerData.get(player)
+			if profile then
+				profile.stats.deaths += 1 -- the heart-demon trial asks about fear
+			end
 			Analytics.event(player, "Death", 1, Combat.lastHurtBy(player))
 			task.spawn(Haul.died, player, character) -- spill half the unbanked haul where they fell (an error can't stop the death screen)
 			Combat.died(player, character, Players.RespawnTime, Config.Spawn.RESPAWN_AT_HUB and not Config.TESTBED)

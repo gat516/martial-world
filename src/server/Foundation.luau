@@ -15,6 +15,7 @@
 -- TARGET picks the grade at the breakthrough (Cultivation.advance calls `seal`),
 -- stored by stage key in data.foundation.grades; the count then resets. Every
 -- graded stage's BONUS sums into one multiplier on max health and power.
+-- `temper` raises old grades later (the heart-demon trial, HeartDemon.luau).
 -- The pools are global today, so they run thin past QC; per-region pools come with
 -- the regions (roadmap).
 
@@ -74,6 +75,36 @@ local function rank(grade: string): number
 		end
 	end
 	return 1
+end
+Foundation.rank = rank
+
+export type Tempered = { key: string, from: string, to: string }
+
+-- Raise up to `steps` old grades one step each, the lowest first (ties: the
+-- earliest stage), never past the top grade. The heart-demon trial calls it
+-- (later seclusion too); the caller refreshes stats. Returns what changed.
+function Foundation.temper(data: PlayerData.Data, steps: number): { Tempered }
+	local open = {}
+	for key, grade in data.foundation.grades do
+		local stage = Realms.ByKey[key]
+		if stage and rank(grade) < #Config.GRADES then
+			table.insert(open, { key = key, rank = rank(grade), at = Realms.index(stage.major, stage.minor) })
+		end
+	end
+	table.sort(open, function(a, b)
+		if a.rank ~= b.rank then
+			return a.rank < b.rank
+		end
+		return a.at < b.at
+	end)
+	local changed: { Tempered } = {}
+	for i = 1, math.min(steps, #open) do
+		local entry = open[i]
+		local to = Config.GRADES[entry.rank + 1].name
+		table.insert(changed, { key = entry.key, from = data.foundation.grades[entry.key], to = to })
+		data.foundation.grades[entry.key] = to
+	end
+	return changed
 end
 
 -- Whether `grade` is below Solid (the unsteady toast, a harder tribulation).

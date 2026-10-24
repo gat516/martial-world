@@ -4,7 +4,8 @@
 -- Seated is a calm screen with only what you can do there: the meditation menu,
 -- one row of tiles above the vitals (Stack.CultivatePrompt) that appear only when
 -- they matter: Circulate (an active minigame, played seated; when the realm bar
--- is full it gives way to Break Through), Method (once you own one), Spirit Root
+-- is full it gives way to Break Through; at a major's stage 9 the heart demon may ask
+-- first, HeartDemon.luau, which also offers itself on sitting), Method (once you own one), Spirit Root
 -- (once tested; a seal dot while a reformed element waits for a choice),
 -- Practice, and Rise.
 -- Practice (shown while either of its actions exists; a seal dot while a
@@ -45,6 +46,7 @@ local BreakthroughView = require(script.Parent.BreakthroughView)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
 local Guide = require(script.Parent.Guide)
+local HeartDemon = require(script.Parent.HeartDemon)
 local Hud = require(script.Parent.Hud)
 local Layout = require(script.Parent.Layout)
 local MeditationMenu = require(script.Parent.MeditationMenu)
@@ -249,6 +251,7 @@ function Meditation.sit()
 		if token == mine then
 			phase = "seated"
 			tracks.Loop:Play(BLEND)
+			HeartDemon.onSeated() -- an unfaced heart demon may ask to talk
 		end
 	end)
 	refresh()
@@ -478,7 +481,12 @@ function Meditation.init(gui: ScreenGui)
 			task.spawn(circulate)
 		end,
 		Breakthrough = function()
-			task.spawn(BreakthroughView.attempt)
+			task.spawn(function()
+				-- at a major's stage 9 the heart demon may ask first (never blocks it)
+				if HeartDemon.beforeBreakthrough() then
+					BreakthroughView.attempt()
+				end
+			end)
 		end,
 		Practice = function()
 			showPractice(true)

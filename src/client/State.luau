@@ -31,6 +31,16 @@ export type Snapshot = {
 	-- count/target experiences, the grade it would get now, past grades by stage key,
 	-- the summed bonus share, and up to 5 open experiences { category, text }
 	foundation: { count: number, target: number, grade: string, grades: { [string]: string }, bonus: number, hints: { { category: string, text: string } } }?,
+	-- the heart-demon trial (server HeartDemon.state): the open major's id and name (nil
+	-- when none), whether the player is at a stage 9 (the Break Through offer), whether a seat offer waits out
+	-- a "Not now", and finished trials by major (`note` is the heart line for the Self card)
+	heartDemon: {
+		open: string?,
+		name: string?,
+		atPeak: boolean,
+		snoozed: boolean,
+		trials: { [string]: { calm: boolean, denials: number, tempered: number, note: string, at: number } },
+	}?,
 }
 
 local State = {}

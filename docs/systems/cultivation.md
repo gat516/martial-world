@@ -73,8 +73,10 @@ felt in fights.
 - `src/server/Progression.luau`: technique manuals from kills (kept until their
   weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
   break a technique's bottleneck). First kills and boss kills feed `Foundation.kill`.
-- `src/server/Foundation.luau`: foundation experiences, grades, the stat bonus and
-  the open-experience hints (see "Foundation grade").
+- `src/server/Foundation.luau`: foundation experiences, grades, the stat bonus,
+  tempering and the open-experience hints (see "Foundation grade").
+- `src/server/HeartDemon.luau` + `src/client/HeartDemon.luau`: the heart-demon trial
+  ([heart-demon](heart-demon.md)).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, weapon Dao XP.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
@@ -140,12 +142,15 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   (else the mildest rare mutation not yet harvested), the equipped class's next Dao
   level, a cache, a world event if any is left, a third beast, and a boss in range as
   "The fast road: defeat the <boss>" (always shown when one is open, replacing the last line).
+- **Tempering:** `Foundation.temper(data, steps)` raises old grades one step each,
+  lowest first, never lowering; the [heart-demon trial](heart-demon.md) at each
+  major's stage 9 tempers up to 3 (1 to 3 by how honestly it's answered).
 - **Tribulation:** a heaven-defier's strikes deal `TRIBULATION_DAMAGE` x more by the
   pending grade (Cracked 1.25, Steady 1.1).
 - **Gaps:** the pools are global and small (five beast types, three herb tiers, a
   handful of caches and events), so past QC they run thin and the Dao levels carry
   the grade. Per-region (and per-realm) pools are needed as regions arrive. Not built:
-  tempering old grades, the heart-demon trial, the Cultivate-window line (the Self
+  tempering by seclusion, the Cultivate-window line (the Self
   card will read `PlayerState.foundation`). The Discover hint shows even when no
   cache is left. Numbers are first guesses.
 
@@ -178,6 +183,8 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   meditation multipliers, forced-breakthrough thresholds, the overflow cap past
   the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), manuals (boss and milestones),
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
+- **Pacing.HeartDemon**: questions, tempering steps, path shares, offer cooldown
+  ([heart-demon](heart-demon.md#tuning)).
 - **Pacing.Foundation**: experience weights, per-stage targets, grade shares,
   grade bonuses, the tribulation damage per grade, the rare-mutation line, the
   world-event radius and the hint count and range.

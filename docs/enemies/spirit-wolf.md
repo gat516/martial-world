@@ -34,10 +34,10 @@ The fight:
   only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves
   the first howl rallies the others, so nothing spawns. They are `fleeting`: gone
   without rewards once they have no target, leave the leash or would fall asleep.
-  **Rewards: summoned wolves pay full rewards** (qi, stones, drops, kill credit, exactly
-  like any wolf; summons have never been reduced), so a player who leaves and re-engages
-  a lone wolf (a fresh engagement after `ENGAGE_RESET`) can farm up to 3 extra wolves
-  per howl. The Elder Wolf King's summons now also arrive already targeting (they used
+  **Rewards: summoned wolves pay qi only**, at the untiered rate (no stones, drops,
+  first kills or kill count; [enemies](../systems/enemies.md) "Summoned beasts pay qi
+  only"), so leaving and re-engaging a lone wolf for its howl is no farm. Onboarding
+  players get full pay for their one reinforcement. The Elder Wolf King's summons now also arrive already targeting (they used
   to howl on their first think) and wait 1-2.5 s before attacking.
 - **Attack slots** (every non-boss beast): one beast at a time winds up or strikes at
   a player (`ATTACK_SLOTS` 1), and the next windup waits `SLOT_GAP` 0.6 s after it
@@ -122,8 +122,7 @@ TechniqueVFX's plain-emitter fallback).
 ## Known gaps
 - The Spirit Wolf's howl reinforcements are untested in play: where they appear on
   broken ground (a spot can be behind a wall the mover can't cross), whether 3 extra
-  wolves on a QC2 player is too much, the onboarding limit, and whether howls become a
-  farm (full rewards; see "Howl reinforcements").
+  wolves on a QC2 player is too much, and the onboarding limit.
 - The Spirit Wolf fight was approved in the testbed but is unseen in the main game's
   wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
   the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,

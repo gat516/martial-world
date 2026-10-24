@@ -98,14 +98,17 @@ for UI and vfx passes.**
   pick them up.
 - **Banking** happens on reaching home, the sect, or any teleport array, as a one-tap
   "Store all" (user, 2026-10-23: "think sell all but you store all"); riding an array
-  and logging out at home bank silently.
+  banks too, with the same summary and flare on arrival; logging out at home banks
+  silently.
 - **The spirit ring:** a storage ring with a few safe slots; whatever is in it is
   banked even out in the wilds. More slots by realm or from the Pavilion. Choosing
   what goes in the ring is the interesting decision.
 - **Death spills about half the unbanked haul** where you died, as a spirit-light
   only you can pick up, for about 5 minutes. No other player can loot it (no griefing,
   no PvP looting). A death never costs cultivation or a stage.
-- **Leaving while combat-tagged counts as a death** (no combat logging).
+- **Leaving while combat-tagged counts as a death** (no combat logging): the share
+  spills where you stood and waits for your next join (a phone drop costs a walk back,
+  not the haul). A second death merges into the waiting spill.
 - **Rejected:** a wound on the cultivation bar as the death cost. Two death
   penalties at once is where it turns hardcore.
 

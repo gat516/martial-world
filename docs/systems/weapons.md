@@ -62,7 +62,7 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 |---|---|
 | Start | Iron Jian (equipped); no technique: the first is Fire Seal, the onboarding's 3-kill manual (any weapon) |
 | Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Fire Seal, 12 Sword Qi Wave, 30 Iron Skin, 60 Moonflash Draw, 100 Palm Strike (any-weapon manuals first: the 3-kill one is the onboarding's) |
-| First boss kill (`BOSS_FIRST_MANUAL`) | Twin Phoenix Cannon |
+| First boss kill (`Progression` `firstBossManual`) | one usable now: the most advanced unlearned art for the class in hand that its Dao reaches (Sword Qi Wave for a fresh Jian), else a starter art you lack (any-weapon first), else the class in hand's next art (waits in Arts), else `BOSS_FIRST_MANUAL` (Twin Phoenix Cannon) |
 | Boss pool (`Enemies.ElderWolfKing.bossDrops`) | one unowned entry of: Rampaging Tiger Cleave, Heaven-Splitting Descent, Crescent Moon Sweep, Great Sage Awakening, or a Spirit weapon of any class. Guaranteed on the first kill, then 25% a kill |
 | Manual caches (`ManualCache` anchors) | whatever manual/weapon the anchor names; meant for Dragon-Piercing Thrust and the other class manuals |
 | Sect weapon rack (`WeaponRack` anchors) | one free Mortal weapon of each class, once each |
@@ -70,8 +70,8 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 
 Learning a class manual grants that class `XP_MANUAL` Dao XP (re-studying a
 known one at a cache too). A manual kept for lack of Dao grants nothing until it
-is learned; every class skill needs Dao 5 or 8, so even Twin Phoenix Cannon (first
-boss) and Moonflash Draw (60 kills) wait in Arts until Fist / Sword Dao 5 (both
+is learned; every class skill needs Dao 5 or 8, so Moonflash Draw (60 kills) and
+the boss pool's arts wait in Arts until their class reaches Dao 5 or 8 (classes
 start at 2). The starter arts need no Dao.
 The Cloud-Pattern Jade treasure gives Dao XP to the class in hand. A gained weapon fires Effect `"weapon"` (weaponId).
 

@@ -189,7 +189,7 @@ Bare Fists have no grade: a dim neutral edge. The colours are the `Items.Raritie
 and `Weapons.Grades` colours, so slot edges, text, the reward feed's discs and the
 detail pane's gem agree; the B2 `tile_*` frames are no longer used for slots.
 Arts gained a `grade` (Techniques defs; nil = Mortal):
-the starter and kill-milestone basics are Mortal; Twin Phoenix Cannon (first boss),
+the starter and kill-milestone basics are Mortal; Twin Phoenix Cannon (first-boss fallback),
 Moonflash Draw (60 kills) and the boss-pool class arts are Spirit.
 
 ## Class glyphs and colours (`SlotArt.classGlyph`, `SlotArt.classColor`)

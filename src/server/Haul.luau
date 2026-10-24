@@ -5,8 +5,10 @@
 --     dantian, herbs, seeds, spirit cores and other common items, Spirit Stones.
 --     It's tracked as a snapshot of what they held when they last banked; the
 --     haul is whatever they hold above it. Using or spending anything lowers the
---     snapshot with it (spending eats the banked part first), so every way of
---     gaining something counts without each one reporting in.
+--     snapshot only once what's held drops below it: spending eats this trip's
+--     haul first, the banked part only after that (so refining raw qi at a wilds
+--     node banks it: the node is a waystation). Every way of gaining something
+--     counts without each one reporting in.
 --   - Never at risk: refined cultivation, stages, weapons, techniques and manuals
 --     (none of them are in the snapshot), finds at or above SAFE_RARITY (banked the
 --     moment they're held), and whatever stacks sit in the spirit ring.
@@ -15,18 +17,22 @@
 --     array), out of combat and with something unbanked, the player attribute
 --     `HaulReady` is set and the client offers a one-tap "Store all" prompt
 --     (InventoryAction "storeAll" -> Haul.storeAll) that banks the lot with one
---     summary line. Only riding an array (Travel.onTravel) and logging out at a
---     bank point bank silently. In the testbed (no map, and the whole arena reads
---     as the sect) only near the spawn pad, where the TestPeak sits.
+--     summary line. Riding an array (Travel.onTravel) banks on its own and shows
+--     the same summary and flare on arrival; only logging out at a bank point
+--     banks silently. In the testbed (no map, and the whole arena reads as the
+--     sect) only near the spawn pad, where the TestPeak sits.
 --   - Haul.onBanked hooks (player, amounts, how: "store" | "travel") let
 --     onboarding teach the beat after the first hunt.
 --   - Death: SPILL_SHARE of each unbanked amount leaves the player and waits as a
 --     spill at the last place they stood, for SPILL_SECONDS. Only they see it (the
 --     Effect "spill" goes to them alone) and walking into it gives it back, as
---     haul again. A new death replaces an unclaimed spill.
---   - Leaving while combat-tagged (the InCombat attribute) loses the same share,
---     with nothing to reclaim.
--- The snapshot and the spill live in memory. Logging out away from a bank point
+--     haul again. A death before reclaiming merges into the waiting spill (one
+--     light, at the newest spot, its timer restarted).
+--   - Leaving while combat-tagged (the InCombat attribute, often a phone drop)
+--     spills the same share where they stood, saved in `data.spill`; so does any
+--     unclaimed spill at logout. A join within Tuning.KEEP_SECONDS gets it back as
+--     a spill for SPILL_SECONDS ("your haul waits where you fell"); later it's gone.
+-- The snapshot and the live spill live in memory. Logging out away from a bank point
 -- saves the unbanked haul in `data.haul`, so a rejoin (at home) offers Store all
 -- for it; logging out at a bank point banks it.
 
@@ -291,13 +297,35 @@ local function announce(player: Player, gained: Amounts, how: string)
 	end
 end
 
--- Silent bank (riding an array). Travel.onTravel, before the character moves.
+-- The summary line and the client's flare ("banked") for a bank that moved something.
+local function showStored(player: Player, gained: Amounts)
+	local line = `Stored: {describe(gained)}`
+	effectRemote:FireClient(player, "banked", line)
+	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })
+end
+
+-- Riding an array banks. Travel.onTravel, before the character moves; the summary
+-- and flare wait for the arrival (the character moved, or a few seconds at most).
 function Haul.bankQuietly(player: Player)
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not (root and Haul.safeAt(player, root.Position)) then
 		return
 	end
-	announce(player, Haul.bank(player), "travel")
+	local gained = Haul.bank(player)
+	if isEmpty(gained) then
+		return
+	end
+	local from = root.Position
+	task.spawn(function()
+		local waited = 0
+		while waited < 6 and root.Parent and (root.Position - from).Magnitude < 20 do
+			waited += task.wait(0.2)
+		end
+		if player.Parent then
+			showStored(player, gained)
+		end
+	end)
+	announce(player, gained, "travel")
 end
 
 -- InventoryAction "storeAll": the Store all prompt at a bank point.
@@ -318,9 +346,7 @@ function Haul.storeAll(player: Player): (boolean, string?)
 		data.stats.stored += 1
 	end
 	Foundation.stored(player, gained.rawQi) -- the Haul deed
-	local line = `Stored: {describe(gained)}`
-	effectRemote:FireClient(player, "banked", line)
-	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })
+	showStored(player, gained)
 	announce(player, gained, "store")
 	return true, nil
 end
@@ -367,6 +393,25 @@ local function sendSpill(player: Player, spill: Spill)
 	effectRemote:FireClient(player, "spill", spill.at, spill.expires)
 end
 
+-- Add `taken` to the waiting spill (if it's still there), or start one, at `at`
+-- with a fresh timer: a second death keeps the first spill's contents.
+local function addSpill(s: State, at: Vector3, taken: Amounts)
+	local contents = taken
+	local old = s.spill
+	if old and workspace:GetServerTimeNow() < old.expires then
+		contents = old.contents
+		contents.rawQi += taken.rawQi
+		contents.stones += taken.stones
+		for _, bag in BAGS do
+			local into = (contents :: any)[bag] :: { [string]: number }
+			for id, n in (taken :: any)[bag] :: { [string]: number } do
+				into[id] = (into[id] or 0) + n
+			end
+		end
+	end
+	s.spill = { at = at, expires = workspace:GetServerTimeNow() + Tuning.SPILL_SECONDS, contents = contents }
+end
+
 -- Humanoid.Died (before Combat.died): spill the share where they last stood.
 function Haul.died(player: Player, character: Model)
 	local s = states[player]
@@ -382,10 +427,7 @@ function Haul.died(player: Player, character: Model)
 	if isEmpty(taken) then
 		return
 	end
-	if s.spill then
-		effectRemote:FireClient(player, "spillGone", false) -- the older spill is lost
-	end
-	s.spill = { at = at, expires = workspace:GetServerTimeNow() + Tuning.SPILL_SECONDS, contents = taken }
+	addSpill(s, at, taken) -- merges into an unclaimed one (its light moves here)
 	local data = PlayerData.get(player)
 	if data then
 		data.stats.spills += 1 -- the heart-demon trial reads greed and caution
@@ -394,22 +436,30 @@ function Haul.died(player: Player, character: Model)
 	Cultivation.pushState(player)
 end
 
--- PlayerRemoving (before the profile is released): leaving mid-fight is a death
--- with nothing to reclaim.
--- Otherwise: at a bank point it banks; elsewhere the haul is saved as unbanked
--- (data.haul) for the next session.
+-- PlayerRemoving (before the profile is released): leaving mid-fight spills like a
+-- death, where they stood. That spill, or any unclaimed one, is saved (data.spill)
+-- for the next join. Otherwise: at a bank point it banks; elsewhere the haul is
+-- saved as unbanked (data.haul) for the next session.
 function Haul.leaving(player: Player)
 	local s = states[player]
 	local data = PlayerData.get(player)
 	if s and data and s.data == data then
-		if player:GetAttribute("InCombat") == true then
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local at = s.lastGround or (root and root.Position)
+		if player:GetAttribute("InCombat") == true and at then
 			local taken = takeShare(player)
 			if not isEmpty(taken) then
 				data.stats.fled += 1
-				print(`Haul: {player.Name} left in combat and lost {describe(taken)}`)
+				addSpill(s, at, taken)
+				print(`Haul: {player.Name} left in combat and spilled {describe(taken)}`)
 			end
 		end
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local spill = s.spill
+		if spill and workspace:GetServerTimeNow() < spill.expires then
+			data.spill = { at = { spill.at.X, spill.at.Y, spill.at.Z }, contents = spill.contents :: any, saved = os.time() }
+		else
+			data.spill = nil
+		end
 		local home = root ~= nil and Haul.safeAt(player, root.Position) and player:GetAttribute("InCombat") ~= true
 		data.haul = if home then empty() else Haul.unbanked(player) :: any
 	end
@@ -461,6 +511,39 @@ local function check(player: Player)
 		data.haul = empty()
 		s = { data = data, banked = banked, ready = false, lastGround = nil, spill = nil }
 		states[player] = s
+		-- a spill saved at the last logout waits where they fell, if they're back in time
+		local kept = data.spill :: any
+		data.spill = nil
+		local at = kept and kept.at
+		if kept and type(at) == "table" and type(kept.saved) == "number" and type(kept.contents) == "table"
+			and os.time() - kept.saved <= Tuning.KEEP_SECONDS then
+			local c = empty()
+			c.rawQi = tonumber(kept.contents.rawQi) or 0
+			c.stones = tonumber(kept.contents.stones) or 0
+			for _, bag in BAGS do
+				for id, n in kept.contents[bag] or {} do
+					if type(id) == "string" and type(n) == "number" and n > 0 then
+						(c :: any)[bag][id] = n
+					end
+				end
+			end
+			local spill = {
+				at = Vector3.new(tonumber(at[1]) or 0, tonumber(at[2]) or 0, tonumber(at[3]) or 0),
+				expires = workspace:GetServerTimeNow() + Tuning.SPILL_SECONDS,
+				contents = c,
+			}
+			s.spill = spill
+			task.delay(1, function()
+				if states[player] == s and s.spill == spill then
+					sendSpill(player, spill)
+					local left = math.floor(Tuning.SPILL_SECONDS / 60 + 0.5)
+					Cultivation.notify(
+						player,
+						`Your haul waits where you fell: {describe(c)}. Only you can see its light: reach it within {left} min.`
+					)
+				end
+			end)
+		end
 	end
 	local st = s :: State
 	tidyRing(data)

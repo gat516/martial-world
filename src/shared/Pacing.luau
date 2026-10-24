@@ -454,6 +454,24 @@ Pacing.DaoPractice = {
 	DIFFICULTY = 0.35,
 }
 
+-- THE HAUL (server Haul; docs/systems/haul.md). What a player has gained since
+-- they last banked (raw qi in the dantian, herbs, seeds, spirit cores and the
+-- like, Spirit Stones) is at risk until they reach the sect (their peak, the
+-- plaza) or stand on any teleport array out of combat. A death spills SPILL_SHARE
+-- of it where they fell, as a spirit-light only they can see and walk back into
+-- for SPILL_SECONDS; leaving while combat-tagged loses that share outright.
+-- Finds at or above SAFE_RARITY bank the moment they're picked up, and the
+-- spirit ring keeps RING_SLOTS whole stacks banked even in the wilds.
+Pacing.Haul = {
+	SPILL_SHARE = 0.5, -- of each unbanked amount, rounded to the nearest whole
+	SPILL_SECONDS = 300, -- the spill waits this long, then it's gone
+	RECLAIM_RADIUS = 7, -- studs from the spill that pick it back up
+	SAFE_RARITY = 4, -- Items.Rarities order (4 Epic, 5 Legendary): banks on pickup
+	RING_SLOTS = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number }, -- by major realm
+	TESTBED_BANK_RADIUS = 24, -- testbed: studs from the spawn pad that count as home
+	CHECK_SECONDS = 0.5, -- how often banking, the ring and the spill are checked
+}
+
 -- SPIRIT ROOTS (Roots.luau, server Roots; docs/character/spirit-root.md). A root's
 -- element is rolled once at the Testing Stone; its grade starts at STARTING_GRADE
 -- for everyone and is raised by rare items. Grade multiplies passive and refining

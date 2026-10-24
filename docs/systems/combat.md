@@ -25,7 +25,9 @@ scales all player damage.
   it's the condition for a forced breakthrough (to become the qi surge, Phase A). Getting hurt or landing damage
   (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
   pass quietly; the client reads only that (the top-right tiles fold down, the
-  boss bar lifts, Guide holds its spotlight).
+  boss bar lifts, Guide holds its spotlight). The server's `Haul` reads it too: no
+  banking while it's set, and leaving the game with it set loses half the unbanked
+  haul, like a death ([haul](haul.md)).
 - **Techniques spend combat qi**, the mana pool (`Qi`), never the raw qi in the
   dantian that feeds cultivation. Basic attacks, dashes and the guard are free,
   so a player out of qi still fights with the weapon

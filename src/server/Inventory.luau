@@ -17,6 +17,7 @@ local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
+local Haul = require(script.Parent.Haul)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Roots = require(script.Parent.Roots)
@@ -253,6 +254,7 @@ end
 --   ("comprehend", techniqueId) break its bottleneck (Progression.comprehend)
 --   ("seen", { id })          the Inventory showed these: they stop being NEW
 --   ("view", tab, sort, filter) remember the Inventory's sort and filter for a tab
+--   ("ring", itemId, inRing)  put a whole stack in the spirit ring (true) or take it out (false)
 function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -263,6 +265,11 @@ function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): 
 		return Inventory.use(player, a)
 	elseif action == "comprehend" then
 		return Progression.comprehend(player, a)
+	elseif action == "ring" then
+		ok, message = Haul.setRing(player, a, b)
+		if not ok then
+			return ok, message
+		end
 	elseif action == "slot" then
 		if type(a) ~= "string" or not owns(data, a) or (b ~= nil and not validSlot(b)) then
 			return false, "You can't place that"

@@ -7,10 +7,11 @@ felt in fights.
 
 ## Design intent
 - **Phase A (decided 2026-10-23):** insight is deleted (built: the walls are the bar,
-  techniques gate on weapon Dao, see [combat](combat.md)) and breakthroughs get a
-  foundation grade (built, see "Foundation grade" below). Not built yet: death
-  spills half of the unbanked haul (raw qi, herbs, stones; a spirit ring keeps some
-  safe), and the forced breakthrough becomes the qi surge (a mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
+  techniques gate on weapon Dao, see [combat](combat.md)), breakthroughs get a
+  foundation grade (built, see "Foundation grade" below), and death spills half of
+  the unbanked haul (built: raw qi, herbs, stones; a spirit ring keeps some safe;
+  [haul](haul.md)). Not built yet: the forced breakthrough becomes the qi surge (a
+  mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
   page is the code as it stands.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).

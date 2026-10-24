@@ -13,6 +13,8 @@ export type Snapshot = {
 	herbs: { [string]: number },
 	items: { [string]: number },
 	seeds: { [string]: number },
+	ring: { string }?, -- spirit ring: herb and item ids whose stacks are banked even in the wilds (server Haul)
+	ringSlots: number?, -- stacks the ring holds at this realm
 	buffs: { Buff },
 	decor: { [string]: number }?,
 	meditation: { multiplier: number, place: string }?, -- nil when not meditating

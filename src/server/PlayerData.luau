@@ -74,6 +74,7 @@ export type Data = {
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
+	ring: { string }, -- the spirit ring: herb and item ids whose whole stack is banked even in the wilds (Haul.luau)
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
 	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()
@@ -152,6 +153,7 @@ local function default(): Data
 		herbs = {},
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
+		ring = {},
 		buffs = {},
 		decor = {},
 		receipts = {},

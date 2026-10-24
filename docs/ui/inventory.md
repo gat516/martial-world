@@ -273,6 +273,12 @@ request for a matching art-icon set is in codex-sheets.
 
 ## Known gaps
 
+- **Spirit ring: no button yet** ([haul](../systems/haul.md)). The server takes
+  `InventoryAction ("ring", itemId, true|false)` and `PlayerState` carries `ring` and
+  `ringSlots`; an item in the ring only says so in the detail's Pairs line. The detail
+  pane has two action buttons (Use/Eat, Hold), so a Ring toggle (and a view of the
+  ring's slots) needs a ui-designer pass on `StarterGui.Hud.Inventory`.
+
 - Not playtested: drags (hold-to-pick-up, the ghost, drop rings, cancel, the inset-safe
   hit test), taps, NEW clearing, sort persistence, the top-bar inset
   (`GuiService.TopbarInset` is zero in Studio's Edit view; previews faked a 44/58 px

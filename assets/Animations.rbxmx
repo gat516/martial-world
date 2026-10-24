@@ -78,6 +78,11 @@
    <Content name="AnimationId"><url>rbxassetid://117319074411273</url></Content>
   </Properties>
   </Item>
+  <Item class="Animation" referent="RBXAWALK"><Properties>
+   <string name="Name">Walk</string>
+   <Content name="AnimationId"><url>rbxassetid://80600839460034</url></Content>
+  </Properties>
+  </Item>
   <Item class="Folder" referent="RBXA18"><Properties>
    <string name="Name">PerfectDodge</string>
   </Properties>

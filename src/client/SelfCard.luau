@@ -6,8 +6,9 @@
 -- Inventory-sized (760x500 at most, centred; Menus moves it under Roblox's top bar
 -- on short screens). Built by tools/build_self_card.luau; this fills it.
 --   Desktop: three columns at once.
---     Self         the avatar (a live copy of your character in Avatar.View), your
---                  name, Race (race · variant, rarity), Bloodline ("None", muted;
+--     Self         the avatar (a live copy of your character in Avatar.View), Edit
+--                  look under it (while the creator is on), your name with the worn
+--                  title under it (TitleRow: taps open the Titles page), Race (race · variant, rarity), Bloodline ("None", muted;
 --                  deferred), Strength (max health, power with the foundation bonus)
 --     Cultivation  Realm (stage bar, % right, what's next), Foundation ("Foundation
 --                  86%", percent only; bar marked at 50% and 100%, the next open
@@ -28,6 +29,10 @@
 -- the player attribute InSafeZone is true, docs/systems/party.md) opens Social's
 -- People list, Settings (the gear) the Settings window; both come back here when
 -- closed by their own seal (Menus.openFrom).
+-- Titles (docs/systems/titles.md): the Titles page swaps in for the card's body (Back
+-- seal returns): every title by category, earned ones in their rarity colour, locked
+-- ones as a gray bar with the how-to-earn line; tap to wear, tap the worn one (or
+-- Wear none) to take it off (CultivationAction "title").
 -- The crest is tappable only once the root is tested. The tile always shows (it
 -- holds Settings): before the root is tested it opens Settings directly, the card
 -- having nothing to show yet. After the reveal the tile pops in, swells once and
@@ -40,11 +45,14 @@ local TextService = game:GetService("TextService")
 
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local CreatorRules = require(ReplicatedStorage.Shared.CharacterCreator.Rules)
 local Rarities = require(ReplicatedStorage.Shared.CharacterCreator.Rarities)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Titles = require(ReplicatedStorage.Shared.Titles)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local Creator = require(script.Parent.CharacterCreator.Controller)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -56,6 +64,7 @@ local State = require(script.Parent.State)
 local UiScale = require(script.Parent.UiScale)
 
 local player = Players.LocalPlayer
+local cultivationRemote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
 
 -- art/ui/draw_icons.py (icon_Root<Element>.png), art/ui/assets.json
 local ROOT_ICONS: { [string]: string } = {
@@ -85,6 +94,15 @@ local HOVER = 0.94 -- a section's background on hover (1 = none)
 local TAB_ON = { image = "rbxassetid://89951515494594", text = Color3.fromRGB(255, 244, 214) }
 local TAB_OFF = { image = "rbxassetid://70679462267599", text = Color3.fromRGB(170, 190, 184) }
 local PAGES = { "Self", "Cultivation", "Path" }
+local VEILED = "Beyond this, the Dao hides its lessons." -- past 110% (docs/systems/cultivation.md)
+local VEILED_COLOR = "#A8A496"
+-- the Titles page
+local TITLE_HOW = Color3.fromRGB(200, 196, 184)
+local TITLE_LOCKED_HOW = Color3.fromRGB(186, 182, 170)
+local TITLE_WORN = Color3.fromRGB(226, 186, 104) -- the worn cell's gold wash
+local TITLE_CELL = Color3.fromRGB(236, 232, 220)
+local CELL_EARNED = 0.95 -- earned cells' faint card (1 = none)
+local CELL_WORN = 0.8
 local AVATAR_FOV = 30
 local AVATAR_YAW = math.rad(-14) -- a slight three-quarter turn, like the creator's preview
 
@@ -371,6 +389,7 @@ export type Foundation = {
 	max: number, -- the most a stage can hold (Pacing.Foundation.MAX_PERCENT)
 	bonus: number, -- every graded stage's bonus summed, as a share of health and power
 	hints: { { category: string, text: string } }, -- open experiences, up to ~5
+	veiled: boolean, -- past Pacing HIDDEN_FROM (110%): no hints, the veiled line instead
 }
 
 -- Sample data for Studio playtests while the server doesn't push `foundation` yet
@@ -384,6 +403,7 @@ local PREVIEW_FOUNDATION: Foundation = {
 		{ category = "Home", text = "Harvest a tier II herb" },
 		{ category = "Boss", text = "The fast road: defeat the Elder Wolf King" },
 	},
+	veiled = false,
 }
 
 -- The one reader of the foundation snapshot (server Foundation.state, PlayerState
@@ -401,6 +421,7 @@ local function foundationOf(state: any): Foundation?
 		max = tonumber(f.max) or 150,
 		bonus = tonumber(f.bonus) or 0,
 		hints = if type(f.hints) == "table" then f.hints else {},
+		veiled = f.veiled == true,
 	}
 end
 
@@ -589,8 +610,183 @@ local function renderAvatar()
 	camera.CFrame = CFrame.lookAt(cf.Position + facing * distance, cf.Position)
 end
 
+-- Titles ----------------------------------------------------------------------------
+
+type TitleData = { owned: { [string]: number }, equipped: string }
+
+local function titlesOf(): TitleData
+	local t = State.current.titles
+	return {
+		owned = if t and type(t.owned) == "table" then t.owned else {},
+		equipped = if t and type(t.equipped) == "string" then t.equipped else "",
+	}
+end
+
+local function ownedCount(data: TitleData): number
+	local n = 0
+	for id in data.owned do
+		if Titles.Defs[id] then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- The name block: the worn title in its rarity colour (or "No title", muted) under the
+-- name (the count earned is on the Titles page: the column has no room for both). Shown once a title is earned; taps open the Titles page.
+local function renderTitleRow()
+	local row = body:FindFirstChild("TitleRow", true) :: GuiButton?
+	if not row then
+		return
+	end
+	local data = titlesOf()
+	local count = ownedCount(data)
+	local line = row:FindFirstChild("Line") :: Frame
+	line.Visible = count > 0
+	row.Active = count > 0
+	local nameLabel = line:FindFirstChild("NameLabel") :: TextLabel
+	local def = Titles.Defs[data.equipped]
+	nameLabel.Text = if def then def.name else "No title"
+	nameLabel.TextColor3 = if def then Titles.color(def.id) else MUTED
+end
+
+local titlesPage: Frame -- window.Titles
+local pending = false -- a wear / take-off call is in flight
+
+local function wear(id: string?)
+	if pending then
+		return
+	end
+	pending = true
+	task.spawn(function()
+		local ok, equipped
+		if id then
+			ok, equipped = cultivationRemote:InvokeServer("title", "equip", id)
+		else
+			ok, equipped = cultivationRemote:InvokeServer("title", "unequip")
+		end
+		pending = false
+		if ok and type(equipped) == "string" then
+			-- the next PlayerState says the same; show it now
+			local t = State.current.titles
+			if t then
+				t.equipped = equipped
+			end
+		end
+		SelfCard.renderTitles()
+		renderTitleRow()
+	end)
+end
+
+local function wash(button: GuiButton, rest: () -> number)
+	button.MouseEnter:Connect(function()
+		if button.Active then
+			Motion.tween(button, { BackgroundTransparency = math.min(rest(), HOVER) - 0.03 })
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		Motion.tween(button, { BackgroundTransparency = rest() })
+	end)
+end
+
+-- One cell per title, grouped by Titles.Categories in Titles.Order. Earned: the name
+-- in its colour and the how line; locked: a gray bar the name's width (earning it is
+-- the reveal) over the how line; the worn one in a gold wash with the tick.
+function SelfCard.renderTitles()
+	local data = titlesOf()
+	local phone = UiScale.isPhone()
+	local list = titlesPage:FindFirstChild("List") :: ScrollingFrame
+	local groupTemplate = list:FindFirstChild("GroupTemplate") :: Frame
+	local bar = titlesPage:FindFirstChild("Bar") :: Instance;
+	(bar:FindFirstChild("Count") :: TextLabel).Text = `{ownedCount(data)} / {#Titles.Order} earned`;
+	(bar:FindFirstChild("WearNone") :: GuiObject).Visible = Titles.Defs[data.equipped] ~= nil
+	for gi, cat in Titles.Categories do
+		local name = `Group_{cat.id}`
+		local group = list:FindFirstChild(name) :: Frame?
+		if not group then
+			local made = groupTemplate:Clone()
+			made.Name = name
+			made.LayoutOrder = gi
+			made.Visible = true
+			made.Parent = list
+			group = made
+		end
+		local g = group :: Frame
+		local head = g:FindFirstChild("Head") :: Instance
+		local grid = g:FindFirstChild("Grid") :: Frame
+		local template = grid:FindFirstChild("CellTemplate") :: TextButton
+		local have, all = 0, 0
+		for i, id in Titles.Order do
+			local def = Titles.Defs[id]
+			if def.category ~= cat.id then
+				continue
+			end
+			all += 1
+			local earned = data.owned[id] ~= nil
+			local worn = earned and data.equipped == id
+			if earned then
+				have += 1
+			end
+			local cell = grid:FindFirstChild(id) :: TextButton?
+			if not cell then
+				local made = template:Clone()
+				made.Name = id
+				made.LayoutOrder = i
+				made.Visible = true
+				local how = made:FindFirstChild("How") :: TextLabel
+				how.Text = def.how
+				how.TextSize = if phone then 14 else 13
+				local sil = made:FindFirstChild("Silhouette") :: Frame
+				sil.Size = UDim2.fromOffset(TextService:GetTextSize(def.name, 16, Enum.Font.BuilderSansBold, Vector2.new(400, 40)).X, 10)
+				made.Activated:Connect(function()
+					local now = titlesOf()
+					if now.owned[id] == nil then
+						return
+					end
+					wear(if now.equipped == id then nil else id)
+				end)
+				wash(made, function()
+					local now = titlesOf()
+					return if now.equipped == id then CELL_WORN elseif now.owned[id] then CELL_EARNED else 1
+				end)
+				made.Parent = grid
+				cell = made
+			end
+			local c = cell :: TextButton
+			local nameLabel = c:FindFirstChild("NameLabel") :: TextLabel
+			nameLabel.Text = def.name
+			nameLabel.TextColor3 = Titles.color(id)
+			nameLabel.Visible = earned;
+			(c:FindFirstChild("Silhouette") :: GuiObject).Visible = not earned;
+			(c:FindFirstChild("Worn") :: GuiObject).Visible = worn;
+			(c:FindFirstChild("WornEdge") :: UIStroke).Enabled = worn;
+			(c:FindFirstChild("How") :: TextLabel).TextColor3 = if earned then TITLE_HOW else TITLE_LOCKED_HOW
+			c.Active = earned
+			c.BackgroundColor3 = if worn then TITLE_WORN else TITLE_CELL
+			c.BackgroundTransparency = if worn then CELL_WORN elseif earned then CELL_EARNED else 1
+		end
+		(head:FindFirstChild("Kind") :: TextLabel).Text = string.upper(cat.name);
+		(head:FindFirstChild("Count") :: TextLabel).Text = `{have} / {all}`
+	end
+end
+
+local function showTitles(on: boolean)
+	titlesPage.Visible = on
+	body.Visible = not on
+	if on then
+		(titlesPage:FindFirstChild("List") :: ScrollingFrame).CanvasPosition = Vector2.zero
+		SelfCard.renderTitles()
+		local scale = titlesPage:FindFirstChild("Motion") :: UIScale?
+		if scale then
+			scale.Scale = 0.97
+			Motion.tween(scale, { Scale = 1 })
+		end
+	end
+end
+
 local function renderSelf()
 	(body:FindFirstChild("PlayerName", true) :: TextLabel).Text = Nameplates.nameOf(player)
+	renderTitleRow()
 	renderRace()
 	renderBloodline()
 	renderStats()
@@ -663,6 +859,8 @@ local function renderFoundation()
 	local capped = percent >= f.max
 	if capped then
 		table.insert(summary, gain(`{f.max}%: the most this stage can hold`))
+	elseif f.veiled then
+		table.insert(summary, `<font color="{VEILED_COLOR}">{VEILED}</font>`)
 	end
 	for i, hint in f.hints do
 		table.insert(if i <= 2 and not capped then summary else detail, hintLine(hint))
@@ -925,6 +1123,18 @@ local function chooseLayout()
 	body = if phone then phoneRoot else desktop
 	if phone then
 		showPage(page)
+		-- the Titles page: from the tabs' row (no plaque), two columns, the phone's text floor
+		titlesPage.Position = UDim2.fromOffset(22, 18)
+		titlesPage.Size = UDim2.new(1, -44, 1, -36)
+		local list = titlesPage:FindFirstChild("List") :: Instance
+		local group = list:FindFirstChild("GroupTemplate") :: Instance
+		local grid = group:FindFirstChild("Grid") :: Instance;
+		(grid:FindFirstChildOfClass("UIGridLayout") :: UIGridLayout).CellSize = UDim2.new(0.5, -4, 0, 58)
+		for _, label in (group:FindFirstChild("Head") :: Instance):GetChildren() do
+			if label:IsA("TextLabel") then
+				label.TextSize = 12
+			end
+		end
 	end
 end
 
@@ -987,6 +1197,7 @@ function SelfCard.open()
 		return
 	end
 	chooseLayout()
+	showTitles(false)
 	foldAll()
 	-- fill before showing so it never opens with stale text
 	renderAll(root)
@@ -1032,6 +1243,7 @@ function SelfCard.init(gui: ScreenGui)
 	tile = (gui:FindFirstChild("Buttons") :: Instance):FindFirstChild("SelfButton") :: GuiButton
 	newDot = tile:FindFirstChild("NewDot") :: GuiObject
 
+	titlesPage = window:FindFirstChild("Titles") :: Frame
 	Menus.register(window)
 	ListWindow.bindClose(window)
 	bindSections(window)
@@ -1084,8 +1296,47 @@ function SelfCard.init(gui: ScreenGui)
 		Settings.open(SelfCard.open)
 	end)
 
+	-- the title row opens the Titles page; its Back seal returns to the card
+	for _, layout in { window:FindFirstChild("Desktop"), window:FindFirstChild("Phone") } do
+		local row = (layout :: Instance):FindFirstChild("TitleRow", true) :: GuiButton
+		row.Activated:Connect(function()
+			if row.Active then
+				showTitles(true)
+			end
+		end)
+		wash(row, function()
+			return 1
+		end)
+		-- Edit look: the creator's Appearance and Hair steps from the world (only while
+		-- the creator is on; Controller.editLook)
+		local editLook = (layout :: Instance):FindFirstChild("EditLook", true) :: GuiButton
+		editLook.Visible = CreatorRules.SHOW_ON_JOIN
+		local holder = editLook.Parent :: Instance
+		if holder.Name == "EditLookRow" then -- desktop: its own row in the column's list
+			(holder :: GuiObject).Visible = editLook.Visible
+		end
+		local well = holder:FindFirstChild("Avatar") :: GuiObject?
+		if well and not editLook.Visible then
+			well.Size = UDim2.new(well.Size.X.Scale, well.Size.X.Offset, 1, 0) -- the phone's well takes the button's room
+		end
+		editLook.Activated:Connect(function()
+			Menus.close(window)
+			task.spawn(Creator.editLook)
+		end)
+	end
+	local titleBar = titlesPage:FindFirstChild("Bar") :: Instance;
+	(titleBar:FindFirstChild("Back") :: GuiButton).Activated:Connect(function()
+		showTitles(false)
+	end);
+	(titleBar:FindFirstChild("WearNone") :: GuiButton).Activated:Connect(function()
+		wear(nil)
+	end)
+
 	State.onChanged(function()
 		render()
+		if window.Visible and titlesPage.Visible then
+			SelfCard.renderTitles()
+		end
 	end)
 	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "BreakthroughReady", "Weapon", "Method", "RawQi", "DantianCap", "Race", "RaceVariant", "Traits", "Surname", "FirstName" } do
 		player:GetAttributeChangedSignal(attr):Connect(render)

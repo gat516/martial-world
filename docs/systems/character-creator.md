@@ -258,8 +258,8 @@ profile (`character.look`, `character.firstName`).
   seeds a Tester in slot 1 on a first visit, so it shows the slot screen; an
   account with no slot sees the skip), the drawn name passing the text filter
   (a filtered name says "Choose a different name"; press New name), Edit look
-  from the world (nothing calls `Controller.editLook` yet: the Self card owns
-  that button), and the timings. Previewed in the sandbox's Edit view with the
+  from the world (the Self card's Edit look button calls `Controller.editLook`),
+  and the timings. Previewed in the sandbox's Edit view with the
   real Begin, Fate, Name and Components modules on sample data.
 - With `PAID_REROLLS` off there's no way to change a drawn race or clan until
   bloodlines land.

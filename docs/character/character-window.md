@@ -60,7 +60,13 @@ avatar's foot); runner-up: ink wells.
 - **Self:** the avatar, a still copy of your own character in a plain ink well
   (`slot_plain`; `Avatar.View`, a ViewportFrame with a WorldModel and a camera
   made in code, three-quarter turn, lit from the upper left, rebuilt on each
-  open and on respawn), your name (`Nameplates.nameOf`: "Surname FirstName"),
+  open and on respawn), **Edit look** under it (a lacquer pill, 32 px on PC in
+  its own `EditLookRow`, 44 px at the foot of the phone's avatar column; it closes
+  the card and calls `CharacterCreator.Controller.editLook()`, the creator's
+  Appearance, Hair, Fate and Name steps on the played slot; shown only while
+  `Shared.CharacterCreator.Rules.SHOW_ON_JOIN` is on, today the testbed, and on a
+  phone the well takes its room when hidden), your name (`Nameplates.nameOf`:
+  "Surname FirstName") with the **worn title** under it (`TitleRow`, below),
   **Race** (race · variant, the rarity on the right in its lifted colour; the
   summed race, variant and innate-trait modifiers in the detail; hidden before a
   race is set), **Bloodline** (deferred, [bloodline](bloodline.md): always
@@ -78,8 +84,11 @@ avatar's foot); runner-up: ink wells.
   label keeps counting to the stage's max, 150 %, where "150%: the most this
   stage can hold" replaces the hints), and the next two open experiences ("HUNT
   Slay a Stone Boar for the first time"); the rest of them and the bonus from
-  past stages in the detail. Data: PlayerState `foundation` (`percent`, `max`,
-  `bonus`, `hints`), read only through `foundationOf()`. **Dantian** (raw qi bar,
+  past stages in the detail. Past 110 % the server sends `veiled` and no hints:
+  the summary reads "Beyond this, the Dao hides its lessons." in a muted grey
+  ([cultivation](../systems/cultivation.md), "The extra is hidden"). Data:
+  PlayerState `foundation` (`percent`, `max`, `bonus`, `hints`, `veiled`), read
+  only through `foundationOf()`. **Dantian** (raw qi bar,
   "180 / 260" on the right, live while open; standing, this is the only place it
   shows). **Heart demon** (hidden until a trial is done): "Calmed" in jade or
   "Still whispers" in muted red with the major on the right, the latest heart
@@ -97,10 +106,25 @@ avatar's foot); runner-up: ink wells.
   colour, "Sword Dao", "Lv 2 · 45%" on the right, a 6 px XP bar; tap a row for
   "12 / 30 Dao XP" and the weapon damage now and at the next level. Cloned from
   `Dao.Rows.RowTemplate`.
-- **Title** (planned, not built; contract in [titles](../systems/titles.md#ui-contract-for-ui-designer-the-picker)):
-  a row with the worn title in its rarity colour (or "None") and the count earned;
-  tapping it opens the list of earned titles, with locked ones as gray silhouettes
-  and their how-to-earn line, to wear one or none.
+- **Title** (built 2026-10-24, [titles](../systems/titles.md)): the name block
+  (`TitleRow`, a TextButton holding `PlayerName` and a `Line`) shows the worn title
+  under the name in its rarity colour (or "No title", muted) with a gold chevron;
+  the whole 46 px block taps open the **Titles page**. The line shows once a title
+  is earned. The count earned is on the page, not the row: the 160 px PC column
+  fits "Foundation Perfected" or a count, not both.
+- **Titles page** (`SelfCard.Titles`; chosen over expanding the list inline in the
+  Self column, which cut the how lines off at 160 px; critic pick both orders):
+  swaps in for the card's body (Desktop, or Phone with its tabs) in the same window.
+  `Bar`: a Back seal (the header seals' art, `icon_back` glyph), "Titles", "12 / 43
+  earned", and a **Wear none** pill only while a title is worn. `List`: one group
+  per `Titles.Categories` (gold capitals, "2 / 4" on the right) holding a grid of
+  plain cells in `Titles.Order` (3 columns x 56 px on PC, 2 x 58 px on phones, how
+  lines 13 / 14 px, at most two lines). Earned: the name in its rarity colour and
+  the how line; locked: a gray bar the name's width (earning is the reveal) over the
+  how line; worn: a gold wash, a 1 px gold edge (`WornEdge`) and the kit's tick.
+  Tap an earned cell to wear it, the worn one (or Wear none) to take it off
+  (`CultivationAction("title", ...)`; the result shows at once, the next
+  PlayerState confirms). The card always reopens on its columns.
 Later systems add sections of the same shape to the column they belong to; a
 column scrolls once it outgrows its height.
 
@@ -111,7 +135,7 @@ column scrolls once it outgrows its height.
 | Before the root reveal | the crest isn't tappable yet |
 | After the root reveal | the three columns: avatar, Race, Bloodline (None), Strength; Realm, Foundation, Dantian; Spirit Root, Weapon Dao. |
 | First heart-demon trial | Cultivation gains **Heart demon**. |
-| First title earned | the **Title** row appears (planned). |
+| First title earned | the title line under the name appears; it opens the Titles page. |
 | FE (method) | Path gains **Cultivation Method** (built). Hidden while on Sect Breathing. |
 | First bloodline | Bloodline fills like Race (bloodline card, stage pips, skill, passive in its detail). |
 | Later layers | new sections in the column they belong to; at most three areas (the phone's three tabs). |

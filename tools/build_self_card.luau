@@ -5,6 +5,10 @@
 -- fills it at runtime. The authored text is sample data, so Edit view shows a full card.
 --
 --   _G.buildSelfCard({ style = "open" })   -- "open" (shipped) | "wells" | "hero" (the directions)
+--   _G.buildSelfCardTitles(card)          -- adds Edit look, the title line and the Titles page
+--                                            to a built card (buildSelfCard calls it too)
+-- Not built here: the Header seals (People, Settings) from the four-tile pass. To change an
+-- exported card, run buildSelfCardTitles on it so the seals survive.
 --
 -- Shape (Inventory-sized: 760x500 at most, centred; Menus moves it under Roblox's top bar on
 -- short screens):
@@ -26,6 +30,10 @@ local IMG = {
 	well = "rbxassetid://85613268683045", -- slot_plain (128, Rect 24..104)
 	tabOn = "rbxassetid://89951515494594", -- sized/button_gold_h64
 	tabOff = "rbxassetid://70679462267599", -- sized/button_lacquer_h64
+	seal = "rbxassetid://88219194445713", -- sized/hud_round_seal_h128 (the header seals)
+	back = "rbxassetid://117000073543601", -- icon_back
+	check = "rbxassetid://83079856331555", -- sized/ornament_checkmark_h32 (51x42)
+	chevron = "rbxassetid://86690174795106", -- sized/ornament_chevron_h24 (47x32)
 }
 
 local BUILDER = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
@@ -587,6 +595,257 @@ local function buildPhone(card)
 	return p
 end
 
+-- Titles, Edit look ---------------------------------------------------------------------
+-- (docs/systems/titles.md, character-window.md) Added to a built card by
+-- _G.buildSelfCardTitles(card); buildSelfCard calls it too.
+--   Self column: EditLook (a lacquer pill under the avatar; testbed only while the
+--   creator is) and TitleRow (the name with the worn title and a chevron under it; one
+--   46 px tap target that opens the Titles page).
+--   Titles: a page over the card's body: Bar (Back seal, "Titles", the count, Wear none)
+--   and a scrolling List of category groups (GroupTemplate, its Grid holding
+--   CellTemplate), filled by SelfCard.
+
+local SEAL_GLYPH = Color3.fromRGB(236, 214, 160) -- the header seals' cream glyphs
+local SILHOUETTE = Color3.fromRGB(78, 80, 84)
+local RARE = Color3.fromRGB(112, 222, 156)
+
+local function pill(parent, name, text, height, props)
+	local b = new("ImageButton", {
+		Name = name,
+		Image = IMG.tabOff,
+		ScaleType = Enum.ScaleType.Slice,
+		SliceCenter = Rect.new(32, 20, 224, 44),
+		SliceScale = 0.6,
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		Size = props.Size or UDim2.new(0, 0, 0, height),
+		AutomaticSize = if props.Size then Enum.AutomaticSize.None else Enum.AutomaticSize.X,
+		Position = props.Position or UDim2.new(),
+		AnchorPoint = props.AnchorPoint or Vector2.zero,
+		LayoutOrder = props.LayoutOrder or 0,
+	}, parent)
+	new("UIScale", { Name = "Motion" }, b)
+	if not props.Size then
+		new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16) }, b)
+	end
+	label("Label", text, props.TextSize or 14, {
+		Size = if props.Size then UDim2.fromScale(1, 1) else UDim2.new(0, 0, 1, 0),
+		AutomaticSize = if props.Size then Enum.AutomaticSize.None else Enum.AutomaticSize.X,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextColor3 = Color3.fromRGB(236, 226, 200),
+	}, b)
+	return b
+end
+
+local function seal(parent, name, icon, order)
+	local b = new("ImageButton", {
+		Name = name,
+		Image = IMG.seal,
+		ScaleType = Enum.ScaleType.Fit,
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		Size = UDim2.fromOffset(44, 44),
+		LayoutOrder = order,
+	}, parent)
+	new("ImageLabel", {
+		Name = "Icon",
+		Image = icon,
+		ImageColor3 = SEAL_GLYPH,
+		ScaleType = Enum.ScaleType.Fit,
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(22, 22),
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+	}, b)
+	new("UIScale", { Name = "Motion" }, b)
+	return b
+end
+
+-- The name block: PlayerName over the worn title and the count; taps open Titles.
+local function titleRow(parent, order, phone, nameInst)
+	local b = new("TextButton", {
+		Name = "TitleRow",
+		Text = "",
+		AutoButtonColor = false,
+		BackgroundColor3 = CREAM,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(1, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = order,
+	}, parent)
+	new("UICorner", { CornerRadius = UDim.new(0, 6) }, b)
+	new("UIPadding", { PaddingBottom = UDim.new(0, 2) }, b)
+	list(b, 0)
+	nameInst.LayoutOrder = 1
+	nameInst.Parent = b
+	local line = frame("Line", { Size = UDim2.new(1, 0, 0, 20), LayoutOrder = 2 }, b)
+	new("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 4) }, line)
+	-- the count earned is on the Titles page: the Self column (160 px) has room for the
+	-- longest title ("Foundation Perfected") or the count, not both
+	label("NameLabel", "Wolf King's Bane", if phone then 15 else 14, {
+		Size = UDim2.new(1, -16, 1, 0),
+		TextColor3 = RARE,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+	}, line)
+	new("ImageLabel", {
+		Name = "Chevron",
+		Image = IMG.chevron,
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+		Size = UDim2.fromOffset(12, 8),
+		Position = UDim2.new(1, -4, 0.5, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Rotation = -90,
+	}, line)
+	return b
+end
+
+local function titleCell(parent, phone)
+	local c = new("TextButton", {
+		Name = "CellTemplate",
+		Text = "",
+		AutoButtonColor = false,
+		BackgroundColor3 = CREAM,
+		BackgroundTransparency = 0.96,
+		BorderSizePixel = 0,
+		Visible = false,
+	}, parent)
+	new("UICorner", { CornerRadius = UDim.new(0, 6) }, c)
+	new("UIPadding", {
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 8),
+		PaddingTop = UDim.new(0, 5),
+		PaddingBottom = UDim.new(0, 4),
+	}, c)
+	-- the worn cell's edge (SelfCard turns it on); a stroke on the button's border, never on text
+	new("UIStroke", {
+		Name = "WornEdge",
+		Color = GOLD,
+		Transparency = 0.35,
+		Thickness = 1,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Enabled = false,
+	}, c)
+	label("NameLabel", "Qi Refiner", 16, {
+		Size = UDim2.new(1, -24, 0, 20),
+		TextTruncate = Enum.TextTruncate.AtEnd,
+	}, c)
+	frame("Silhouette", {
+		Size = UDim2.fromOffset(96, 10),
+		Position = UDim2.fromOffset(0, 10),
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundColor3 = SILHOUETTE,
+		BackgroundTransparency = 0.3,
+		Visible = false,
+	}, c)
+	new("UICorner", { CornerRadius = UDim.new(0.5, 0) }, c.Silhouette)
+	new("ImageLabel", {
+		Name = "Worn",
+		Image = IMG.check,
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+		Size = UDim2.fromOffset(19, 16),
+		Position = UDim2.fromScale(1, 0),
+		AnchorPoint = Vector2.new(1, 0),
+		Visible = false,
+	}, c)
+	label("How", "Reach Qi Refining 1.", if phone then 14 else 13, {
+		Size = UDim2.new(1, 0, 1, -20),
+		Position = UDim2.fromOffset(0, 20),
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextColor3 = DETAIL,
+		LineHeight = 1, -- two lines fit the 56/58 px cells (measured: 26 px of 27 on PC, 28 of 29 at 667x375)
+	}, c)
+	return c
+end
+
+local function titlesPage(card, phone)
+	local p = frame("Titles", {
+		Size = UDim2.new(1, -44, 1, -62),
+		Position = UDim2.fromOffset(22, 40),
+		Visible = false,
+	}, card)
+	new("UIScale", { Name = "Motion" }, p)
+	local bar = frame("Bar", { Size = UDim2.new(1, -134, 0, 44) }, p)
+	local l = list(bar, 10, true)
+	l.VerticalAlignment = Enum.VerticalAlignment.Center
+	seal(bar, "Back", IMG.back, 1)
+	label("Heading", "Titles", 18, {
+		Size = UDim2.new(0, 0, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.X,
+		FontFace = MERRI,
+		TextColor3 = Color3.fromRGB(255, 226, 160),
+		LayoutOrder = 2,
+	}, bar)
+	label("Count", "12 / 43 earned", 15, {
+		Size = UDim2.new(0, 0, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextColor3 = DETAIL,
+		LayoutOrder = 3,
+	}, bar)
+	pill(bar, "WearNone", "Wear none", 36, { LayoutOrder = 4 })
+	local sc = scroller(p, "List", { Size = UDim2.new(1, 0, 1, -52), Position = UDim2.fromOffset(0, 52) }, 6)
+	sc:FindFirstChildOfClass("UIPadding").PaddingRight = UDim.new(0, 6) -- clear of the scroll bar
+	local g = frame("GroupTemplate", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, Visible = false }, sc)
+	list(g, 4)
+	local head = frame("Head", { Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 1 }, g)
+	label("Kind", "REALM", if phone then 12 else 11, { Size = UDim2.fromScale(1, 1), TextColor3 = GOLD }, head)
+	label("Count", "2 / 4", if phone then 12 else 11, {
+		Size = UDim2.fromScale(1, 1),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextColor3 = DETAIL,
+	}, head)
+	local grid = frame("Grid", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 2 }, g)
+	new("UIGridLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		CellSize = if phone then UDim2.new(0.5, -4, 0, 58) else UDim2.new(1 / 3, -6, 0, 56),
+		CellPadding = UDim2.fromOffset(8, 6),
+	}, grid)
+	titleCell(grid, phone)
+	return p
+end
+
+-- Adds (or rebuilds) the Edit look button, the title row and the Titles page.
+_G.buildSelfCardTitles = function(card)
+	for _, d in card:GetDescendants() do
+		if d.Name == "EditLook" or d.Name == "EditLookRow" or d.Name == "Titles" then
+			d:Destroy()
+		end
+	end
+	for _, d in card:GetDescendants() do
+		if d.Name == "TitleRow" then
+			local nm = d:FindFirstChild("PlayerName")
+			nm.Parent = d.Parent
+			d:Destroy()
+		end
+	end
+	-- desktop: Avatar, EditLook, TitleRow (PlayerName inside), the sections
+	local selfBody = card.Desktop.Self.Body
+	selfBody.Avatar.LayoutOrder = -2
+	-- in a row of its own, narrower than the well, so its hover pop stays inside the column
+	local lookRow = frame("EditLookRow", { Size = UDim2.new(1, -6, 0, 32), LayoutOrder = -1 }, selfBody)
+	pill(lookRow, "EditLook", "Edit look", 32, {
+		Size = UDim2.new(1, -20, 1, 0),
+		Position = UDim2.fromScale(0.5, 0),
+		AnchorPoint = Vector2.new(0.5, 0),
+	})
+	titleRow(selfBody, 1, false, selfBody.PlayerName)
+	-- phone: the avatar column ends in EditLook; the right column starts with TitleRow
+	local selfPage = card.Phone.Pages.Self
+	selfPage.Avatar.Size = UDim2.new(0.3, -8, 1, -50)
+	pill(selfPage, "EditLook", "Edit look", 44, {
+		Size = UDim2.new(0.3, -8, 0, 44),
+		Position = UDim2.fromScale(0, 1),
+		AnchorPoint = Vector2.new(0, 1),
+		TextSize = 15,
+	})
+	titleRow(selfPage.Right, 0, true, selfPage.Right.PlayerName)
+	titlesPage(card, false)
+	return card
+end
+
 -- The card ------------------------------------------------------------------------------
 
 _G.buildSelfCard = function(opts)
@@ -647,6 +906,7 @@ _G.buildSelfCard = function(opts)
 	new("UIScale", { Name = "Motion" }, close)
 	local desktop = buildDesktop(card, style)
 	local phone = buildPhone(card)
+	_G.buildSelfCardTitles(card)
 	if opts.phone then
 		desktop.Visible = false
 		phone.Visible = true

@@ -23,9 +23,15 @@
 -- hidden). Tapping a section with detail ("+" by its Kind) expands it in place; so
 -- does tapping a Dao row. Effects are gains in jade and losses in a muted red, the
 -- numbers from the shared defs. No flavour text, no technique or weapon names.
--- The tile shows (and the crest is tappable) only once the root is tested. After
--- the reveal the tile pops in, swells once and wears a small seal dot until the
--- window is first opened (not saved).
+-- The header carries two round seals left of the close seal (four-tile row, user
+-- 2026-10-24: Settings and People left the tile row): People (two busts; only while
+-- the player attribute InSafeZone is true, docs/systems/party.md) opens Social's
+-- People list, Settings (the gear) the Settings window; both come back here when
+-- closed by their own seal (Menus.openFrom).
+-- The crest is tappable only once the root is tested. The tile always shows (it
+-- holds Settings): before the root is tested it opens Settings directly, the card
+-- having nothing to show yet. After the reveal the tile pops in, swells once and
+-- wears a small seal dot until the window is first opened (not saved).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -43,7 +49,9 @@ local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Nameplates = require(script.Parent.Nameplates)
+local Settings = require(script.Parent.Settings)
 local SlotArt = require(script.Parent.SlotArt)
+local Social = require(script.Parent.Social)
 local State = require(script.Parent.State)
 local UiScale = require(script.Parent.UiScale)
 
@@ -968,7 +976,6 @@ end
 local function render()
 	local root = currentRoot()
 	openButton.Visible = root ~= nil
-	tile.Visible = root ~= nil
 	if not root then
 		newDot.Visible = false
 		if window.Visible then
@@ -1058,8 +1065,31 @@ function SelfCard.init(gui: ScreenGui)
 		Motion.tap(crest)
 		SelfCard.toggle()
 	end)
-	-- the tile gets its press feedback from Motion.buttons, like the other tiles
-	tile.Activated:Connect(SelfCard.toggle)
+	-- the tile gets its press feedback from Motion.buttons, like the other tiles;
+	-- before the root is tested it is the way to Settings
+	tile.Visible = true
+	tile.Activated:Connect(function()
+		if currentRoot() then
+			SelfCard.toggle()
+		else
+			Settings.toggle()
+		end
+	end)
+	-- the header's seals: People (safe ground only) and Settings, each back here on close
+	local header = window:FindFirstChild("Header") :: Frame
+	local people = header:FindFirstChild("PeopleButton") :: GuiButton
+	local function syncPeople()
+		people.Visible = player:GetAttribute("InSafeZone") == true
+	end
+	player:GetAttributeChangedSignal("InSafeZone"):Connect(syncPeople)
+	syncPeople()
+	people.Activated:Connect(function()
+		Social.openPeople(SelfCard.open)
+	end)
+	local settingsSeal = header:FindFirstChild("SettingsButton") :: GuiButton
+	settingsSeal.Activated:Connect(function()
+		Settings.open(SelfCard.open)
+	end)
 
 	State.onChanged(function()
 		render()

@@ -8,6 +8,10 @@
 --     universal arts, then the rest), each art its glyph on a seal disc.
 --   Pouch: one section per kind of item (herbs, cores, treasures, pills).
 -- The class rail and the search box (InventoryFilter) narrow every tab.
+-- After the tabs, a book tab (Tabs.HerbariumTab, the book-and-leaf glyph, leaf green)
+-- opens the Herbarium; closing the book comes back here (user, 2026-10-24: the
+-- Herbarium left the tile row for the Inventory). On a touch phone the search box
+-- goes (chips only, design review 2026-10-23) and the book tab has its room.
 -- Every cell is a plain slot with its rarity in colour (SlotArt, Rarity: bronze,
 -- silver, jade, violet, gold), names show under it (one size, two lines, then
 -- truncated), arts wear their class glyph, the weapon in hand its seal,
@@ -37,6 +41,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Bottleneck = require(script.Parent.Bottleneck)
 local Fresh = require(script.Parent.Fresh)
+local Herbarium = require(script.Parent.Herbarium)
 local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
 local InventoryFilter = require(script.Parent.InventoryFilter)
@@ -447,7 +452,7 @@ local function setHeader(id: string?)
 		return
 	end
 	local preview = header:FindFirstChild("Preview") :: GuiObject
-	SlotArt.paint(preview, id, nil, "")
+	SlotArt.paint(preview, id, nil, "", true)
 	local rarity = Rarity.of(id)
 	label("NameLabel").Text = nameOf(id)
 	local gradeRow = header:FindFirstChild("GradeRow", true) :: Frame
@@ -787,7 +792,7 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 			(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = STATUS_WARN
 		end
 	else
-		SlotArt.paint(cell, id, Items.count(s, id))
+		SlotArt.paint(cell, id, Items.count(s, id), nil, true) -- herbs and pills as their models
 	end
 	-- the jade 戒 seal on Pouch stacks in the spirit ring (top-left, opposite NEW)
 	local ring = ringState();
@@ -1113,6 +1118,16 @@ function Inventory.init(gui: ScreenGui)
 				render()
 			end
 		end)
+	end
+	-- the book tab: the Herbarium, and back here when it closes
+	local bookTab = tabs:FindFirstChild("HerbariumTab") :: GuiButton
+	bookTab.Activated:Connect(function()
+		Herbarium.openMine(function()
+			setOpen(true)
+		end)
+	end)
+	if Platform.isTouch() and Platform.isSmall() then
+		(window:FindFirstChild("Search") :: GuiObject).Visible = false
 	end
 	local tile = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("InventoryButton") :: TextButton
 	newDot = tile:FindFirstChild("NewDot") :: GuiObject?

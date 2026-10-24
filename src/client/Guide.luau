@@ -42,6 +42,7 @@ local RunService = game:GetService("RunService")
 
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
+local ContextTile = require(script.Parent.ContextTile)
 local GuideFX = require(script.Parent.GuideFX)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -55,7 +56,7 @@ local BUTTONS: { [string]: { string } } = {
 	Cultivate = { "Buttons", "CultivateButton" },
 	Self = { "Buttons", "SelfButton" },
 	Inventory = { "Buttons", "InventoryButton" },
-	Travel = { "Buttons", "TravelButton" },
+	Travel = { "Buttons", "ContextButton" }, -- the contextual tile, asked to show Travel (ContextTile.prefer)
 	Attack = { "Play", "AttackButton" },
 	Circulate = { "Stack", "CultivatePrompt", "Circulate" },
 	Breakthrough = { "Stack", "CultivatePrompt", "Breakthrough" },
@@ -639,6 +640,9 @@ function Guide.set(g: any, elderLine: string?)
 	end
 	if key ~= oldKey then
 		guide = g
+		-- the contextual tile shows Travel while the guide points at it (your peak
+		-- would otherwise offer Build there)
+		ContextTile.prefer(if g and g.button == "Travel" then "Travel" else nil)
 		pressed = nil
 		lastPick = -math.huge
 		place = nil

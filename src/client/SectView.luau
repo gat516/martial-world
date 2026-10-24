@@ -13,11 +13,14 @@
 --            HUD's QuestBoardWindow (a ListWindow, retitled "Sect Pavilion",
 --            attribute Mode = "Pavilion" so Onboarding leaves it alone) until a
 --            ui-designer builds one (docs/systems/sect.md "Known gaps").
+-- The HUD's objective line (Play.Tracker.Objective) is the way into the quest log:
+-- tapping or clicking it opens the log (user, 2026-10-24: no new button for it).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
 local SectBoard = require(script.Parent.Sect.SectBoard)
 local QuestLog = require(script.Parent.Sect.QuestLog)
 local SectRank = require(script.Parent.Sect.SectRank)
@@ -146,14 +149,42 @@ local function onState(state: any)
 	end
 end
 
+-- Open the quest log from anywhere (the objective line calls it).
+function SectView.openLog()
+	openLog(nil)
+end
+
+-- The objective line opens the quest log: a press that starts and ends on it.
+local function bindObjective(objective: GuiObject)
+	objective.Active = true -- sinks the press, so it doesn't drag the camera
+	local pressing: Enum.UserInputType? = nil
+	objective.InputBegan:Connect(function(input)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
+			pressing = kind
+		end
+	end)
+	objective.MouseLeave:Connect(function()
+		pressing = nil
+	end)
+	objective.InputEnded:Connect(function(input)
+		if pressing and input.UserInputType == pressing then
+			pressing = nil
+			if objective.Visible and not Menus.isOpen() then
+				Motion.tap(objective)
+				SectView.openLog()
+			end
+		end
+	end)
+end
+
 function SectView.init(screenGui: ScreenGui)
 	gui = screenGui
 	questRemote.OnClientEvent:Connect(onState)
-end
-
--- Open the quest log from anywhere (nothing calls it yet: a HUD entry is a UI gap).
-function SectView.openLog()
-	openLog(nil)
+	local objective = screenGui:FindFirstChild("Objective", true) :: GuiObject?
+	if objective then
+		bindObjective(objective)
+	end
 end
 
 return SectView

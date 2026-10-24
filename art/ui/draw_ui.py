@@ -793,6 +793,28 @@ def self_icon():
     finish(img, "self_icon.png")
 
 
+def people_icon():
+    """The People seal's glyph (the Self card header, party.md), 128px: the Self
+    icon's bust doubled, composited from self_icon.png (run `self` first), not
+    redrawn: a second bust behind and to the upper right, a shade darker so the two
+    read apart, the front one at the lower left. White, tinted in Studio through
+    ImageColor3 like the other glyphs. ScaleType Fit."""
+    S = 128
+    bust = Image.open(os.path.join(OUT, "self_icon.png")).convert("RGBA")
+    k = 0.78
+    small = bust.resize((round(S * k), round(S * k)), Image.LANCZOS)
+    back = small.copy()
+    r, g, b, a = back.split()
+    shade = lambda v: int(v * 0.72)
+    back = Image.merge("RGBA", (r.point(shade), g.point(shade), b.point(shade), a))
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    m = 3  # a clear margin on every side
+    img.alpha_composite(back, (S - small.width - m, m))
+    img.alpha_composite(small, (m, S - small.height - m))
+    img.save(os.path.join(OUT, "people_icon.png"))
+    print("wrote people_icon.png", img.size)
+
+
 def prompt_art():
     key_cap()
 
@@ -915,7 +937,8 @@ def icon_surge():
 
 
 def icon_herbarium():
-    """Top-right tile: the Herbarium (Hud.Buttons.HerbariumButton). A closed book
+    """The Herbarium glyph (the Inventory's book tab, Inventory.Tabs.HerbariumTab; it was
+    a top-right tile until 2026-10-24). A closed book
     standing upright, a spine band on its left and the page edges on its right,
     with a herb leaf cut out of the cover. White, tinted leaf green in Studio,
     shown like the other tiles' icons (22 px PC, 28 px touch)."""
@@ -2379,6 +2402,9 @@ if __name__ == "__main__":
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "self":
         self_icon()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "people":
+        people_icon()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "garden":
         garden_art()

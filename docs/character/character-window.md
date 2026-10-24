@@ -14,11 +14,17 @@ one-line perk. Rare roots add a gold ring round the seal and a "RARE!" tag. A ta
 closes it after a beat, or it closes itself after 6 s. A repeat test shows no card
 (the server toasts).
 
-**Opening it:** the **Self tile** in the top-right row (`Hud.Buttons.SelfButton`,
-between Cultivate and Inventory; a bust with a topknot, `art/ui/draw_ui.py`
-`self_icon`). It is hidden until the root is tested; when the reveal card closes
-it pops in, swells once and wears a small seal dot until the window is first
-opened (not saved across sessions). Its close seal shuts the card (the
+**Opening it:** the **Self tile** at the right end of the top-right row
+(`Hud.Buttons.SelfButton`, after Inventory; a bust with a topknot, `art/ui/draw_ui.py`
+`self_icon`; it stays in combat, since it holds Settings). It always shows; until the
+root is tested it opens Settings directly. When the reveal card closes it pops in,
+swells once and wears a small seal dot until the window is first opened (not saved
+across sessions). **Header seals** (four-tile row, user 2026-10-24): left of the close
+seal, two 44 px round seals (the touch cluster's seal art) with cream glyphs: **People**
+(two busts, `draw_ui.py people`, composited from `self_icon`; only while `InSafeZone`)
+opens Social's People list, **Settings** (the gear) the Settings window; closing either
+by its own seal comes back to the card (`Menus.openFrom`). On phones the tab row is
+96 px shorter to make room. Its close seal shuts the card (the
 top-right tiles fade away while any window is open). Tapping the **realm
 crest** in the vitals (`Crest.Open`) is a shortcut to the same card, with no dot of
 its own. The elder pointing at it is still to do.

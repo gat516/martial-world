@@ -71,7 +71,9 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
   Iron Skin 150, Moonflash Draw 200, Palm Strike 250; through `Progression.grantManual`,
   so the Dao gate still holds). No cosmetics: none are sold anywhere yet.
 - **Quest log and tracking:** tapping a taken notice opens the quest log on it (taken
-  dailies, the chain step with both paths, the rank road). Track puts it on the HUD
+  dailies, the chain step with both paths, the rank road), and tapping or clicking the
+  HUD's objective line opens the log from anywhere (`SectView`, 2026-10-24: no new
+  button; the four-tile rule in [ui](ui.md)). Track puts it on the HUD
   objective line in free play (`Quests.trackedObjective`: after a guiding lesson,
   before the open lessons and the goals).
 - **Testbed:** the board opens at any realm, the chain ignores stage gates, and place
@@ -109,8 +111,7 @@ the lone wolf (at most `LONE_MAX` 1, the board read).
 ## Known gaps
 - **UI (ui-designer):** no Pavilion page in `assets/Sect.rbxmx`; the Pavilion borrows the
   HUD's `QuestBoardWindow` list, retitled. The promotion and Pavilion notices use the
-  daily seal with live 升 / 阁; dedicated seals would read better. No HUD entry opens the
-  quest log (only a taken notice does; `SectView.openLog` is ready). The status row has
+  daily seal with live 升 / 阁; dedicated seals would read better. The status row has
   no "earned toward rank" line (the log shows it).
 - The elder's once-a-session pointer ("The elder summons disciples to the hall") isn't
   sent yet.

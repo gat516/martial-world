@@ -68,6 +68,7 @@ local cardUser: number? = nil
 local cardFromPeople = false
 local cardToken = 0
 local party: any = nil
+local partyListeners: { (any) -> () } = {} -- Social.onParty
 local invites: { Invite } = {}
 local shownInvite: Invite? = nil
 local leaveToken = 0
@@ -329,12 +330,35 @@ local function refreshPeople()
 	end
 end
 
-function Social.openPeople()
+-- back (optional): reopen the window People was opened from when it closes by its seal
+function Social.openPeople(back: (() -> ())?)
 	if not ready then
 		return
 	end
-	Menus.open(people)
+	if back then
+		Menus.openFrom(people, back)
+	else
+		Menus.open(people)
+	end
 	refreshPeople()
+end
+
+-- The party snapshot (PartyState "party": { members = { { userId, name, realm, self, ... } } })
+-- or nil when solo, now and on every push (the Travel menu's Join rows).
+function Social.party(): any
+	return party
+end
+
+function Social.onParty(fn: (any) -> ())
+	table.insert(partyListeners, fn)
+end
+
+-- The join ride to a party member (PartyAction "join"); refusals arrive as a toast.
+function Social.join(userId: number): boolean
+	if not ready then
+		return false
+	end
+	return (call("join", userId))
 end
 
 function Social.togglePeople()
@@ -452,6 +476,9 @@ local rowsByUser: { [number]: GuiButton } = {}
 
 local function renderPips(snap: any)
 	party = if type(snap) == "table" and type(snap.members) == "table" then snap else nil
+	for _, fn in partyListeners do
+		task.spawn(fn, party)
+	end
 	local seen = {}
 	if party then
 		for i, m in party.members do

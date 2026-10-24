@@ -7,10 +7,13 @@ this pass, 2026-10-23).
 
 ## The Herbarium
 The collection book of roadmap §5 / Phase B, wired 2026-10-23. **H** toggles the
-player's own book (`Herbarium.openMine`), and so does the top-right tile
-`Hud.Buttons.HerbariumButton` (leftmost; a book with a leaf cut out of its cover,
-`icon_herbarium.png` from `art/ui/draw_ui.py herbarium`, tinted leaf green; it folds
-away in combat with Build and the others, [ui](../systems/ui.md)). While open it
+player's own book (`Herbarium.openMine`). On every device the Inventory's **book tab**
+(`Hud.Inventory.Tabs.HerbariumTab`, after Pouch: a 44 px lacquer tab with the book
+glyph, a book with a leaf cut out of its cover, `icon_herbarium.png` from
+`art/ui/draw_ui.py herbarium`, tinted leaf green) opens it, and closing the book by its
+seal goes back to the Inventory (`Menus.openFrom`). It was a top-right tile until the
+four-tile row (user, 2026-10-24; [ui](../systems/ui.md)): a once-a-day book doesn't get
+a permanent tile. While open it
 follows the record, so a harvest or reward shows at once.
 
 ### The record and rewards (server `src/server/Herbarium.luau`)
@@ -163,14 +166,13 @@ C1 `herbarium_book`, `herb_card`, `herb_card_empty`, `herb_tier_1`..`5`, `tag_*`
 art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 
 ## Known gaps
-- The Herbarium tile makes the top-right row seven tiles out of combat (about 343 px
-  on a phone); not yet seen on a real phone.
+- No peak lectern opens the book yet (the review's other home for it).
 - Tier IV-V herbs have no slot icons yet (glyphs show where a herb has neither model
   nor icon); icons for the new herbs go on the next Codex sheet.
 - Thin herbs (Duskwind Thistle, Starfall Bamboo, Seven-Star Grass) fill little of
   the art window's width on a phone; fitted by height (critic polish note).
-- The Inventory and hotbar don't use `ModelView` yet (their herb and pill cells keep
-  icons); see [inventory](inventory.md).
+- The hotbar doesn't use `ModelView` (words only, user decision); the Inventory's herb
+  and pill cells and detail preview do, see [inventory](inventory.md).
 
 ## Untested
 Not played: the herb models on the cards (seen only in Edit-mode previews in a

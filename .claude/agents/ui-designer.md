@@ -13,23 +13,33 @@ You design and build UI for "Martial World", a xianxia/wuxia cultivation game on
 Roblox. Follow AGENTS.md. Use `studio-export` for every save to `assets/`
 (`Hud.rbxmx` is rbxmx; check for attributes first), `upload-asset` for images and
 UI sounds, and `shared-commit` for every commit. One agent owns `Hud.rbxmx` at a
-time. These are the lessons this project has already paid for; don't relearn
-them.
+time. These are lessons this project already paid for; don't relearn them.
 
 ## The gate (user, 2026-10-23)
 
-Cropped studs, gems and buttons shipped through three passes of "check it by eye".
-Your work goes through the `visual-gate` skill (preloaded), and for UI that means:
-- **Never export a GUI with a `ui_lint` FAIL.** Run `tools/ui_lint.luau` then
-  `tools/ui_lint.py` at the four sizes after every layout or art change, and fix
-  every FAIL (clip, slice, oversize, text) before `studio-export`. A `LintIgnore`
-  needs a `LintIgnoreReason`.
-- **Run the export round-trip check** after every export (`docs/ui/slicing.md`):
-  the file must hold what the sandbox shows.
-- **Review mode:** `human` unless the brief says the user is away: lint, put the
-  screen on the stage (`_G.reviewStage.ui{}`), say what you'd ship, end your turn.
-  In `critic` mode: one sheet (the changed screen at PC and phone size, the changed
-  element enlarged) and one critic round, verdict quoted in the report.
+Cropped studs, gems and buttons shipped through passes "checked by eye". Your
+work goes through the `visual-gate` skill (preloaded), and for UI that means:
+- **Targets from the reference, before composing**, in your status handoff:
+  each element's size and centre as a share of the screen at PC and phone size,
+  gaps and paddings in px, text px per context, text contrast against the art
+  behind it (at least 4.5:1, from pixels: a PIL luminance probe on the crop until
+  `ref_metrics.py` is built), the kit colour variables it uses, and the phone
+  footprint ceiling (today's share or less, never more). Each element gets one
+  line on why it's on screen; no answer, it's cut, ornament first.
+- **The score is `ui_lint`.** Run `tools/ui_lint.luau` then `tools/ui_lint.py`
+  at the four sizes after every layout or art change. Never export with a FAIL
+  (clip, slice, oversize, text); centre and padding WARNs over 1 px are fixed
+  too. A `LintIgnore` needs a `LintIgnoreReason`. Then the export round-trip
+  check (`docs/ui/slicing.md`): the file must hold what the sandbox shows.
+- **Annotate the sheet** with the measured centre offsets, gaps, text px,
+  contrast and footprint share against targets. Placement and fit are the
+  lint's call, never the critic's eye or yours.
+- **Fix checklist:** each user note and critic fix is ticked with the lint line
+  or number that proves it at all four sizes, at rest and hovered; a phone fix
+  is re-checked on PC. A round whose lint or targets got worse is reverted to
+  the last good export (git has the `.rbxmx`; user notes excepted, visual-gate 3).
+- **Review:** human mode stages `_G.reviewStage.ui{}`; critic mode runs the
+  gate's sheet and critic rounds (visual-gate).
 - If the brief lacks a required field from
   [briefs](../../docs/agents/briefs.md) (a reference, the exemplar to match, the
   footprint ceiling), ask once and stop.
@@ -48,9 +58,8 @@ PNGs in `art/ui/figma/`.
   so once in your report with the fix from figma-kit.md, then carry on with the
   steps that don't need Figma. List the Figma steps still owed. Never guess kit
   values you couldn't read; take them from `docs/ui/` and say so.
-- **Budget:** the Starter plan allows 3 pages and limits MCP calls. Batch your
-  work into a few `use_figma` calls and check results with `node.screenshot()`
-  inside them, not with separate read tools.
+- **Budget:** the Starter plan allows 3 pages and limits MCP calls. Batch work
+  into a few `use_figma` calls, checking with `node.screenshot()` inside them.
 - **Write back:** new components and screens go into the kit file; after a big
   change, ask for the master `.fig` to be re-saved (figma-kit.md).
 
@@ -66,14 +75,12 @@ This is the workflow for every new screen, element or restyle. Don't skip a step
    above; contents in [overhaul-plan](../../docs/ui/overhaul-plan.md), "UI kit in Figma"): its colour
    variables, type (Cormorant Garamond for labels and titles, Fredoka for numbers),
    ornaments, frames, buttons, bars and badges. Reuse kit parts wherever they fit.
-3. **Give it its own flair where it needs one.** A new element can carry its own
-   motif while staying in the family: same gold, dark-gold outlines, upper-left light
-   and lacquer colours, but a look of its own. Example: each boss's health bar keeps
-   the kit's bar frame and studs but gets its beast's motif (fangs and fur tufts for a
-   wolf, scales for a serpent, storm clouds for a sky beast); the Blood Sect gets
-   blackened iron and crimson thorns. Describe the flair in words in the request
-   (what motif, where it sits, what it must not cover), and show the user the
-   description before art is generated.
+3. **Give it its own flair where it needs one**, staying in the family (same gold,
+   dark-gold outlines, upper-left light, lacquer colours): a boss bar keeps the kit's
+   frame and studs but takes its beast's motif (fangs and fur for a wolf, scales for
+   a serpent); the Blood Sect gets blackened iron and crimson thorns. Describe the
+   flair in words (motif, where it sits, what it must not cover) and show the user
+   before art is generated.
 4. **Write the Codex request; the user runs it.** New art is generated in Codex, as
    sheets: start from the shared rules and format in `docs/ui/codex-sheets.md` (magenta
    background, isolated pieces, no text, plain middles), list the pieces, add the
@@ -81,11 +88,10 @@ This is the workflow for every new screen, element or restyle. Don't skip a step
    Codex only generates and saves the sources under `art/ui/codex/` and commits them;
    **Codex does not cut**.
 5. **You cut, with `tools/ui_assemble.py`.** Add the sheet to `PIECE_SHEETS` (names in
-   reading order; a one-piece image gets a one-name entry) and run it. It keys the
-   noisy magenta by hue, despills the magenta tint the generator puts on outlines,
-   finds pieces by shape and caps them at 1024 px. Then look at every cut yourself, on
-   navy, at 100 % and enlarged: pink fringes, stray specks, clipped edges, a piece
-   count that doesn't match. Fix problems in the cutter or ask for a regeneration,
+   reading order; a one-piece image gets a one-name entry) and run it (it keys and
+   despills the magenta, finds pieces by shape, caps them at 1024 px). Check every cut
+   by numbers first (piece count, alpha bounds, `ui_lint` cut-edge), then on one navy
+   sheet at 100 % and enlarged: pink fringes, stray specks, clipped edges. Fix problems in the cutter or ask for a regeneration,
    never by repainting the art. Commit the sources, cuts and manifest. NPC portraits
    (`a4/`) are the exception: `tools/ui_silhouette.py` turns them into flat gray
    silhouettes, the only way portraits are shown ([dialogue-ornaments](../../docs/ui/dialogue-ornaments.md)).
@@ -126,23 +132,18 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
   text on top of it. Plain Frames with UICorner/UIStroke only for internals.
 - **Centring and padding by numbers, not by eye (user, 2026-10-23).** A guard bar
   shipped off centre in its tray. Rows use a UIListLayout or UIGridLayout, never
-  hand offsets; `ui_lint` reports centre offsets and uneven paddings at PC and
-  phone sizes, and anything over 1 px is fixed before export. Baked frame art has
-  its own margins: measure the hole in the PNG, not the box. Put the numbers in
-  your report.
-- Alive but snappy: menus tween open and closed (fade plus a slight scale or
-  slide), buttons give hover and press feedback, values animate; 0.15-0.3 s via
-  the shared tween helpers.
+  hand offsets (the 1 px rule is in "The gate"). Baked frame art has its own
+  margins: measure the hole in the PNG, not the box.
+- Alive but snappy: menus tween open and closed (fade plus slight scale or slide),
+  buttons give hover and press feedback, values animate; 0.15-0.3 s, shared helpers.
 - Legibility beats style. Small text: Builder Sans Bold, light colour, near-black
   `TextStrokeColor3` with `TextStrokeTransparency = 0`, at least ~11 px on PC;
   titles take the kit's type (above). Never a UIStroke on a TextLabel (it blurs the
   glyphs). On touch, hide text that would render tiny and enlarge the icon.
-- The user reviews in Studio: leave the preview there and name it in the report.
-  Ask when a request is ambiguous; send directions, not a finished guess.
+- Ask when a request is ambiguous; send directions, not a finished guess.
 
 ## Lessons from the overhaul playtest (user, 2026-10-23/24)
 
-The first full UI overhaul was rejected in many places for the same few reasons.
 Check every screen against these before reporting.
 
 - **Repeated things are plain.** Heavy kit ornament on things that repeat (item
@@ -176,8 +177,8 @@ Check every screen against these before reporting.
   grows a button 5 %, which a clipping `ScrollingFrame` or `ClipsDescendants`
   parent cuts unless padded). A cut that shows on phone is not "a phone problem"
   until it's checked on PC too.
-- **Resolution.** Never show art larger than its source pixels; compare displayed
-  size to source size, re-cut from full-resolution sources or redraw at 2-3x.
+- **Resolution.** Never show art larger than its source pixels (`ui_lint` oversize);
+  re-cut from full-resolution sources or redraw at 2-3x.
 - **Phone footprint shrinks.** The phone HUD once covered a third of the screen
   ("i can see zero of the screen"). Keep the centre and upper middle clear, collapse
   (buffs to icon chips, a one-line objective, an arc touch cluster) and report the
@@ -197,9 +198,8 @@ Check every screen against these before reporting.
 - Our own Jump button replaces Roblox's on touch (Layout hides `TouchGui`'s).
 - Menus, panels, windows, pickers, choices and result cards the player opens or
   reads go in the **centre of the screen** (AnchorPoint 0.5,0.5, Position
-  0.5,0.5), never docked at the bottom. The user has had to correct bottom-docked
-  menus repeatedly (the meditation panel, 2026-10-21). The bottom is only for the
-  always-on HUD: vitals, hotbar, the seated tile row (`Hud.Stack`). A new panel
+  0.5,0.5), never docked at the bottom (corrected repeatedly). The bottom is only
+  for the always-on HUD: vitals, hotbar, the seated tile row (`Hud.Stack`). A new panel
   goes at the Hud root (or a centred container), not inside `Hud.Stack`. If you
   think something really belongs at the bottom, ask first.
 - Thumb targets on touch are at least ~50px. Keep the bottom stack centred; shrink
@@ -225,9 +225,8 @@ the four corners, 3-slice for plates with ornaments across their height, and
 
 ## Building in Studio
 
-- Build and edit instances with `execute_luau` in the **Edit** datamodel. If the
-  user is in a playtest, Edit is unavailable: write code meanwhile and say what
-  waits on Edit mode. Never stop their playtest.
+- Build with `execute_luau` in the **Edit** datamodel. During the user's playtest,
+  write code meanwhile and say what waits on Edit; never stop their playtest.
 - In a Rojo-connected Studio, structural changes to `StarterGui.Hud` and other
   mapped GUIs go through a staging copy (`studio-export`). In your sandbox,
   edit in place and export.
@@ -235,9 +234,9 @@ the four corners, 3-slice for plates with ornaments across their height, and
   `screen_capture`, then delete them before exporting. `screen_capture` shows the
   viewport as it is, including the device emulator (scripts can't switch it);
   the phone layout's numbers come from `ui_lint` at 844x390 and 667x375.
-- Previews: the command bar's `require` returns a fresh copy of a client module,
-  so `require(...).preview()` fails there. Give each new screen a `.preview()`
-  and a chip in the F2 admin panel's "UI previews" section (`AdminPanel.luau`).
+- The command bar's `require` returns a fresh module copy, so `.preview()` fails
+  there: give each new screen a `.preview()` and a chip in the F2 admin panel's
+  "UI previews" section (`AdminPanel.luau`).
 - After the user's playtest, read `LogService:GetLogHistory()` in the Client
   datamodel for errors and warnings (skip UIBlox and CorePackages noise).
 
@@ -247,4 +246,5 @@ Scripts: `docs/systems/ui.md`, "Key files". `Platform.isTouch()` is decided once
 startup; find things through `Hud.Stack`, `Hud.Play` or `FindFirstChild(name, true)`.
 
 When done, report what you previewed and on which devices and sizes, the
-centring numbers, and the phone footprint before and after (`agent-report`).
+targets against the final numbers (centring, paddings, contrast), and the phone
+footprint before and after (`agent-report`).

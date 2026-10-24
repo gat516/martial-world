@@ -18,7 +18,9 @@ patterns.
 - The model is a script, `art/<thing>/build_<thing>.py`, run through the MCP.
   Don't sculpt by hand in the session: the script is the source of truth,
   re-runnable and reviewable in git. Put tunables at the top as named constants
-  with comments.
+  with comments. Edit it in place with the current file read; never rewrite it from
+  memory (that makes a different asset), and never delete a failing line to clear
+  an error.
 - 1 Blender unit = 1 stud. Document the origin and axes in the script header
   (the peaks use X right, Y outward, Z up, origin at the plateau centre).
 - Make one mesh object per Roblox material, since each becomes one MeshPart.
@@ -26,16 +28,19 @@ patterns.
   the visible treads don't collide.
 - Fit the model around existing gameplay geometry (floors, doors, bridges,
   spawn pads). Read their positions from Studio first and cut or align exactly.
-- Several agents may share the live Blender. Take turns, save your own `.blend`,
-  and never evaluate modifiers on a scene that isn't the active one (that
-  crashed Blender).
+- One agent at a time on the live Blender (modeler, "Which Blender"). Never
+  evaluate modifiers on a scene that isn't the active one (that crashed Blender).
 - Libraries and generation: `search_assets` / `import_asset` (Poly Haven,
   Sketchfab, Poly Pizza), or `generate_3d` (one object; takes minutes and may
   cost the user a credit, so ask first). Imports arrive at arbitrary scale, so
   size them from the reported bounding box. Check the licence before an asset
-  goes in the game.
+  goes in the game. A generated model is only a proportion guide: keep it in a
+  hidden collection that isn't exported and build the real mesh by script (its
+  dense, soft mesh would redesign the reference).
 - In shader code, look nodes up by type, never by name, and read enum
   identifiers instead of hardcoding them. Localized Blender installs differ.
+- Blender here is 5.1: snippets from before 4.1 break (`use_auto_smooth` is
+  gone), so look APIs up in it (`visual-gate` 0c).
 
 ## Export
 

@@ -19,14 +19,11 @@ there.
 Follow AGENTS.md. Use `upload-asset` to publish a clip, and `shared-commit` for
 every commit (shared animation files take hunks only).
 
-**The gate.** A clip isn't done when it plays; it's done when the gate passes (`visual-gate`, preloaded): status
-lines, the three hero poses as directions before keying a new clip, the
-`motion_probe` metrics (hitches, stops dead, chain lag, anticipation, lows) and
-the family's pose QA to zero FAIL, one `anim_filmstrip` sheet (two captures), a
-`visual-critic` round. "Stiff" has numbers now: a chain lag of 0 frames is a FAIL
-you fix before anyone looks. If the brief lacks a required field from
-[briefs](../../docs/agents/briefs.md) (the attack table, the rig section), ask
-once and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
+**The gate.** A clip is done when the gate passes (`visual-gate`, preloaded),
+not when it plays. Your directions are the three hero poses; your targets,
+lints and sheet are below. "Stiff" is a number: a chain lag of 0 frames is a
+FAIL you fix before anyone looks. Missing the attack table or the rig section
+(required in [briefs](../../docs/agents/briefs.md))? Ask for it once, then stop.
 
 ## Read first
 
@@ -50,14 +47,10 @@ once and stop. **Review mode:** `human` unless the brief says the user is away: 
 
 ## Intent first, then a beat sheet
 
-Work that skips the intent comes out technically fine but random. Before keying
-a clip, write:
-- **Intent (2-3 sentences):**
-  - what the body is physically doing (a lunge throws the mass forward off the
-    back legs; a roar fills the chest, then pushes air out)
-  - what the player should feel (dread, weight, threat, relief)
-  - the clip's gameplay job (telegraph the dodge, sell the hit, show the
-    stagger)
+Skip the intent and the clip comes out clean but random. Before keying, write:
+- **Intent (2-3 sentences):** what the body physically does (a lunge throws
+  the mass forward off the back legs), what the player should feel (dread,
+  weight, relief) and the clip's job (telegraph the dodge, sell the hit).
 - **Beat sheet in ms**, matched to the attack table:
   - anticipation: inward, coiling, slowing to a hold
   - release: fast, the big pose
@@ -66,6 +59,19 @@ a clip, write:
 
   Fast in, slow out, with one strongest pose. The windup ends on the
   telegraph's frame.
+- **Targets** (`visual-gate` §1), scored each round from the `motion_probe` output:
+  - windup, active and recover ms equal the attack table's.
+  - the reference's beats in ms (anticipation, hold, release, settle), off a
+    motion video (`tools/ref_frames.py`, a `start-end` window zooms on one
+    beat) or the bear/tiger clips, scaled to the attack table.
+  - probe: chain +1..+4f per link; antic over `ANTIC_MIN` on root and hero, as
+    deep as the reference's coil; 0 stops dead outside a hold; 0 hitches at a
+    release; a landing dip with its bottom 2-4f after touchdown; 0 lows; no
+    one-frame joint step over ~45 deg outside a deliberate snap; a hero at most
+    ~600 studs/s at contact.
+  - overshoot and settle: no probe metric until one is built; write the
+    overshoot (deg past the hit pose) and settle (ms) in the beat sheet, key
+    them, and the stop metric must stay clean.
 - **Every motion is caused.** Secondary motion comes from a force: the tail
   counters the hips, the head lags then whips, the mane trails the turn, the
   feet push before the body moves. No cause, cut it. One hero motion leads each
@@ -73,43 +79,36 @@ a clip, write:
 
 The user's words, as fixes:
 
-| They say | Usual cause | Fix |
+| They say | Probe reads | Fix |
 |---|---|---|
-| stiff, robotic | everything moves together and stops dead | offset the chain (root, spine, head, tail) a few frames each; overshoot and settle; add a breath on holds |
-| floaty | linear timing, no weight | fast in, slow out; compress on landing; shorter airborne arcs or a hang only at the apex |
-| weak, no impact | the release eases in; no anticipation | a deeper coil before, a snap to the hit pose in 1-3 frames, hold it a beat |
-| can't tell what it's doing | the hero motion is small (ears, hands) | push the root, head, tail and arms ("What reads at 40 studs") |
-| unfair, too fast | the windup doesn't read for its whole length | a clear hold at the end of the anticipation, on the telegraph's frame |
-| jittery, messy | too many joints doing their own thing | cut to one hero motion and its caused follow-through |
+| stiff, robotic | chain +0f; stop dead | offset the chain (root, spine, head, tail) a few frames each; overshoot and settle; add a breath on holds |
+| floaty | landing "no dip"; even speeds | fast in, slow out; compress on landing; shorter airborne arcs or a hang only at the apex |
+| weak, no impact | antic "none"; the hero's peak comes late | a deeper coil before, a snap to the hit pose in 1-3 frames, hold it a beat |
+| can't tell what it's doing | root travel and hero speed small | push the root, head, tail and arms ("What reads at 40 studs") |
+| unfair, too fast | windup ms under the table's; no hold | a clear hold at the end of the anticipation, on the telegraph's frame |
+| jittery, messy | many big joint steps, hitches | cut to one hero motion and its caused follow-through |
 
 ## The rigs
 
-- **Where they are.**
-  - Templates are in the staging folders (`ServerStorage._Roster*`,
-    `ServerStorage._StagingEnemies`).
-  - Working copies for animating are in `Workspace._EnemyRigs`: joints intact,
-    only the HRP anchored, rebuilt by `art/enemies/rig_copies.luau`.
-  - Never animate the `_RosterPreview*` copies: their motors are cut to hold a
-    pose.
+- **Where they are.** Templates: `ServerStorage._Roster*` and
+  `_StagingEnemies`. Animate the working copies in `Workspace._EnemyRigs`
+  (joints intact, only the HRP anchored, rebuilt by
+  `art/enemies/rig_copies.luau`), never the `_RosterPreview*` copies (motors cut).
 - **How clips key.** Clips key poses by **Part1 name**, nested along the motor
   tree from `HumanoidRootPart` (HRP > Torso > Right Arm > Hilt for R6; HRP > Hips >
   Chest > Neck > Skull for a wolf). Motor names don't matter to clips, but
   EnemyAnimator uses them, so beasts keep `Joint*` motor names.
 - **Beast axes.** Every joint frame is identity in model space. The beast faces
   -Z, with its left at -X.
-  - +X pitch swings a leg forward, tips a head up, drops a tail and closes a
-    jaw (the jaw opens on -X).
-  - +Y turns to the beast's left.
-  - +Z rolls toward its left.
+  +X pitch swings a leg forward, tips a head up, drops a tail and closes a jaw
+  (opens on -X); +Y turns to its left; +Z rolls toward its left.
 - **R6 axes (stock).**
-  - Right Shoulder and Right Hip: +Z swings forward. Left: -Z.
-  - Arms: -X swings a hanging arm out, but once the arm is overhead, +X tips it
-    out.
-  - Neck and RootJoint: +X pitches forward, Z turns.
-  - Extra joints (cloth, weapons) start unrotated and turn with the parent limb.
-  - Exceptions are in RIGS.md.
+  Right Shoulder and Right Hip: +Z swings forward (left: -Z). Arms: -X swings a
+  hanging arm out, +X once it's overhead. Neck and RootJoint: +X pitches
+  forward, Z turns. Extra joints (cloth, weapons) start unrotated and turn with
+  the parent limb. Exceptions are in RIGS.md.
 - **Weapons:** the `Hilt`/`HiltR` motor lives inside the weapon model with its
-  pivot at the hand. Watch long weapons against helms on overhead swings.
+  pivot at the hand.
 - **Scale:** the Elder Wolf King (2.4x), Shadow-Mane (1.15x), Bandit Chief
   (1.28x) and Sect Elder (1.2x) are scaled. Rotations transfer from a 1x clip;
   translations are in scaled studs.
@@ -124,14 +123,10 @@ The user's words, as fixes:
   outside the DataModel, so an unparented copy leaves its details behind.
 - **Previews:** anchor every part and tag the folder `EditorOnly`, or Play drops
   the cut-motor copies in a heap.
-- **Playing a clip:**
-  1. Build a KeyframeSequence.
-  2. Register it with
-     `KeyframeSequenceProvider:RegisterKeyframeSequence(ks)`.
-  3. Load it on `Humanoid.Animator`.
-  4. **Wait until `track.Length > 0`.**
-  5. Call `Animator:StepAnimations(dt)` with dt > 0, then read each Motor6D's
-     Transform.
+- **Playing a clip:** build a KeyframeSequence, register it
+  (`KeyframeSequenceProvider:RegisterKeyframeSequence(ks)`), load it on
+  `Humanoid.Animator`, **wait until `track.Length > 0`**, then
+  `Animator:StepAnimations(dt)` with dt > 0 and read each Motor6D's Transform.
 - **Only key joints.** Trim pieces are welded riders with no keys of their own.
 - **Shipped clips** (an `Animation` in `assets/Animations.rbxmx`, e.g. a player
   move): export each KeyframeSequence as its own `.rbxm` and upload it
@@ -155,19 +150,23 @@ The user's words, as fixes:
 - **Framing:** eye tells don't read straight side-on on some bodies, so favour
   3/4 framing in checks.
 
-## Planting and integrity
+## Planting and contact
 
+Contact passes on numbers from FK, never on a capture.
 - **Match any root drop or pitch in the legs**, or the feet sink. Solve planted
   legs (`art/enemies/quadrupeds/plant_feet.luau`) instead of guessing angles.
   The lowest point stays at Y 0 in every planted pose.
+- **Planted feet don't slide:** under 0.05 studs a frame in contact (the
+  probe's kept poses, `keep = true`, until a slide metric is built).
+- **Weight over support:** in a hold, rear-up or landing, the root's ground
+  point stays inside the planted feet, or the pose reads as falling.
+- **Hands on grips:** an off hand on a two-handed weapon stays within 0.1 studs
+  of its grip at every key; long weapons clear the helm and body.
 - **Check each pose for detail drift** (welded pieces within 0.001 of their
-  offset), **joint gaps** (a slit of sky side-on) and **clipping**. The group QA
-  scripts do this:
-  - `wolf_family/qa_wolves.luau`
-  - `quadrupeds/qa_quadrupeds.luau`
-  - `beasts/drift_beasts.luau`
-  - `bandits/qa_bandits.luau`
-  - `cultivators/preview_cultivators.luau`
+  offset), **joint gaps** (a slit of sky side-on) and **clipping**, with the
+  group's QA script: `wolf_family/qa_wolves.luau`, `quadrupeds/qa_quadrupeds.luau`,
+  `beasts/drift_beasts.luau`, `bandits/qa_bandits.luau`,
+  `cultivators/preview_cultivators.luau`.
 
 ## Verify before you report
 
@@ -179,13 +178,14 @@ The user's words, as fixes:
    ([animating](../../docs/enemies/animating.md)).
 4. Step your clip through its key times on a parented clone: feet, drift, gaps,
    clipping.
-5. Check the timing against the attack table: the windup lasts the def's windup,
-   and its first frame is where the telegraph, tell flare and sound start.
-6. Captures only if the user asks you to review it yourself. Otherwise check
-   numerically and leave posed copies for the user. If you do capture:
-   - one model alone on its own plate, at the windup peak, release and recover
-   - side and 3/4 front, plus one at about 40 studs
-   - aim about 1.5 studs above the centre
+5. Score the targets: the windup lasts the def's windup, and its first frame is
+   where the telegraph, tell flare and sound start.
+6. Each fix lands when its probe line moves: quote before and after in the fix
+   checklist (`visual-gate` §3).
+7. Captures only in critic mode or when asked; the sheet is `anim_filmstrip`
+   (side and 3/4, labels in ms), plus one at about 40 studs. A strip misses
+   transient events (a 1-3 frame snap, a whip): raise `n`, and trust its sink
+   and hitch balls over your eye.
 
 When done:
 - Add new safe ranges and gotchas to the rig's `RIGS.md`, and general motion

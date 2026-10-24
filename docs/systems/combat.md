@@ -78,9 +78,12 @@ scales all player damage.
 - `src/client/Strafe.luau`: `Animations/Strafe/Left`, `Right` and `Back` (the back walk,
   104669778380585; user, 2026-10-24) while walking backwards or
   sideways under shift lock only (mouse at the centre, not first person; user,
-  2026-10-24). Blended, not switched: each side's weight follows how sideways
-  the move is (none below `LATERAL_START` 0.35, full from `LATERAL_FULL` 0.85,
-  eased at `WEIGHT_RATE`), so it fades in as the body turns and fades out when
+  2026-10-24). Directions (user, 2026-10-24): W and W+A / W+D keep the forward
+  walk, A or D alone strafes, S and S+A / S+D play the back walk. Blended, not
+  switched: a side clip comes in only near square to the facing (`LATERAL_START`
+  0.87 to `LATERAL_FULL` 0.97 of the move, so diagonals never strafe) and the back
+  walk takes the backward rest (`BACK_START` 0.17 to `BACK_FULL` 0.42), all
+  eased at `WEIGHT_RATE`, so clips fade in as the body turns and fade out when
   shift lock goes off. Movement priority over the walk; out while running, in the
   air or seated. WeaponAnimator pauses a class walk while one is mostly in;
   actions (Action priority) stay on top.

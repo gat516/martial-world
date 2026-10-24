@@ -536,6 +536,12 @@ return {
 		-- face a target they overshot. Testbed only until the user approves; the bosses'
 		-- new moves also sit behind their own NEW_* flags.
 		WEIGHTED_MOVES = TESTBED,
+		-- REALM VARIANTS (docs/systems/enemies.md "Realm variants"): zones and ambient packs
+		-- spawn their beasts at the realm ranges in Shared.Spawns, scaled and tiered by
+		-- Pacing.Variants (young near the gate, elite and apex farther out). Off: every beast
+		-- spawns at its def's own realm, as before (the admin panel's tier chips still work).
+		-- Testbed only until the user approves; set true to ship.
+		VARIANTS = TESTBED,
 		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
 		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
 		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells

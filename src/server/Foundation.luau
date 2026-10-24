@@ -129,6 +129,10 @@ function Foundation.kill(player: Player, def: Enemies.Def)
 		Foundation.earn(player, "Boss", `boss:{def.id}`)
 	else
 		Foundation.earn(player, "Hunt", `hunt:{def.id}`)
+		if def.tier == "elite" or def.tier == "apex" then
+			-- a realm variant's first elite and apex kill are experiences of their own
+			Foundation.earn(player, "Hunt", `hunt:{def.id}:{def.tier}`)
+		end
 	end
 	for id in Foundation.unlocated do
 		Foundation.earn(player, "World", `world:{id}`)

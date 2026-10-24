@@ -190,7 +190,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Cultivation.pushState(player)
 		return true, `Gave {count} of every build item`
 	end,
-	spawn = function(player, _, id, n)
+	spawn = function(player, _, id, n, tier)
 		local count = amount(n, MAX_SPAWN)
 		local root = rootOf(player)
 		if not (type(id) == "string" and Enemies.Defs[id] and count and root) then
@@ -205,9 +205,12 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		for i = 1, count do
 			local a = (i / count) * math.pi * 2
 			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -ahead + math.sin(a) * 4)).Position
-			EnemyService.spawn(id, at)
+			-- the panel's tier chip (realm variants: young, adult, elite, apex at the tier's
+			-- stage; Enemies.variant); bosses ignore it
+			EnemyService.spawn(id, at, { tier = if type(tier) == "string" and tier ~= "" then tier else nil })
 		end
-		return true, `Spawned {count} {Enemies.Defs[id].name}`
+		local shown = Enemies.variant(id, nil, if type(tier) == "string" and tier ~= "" then tier else nil) or def
+		return true, `Spawned {count} {shown.name} ({shown.realm[1]} {shown.realm[2]})`
 	end,
 	growAll = function(player)
 		return true, `{Garden.growAll(player)} plants are ready`

@@ -20,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -48,6 +49,7 @@ local panel: Frame
 local list: ScrollingFrame
 local sectionTemplate: Frame
 local order = 0
+local spawnTier = "adult" -- the "Beast tier" chip last pressed
 
 -- "AuspiciousMist" -> "Auspicious Mist"
 local function spaced(id: string): string
@@ -306,6 +308,17 @@ local function build()
 	end
 	section("Seeds", 5, seeds)
 
+	-- realm variants: the tier the beast chips below spawn at (Pacing.Variants; bosses ignore it)
+	local tiers: { Chip } = {}
+	for _, tier in Pacing.Variants.ORDER do
+		local label = string.upper(string.sub(tier, 1, 1)) .. string.sub(tier, 2)
+		table.insert(tiers, { label = label, press = function()
+			spawnTier = tier
+			Hud.toast(`Beasts spawn as {label}`)
+		end })
+	end
+	section("Beast tier", nil, tiers)
+
 	local beasts: { Chip } = {}
 	local enemyIds = {}
 	for id in Enemies.Defs do
@@ -315,7 +328,7 @@ local function build()
 	for _, id in enemyIds do
 		local def = (Enemies.Defs :: any)[id]
 		table.insert(beasts, { label = def and def.name or spaced(id), press = function(n)
-			invoke("spawn", id, n)
+			invoke("spawn", id, n, spawnTier)
 		end })
 	end
 	section("Spawn beasts", 1, beasts)

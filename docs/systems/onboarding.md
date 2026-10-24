@@ -106,7 +106,9 @@ QC3->4 by ~9-10); not yet timed in play.
 - **Gate wolves:** `Spawns.Zones` overrides a zone's own count and respawn by
   name: GateWolves 3 wolves, 8 s respawn (was 2 and 20 s), so a solo player or a
   pair (both are credited on a shared kill) gets 3 kills without waiting; the
-  testbed's WolfPair keeps 2 but respawns in 8 s.
+  testbed's WolfPair keeps 2 but respawns in 8 s. With realm variants on (`VARIANTS`) they
+  are young QC1 wolves ([spirit wolf](../enemies/spirit-wolf.md) "Realm variants"): no leap,
+  a howl that only rallies the lair (no reinforcements), 7-11% hits, full kill qi.
 - **Refine near the fight:** the qi node at (60, 8, 545) is about 100 studs from
   the GateWolves lair; Cast adds a fifth of a dantian of raw qi so that run
   reaches QC3.

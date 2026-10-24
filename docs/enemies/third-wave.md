@@ -47,6 +47,14 @@ whether overlapping shriek and dive windups feel fair (one slot at a time), the 
 and every number.
 
 
+## Realm variants
+Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23); young below the
+beast's realm, elite from 3 stages up, apex from 6 (or a major realm up).
+- **Blood Centipede** (QC6): young never burrows; from elite, staying close after the pincers
+  draws the coil sweep.
+- **Flame Raven** (QC8): young has no ember fan; from elite the gust's hop back ends in the fan.
+- **Blood Bat** (QC8): young bats don't shriek; elite and apex drink 75% of what they deal.
+
 ## Effects: Blood Centipede
 Handler `EnemyFX/BloodCentipede.luau` on `BeastKit`; template
 `ReplicatedStorage.Effects.BloodCentipede` (builder `tools/vfx_specs/BloodCentipede.luau`),

@@ -382,9 +382,13 @@ Beast Surge, new events) and rebuild the tribulation (clouds, bolts, eye, afterm
 Tribulations stay rare, so the VFX can be big.
 
 ## 8. Enemies
-The roster is enough for now. Next: elite and apex tiers (tint, aura, one move),
-wire the **cultivator enemies** as human opponents and sect-quest targets, and
-tune the old FE1 bosses.
+The roster is enough for now. **Built (2026-10-23, testbed behind `VARIANTS`, untested):
+realm variants**, the backend for elite and apex tiers: a spawn sets a beast's realm, and
+it scales on the curve and takes a tier (young, adult, elite, apex) with size, speed,
+cadence, a tint and moves unlocked by tier ([enemies](systems/enemies.md#realm-variants-2026-10-23)),
+applied to the ring-1 and Borderlands beasts. Still to do for tiers: the aura and the
+per-beast extra move (animator and vfx briefs). Next: wire the **cultivator enemies** as
+human opponents and sect-quest targets, and tune the old FE1 bosses.
 
 ## 9. Replayability: why come back after the ladder
 **Baked in, not bolted on (user, 2026-10-23):** no reincarnation at FE. What makes a

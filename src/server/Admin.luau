@@ -265,6 +265,12 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Traits.check(player) -- realm-gated traits unlock as if broken through
 		return true, `Realm: {key}`
 	end,
+	-- forget every heart-demon trial and "Not now" (the seat offers them again)
+	heartReset = function(player, data)
+		data.heartDemon = { trials = {}, declined = {} }
+		Cultivation.pushState(player)
+		return true, "Heart demons reset"
+	end,
 	-- face the current stage's heavenly tribulation now
 	tribulation = function(player)
 		local start = Cultivation.startTribulation

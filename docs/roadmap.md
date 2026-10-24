@@ -49,8 +49,9 @@ has no room, so the grade rides on toasts and the breakthrough card, and the sur
 button only appears while it's ready.
 
 **Foundation grade (per breakthrough). Built 2026-10-23 (untuned), see
-[cultivation](systems/cultivation.md#foundation-grade); per-region pools, tempering,
-the heart-demon trial and the Cultivate-window line are not.**
+[cultivation](systems/cultivation.md#foundation-grade); the heart-demon trial and
+tempering by it built 2026-10-23 (untested, [heart-demon](systems/heart-demon.md));
+per-region pools, seclusion tempering and the Cultivate-window line are not.**
 - Every breakthrough is graded **Cracked, Steady, Solid or Deep** by what the
   player experienced during that stage. Hunt (first kills of the region's beasts),
   Boss (counts double, the fast road), Home (first harvest of a herb tier, a rare
@@ -68,7 +69,8 @@ the heart-demon trial and the Cultivate-window line are not.**
   tribulation (heaven-defiers only) and the optional heart-demon trial harder.
   No normal player is walled by it.
 - **Tempering:** old grades can be raised later (seclusion, passing a heart-demon
-  trial at a major), so nobody replays stages to fix one.
+  trial at a major), so nobody replays stages to fix one. The heart-demon trial is
+  built: up to 3 lowest grades one step each ([heart-demon](systems/heart-demon.md)).
 - **Rejected:** a visible solidity meter (no HUD room); damaging your own
   cultivation to reroll stats (the best play becomes regrinding, which players hate).
   Shattering your cultivation stays a one-time story beat on the demon path
@@ -403,7 +405,7 @@ Proposals to pick from; none decided. Each must name its arrow into the loop.
    existing offline cultivation, framed). On return a short story result ("you
    comprehended..."), tempers an old foundation grade, a small chance of a fortuitous encounter.
    Arrow: home. Perfect for gardeners and mobile players.
-2. **Heart-demon trial.** A choice-based, no-reflex inner trial at a major breakthrough
+2. **Heart-demon trial.** *(Built 2026-10-23, untested: [heart-demon](systems/heart-demon.md).)* A choice-based, no-reflex inner trial at a major breakthrough
    (dialogue and choices that reflect how you played), optional, repairs or deepens
    the foundation. Replaces "skill" with story. Arrow: breakthrough and foundation grade.
 3. **Fortuitous encounters.** Rare, random, sharable moments while out: an old hermit

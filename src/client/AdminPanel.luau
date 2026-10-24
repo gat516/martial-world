@@ -176,6 +176,16 @@ local function build()
 		{ label = "All build ×5", press = function()
 			invoke("buildItems", 5)
 		end },
+		-- the heart-demon trial (docs/systems/heart-demon.md): at a major's stage 9
+		{ label = "Realm QC9", press = function()
+			invoke("realm", "QC9")
+		end },
+		{ label = "Realm QR9", press = function()
+			invoke("realm", "QR9")
+		end },
+		{ label = "Reset heart demons", press = function()
+			invoke("heartReset")
+		end },
 	})
 	-- Open screens in this client: the Studio command bar loads its own fresh copy of a
 	-- module (never init'd), so its require(...).open() can't reach the real UI

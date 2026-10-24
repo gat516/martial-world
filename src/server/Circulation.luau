@@ -21,6 +21,7 @@ local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local Methods = require(script.Parent.Methods)
 local DaoPractice = require(script.Parent.DaoPractice)
+local HeartDemon = require(script.Parent.HeartDemon)
 local RootService = require(script.Parent.Roots)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -253,6 +254,12 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 		return DaoPractice.finish(player, ...)
 	elseif action == "practiceCancel" then
 		return DaoPractice.cancel(player, ...)
+	elseif action == "heartDemon" then
+		return HeartDemon.start(player)
+	elseif action == "heartDemonAnswer" then
+		return HeartDemon.answer(player, ...)
+	elseif action == "heartDemonDecline" then
+		return HeartDemon.decline(player)
 	end
 	return false, "Unknown action"
 end
@@ -260,6 +267,7 @@ end
 function Circulation.forget(player: Player)
 	runs[player] = nil
 	DaoPractice.forget(player)
+	HeartDemon.forget(player)
 	lastGame[player] = nil
 end
 

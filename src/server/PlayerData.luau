@@ -43,6 +43,9 @@ export type Technique = { level: number, xp: number }
 -- weapon Dao comprehension of one class (Weapons.Classes), level 0..Pacing.Weapons.MAX_LEVEL
 export type Dao = { level: number, xp: number }
 -- Player preferences (the Settings window): volumes 0..1, and toggles
+-- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
+-- the heart line the player keeps (the Self card), and os.time()
+export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number }
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
 export type Data = {
@@ -70,7 +73,22 @@ export type Data = {
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
 	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
 	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
-	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
+	-- slain: kills by enemy id; harvests: plants harvested; deaths; seated: seconds
+	-- meditating; forced: forced breakthroughs (the heart-demon trial reads them)
+	stats: {
+		breakthroughs: number,
+		circulationRuns: number,
+		kills: number,
+		bossKills: number,
+		slain: { [string]: number },
+		harvests: number,
+		deaths: number,
+		seated: number,
+		forced: number,
+	},
+	-- heart-demon trials (server HeartDemon), by major id: the result, and when a
+	-- seat offer was last declined
+	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number } },
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
@@ -153,7 +171,8 @@ local function default(): Data
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
-		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0 },
+		heartDemon = { trials = {}, declined = {} },
 		herbs = {},
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
@@ -302,7 +321,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

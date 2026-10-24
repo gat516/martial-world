@@ -22,6 +22,7 @@ local Methods = require(ReplicatedStorage.Shared.Methods)
 local StarterPlayer = game:GetService("StarterPlayer")
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
+local HeartDemon = require(script.Parent.HeartDemon)
 local WeatherService = require(script.Parent.WeatherService)
 
 local remotes = ReplicatedStorage.Remotes
@@ -225,6 +226,7 @@ function Cultivation.pushState(player: Player)
 		methods = data.methods,
 		daoPracticeReady = data.daoPracticeReadyUnix,
 		foundation = Foundation.state(data),
+		heartDemon = HeartDemon.state(data),
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)
@@ -253,6 +255,18 @@ function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 			humanoid.Health = maxHealth * fraction
 		end
 	end
+end
+
+-- The heart-demon trial reads the seat and refreshes stats after tempering.
+HeartDemon.seated = function(player: Player): boolean
+	return Cultivation.meditation ~= nil and Cultivation.meditation(player) ~= nil
+end
+HeartDemon.onChanged = function(player: Player)
+	local data = PlayerData.get(player)
+	if data then
+		Cultivation.applyStats(player, data)
+	end
+	Cultivation.pushState(player)
 end
 
 -- Running is character state, so it resets on respawn and survives stat refreshes.
@@ -472,6 +486,9 @@ task.spawn(function()
 				end
 				local bar = Cultivation.stage(data).bar
 				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now, player)
+				if Cultivation.meditation and Cultivation.meditation(player) then
+					data.stats.seated += dt -- time in stillness (the heart-demon trial)
+				end
 				Cultivation.add(data, rate * dt)
 				publish(player, data)
 				local s = session(player)

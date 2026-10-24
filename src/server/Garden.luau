@@ -211,6 +211,7 @@ function Garden.harvest(player: Player, plotId: any, plantId: any): (boolean, st
 	local base = rng:NextInteger(herb.yield[1], herb.yield[2])
 	local count = math.max(1, math.floor(base * plant.s * Herbs.multiplier(plant.m) + 0.5))
 	Foundation.harvest(player, herb, plant.m) -- a new herb tier or rare mutation (before regrowth clears it)
+	data.stats.harvests += 1 -- the heart-demon trial reads the path walked
 	local extras = {}
 	if herb.regrowSeconds then
 		-- it stays and fruits again; weather mutations were spent on this harvest

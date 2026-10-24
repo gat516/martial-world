@@ -75,6 +75,10 @@ scales all player damage.
   playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
+- Walk and run speeds (`Config.Cultivation.BASE_WALKSPEED` 12,
+  `Config.Movement.RUN_BONUS` 14): the walk is 25% slower than the old 16 and the
+  run stays 26 (user, 2026-10-24). Root, trait and herb walk bonuses stay flat
+  additions. The walk, run and back-walk clips scale their playback with speed.
 - Shift lock turning (`Movement.luau`, husspotato7 reference, user 2026-10-24):
   instead of Roblox snapping the body onto the camera, the body turns at
   `BODY_TURN` (moving) or `STAND_TURN` (standing) per second and is dragged along
@@ -94,9 +98,15 @@ scales all player damage.
   clips (Left 108079459398057, Right 101587075788694) were removed on the user's
   call (2026-10-24); their ids are here if strafing comes back.
 - `src/client/HeadLook.luau` + `src/server/HeadLook.luau` (husspotato7 reference):
-  your head follows your camera (all but locked on under shift lock, eased
-  otherwise; up to 100 degrees sideways and 55 up or down, easing back to the
-  front past 150), on the neck's C0 so animations play underneath. Your look goes
+  your head on the neck's C0, so animations play underneath. Its rules (user,
+  2026-10-24, "option 3": Huss's rules with natural limits): under shift lock or
+  first person it follows the camera closely, within 70 degrees sideways and 30
+  up or down; with a free camera it eases forward and only glances toward it (30
+  and 10), so walking doesn't swing it round; while the guard, an attack or cast,
+  or a lock-on holds the body's facing it looks where the body faces. Past 150
+  degrees it eases back to the front. (The first port followed the camera
+  always, to 100 and 55: the head swung while walking and looked away while
+  blocking.) Your look goes
   to the server over the `Look` remote (at most 5 a second, only when it moved),
   which sets the character's `Look` attribute (Vector2 pitch, yaw, clamped and
   rounded); other clients ease that player's head toward it within 160 studs.

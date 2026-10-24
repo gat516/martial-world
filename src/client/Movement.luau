@@ -78,9 +78,16 @@ local function step(dt: number)
 	local base = humanoid:GetAttribute("BaseWalkSpeed") or Config.Cultivation.BASE_WALKSPEED
 	local crowd = humanoid:GetAttribute("CCMove")
 	local crowdLocked = ActionState.crowdLocked()
-	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier
+	local speed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier
 		* (if ActionState.crowdKind() and type(crowd) == "number" then crowd else 1)
 		* (if type(humanoid:GetAttribute("SlowMove")) == "number" then humanoid:GetAttribute("SlowMove") :: number else 1)
+	-- Blocking walks slowly. This client owns its character's movement and writes
+	-- WalkSpeed every frame, so the cap has to be here too (it was missing: the
+	-- server's guard slow never reached the player). Predicted guard or the server's.
+	if ActionState.guarding or humanoid:GetAttribute("Guarding") then
+		speed = math.min(speed, Config.Combat.GUARD.WALKSPEED)
+	end
+	humanoid.WalkSpeed = speed
 	local committed = phase == "windup" or phase == "active" or crowdLocked
 	if committed then
 		if jumpWasEnabled == nil then

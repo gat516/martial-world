@@ -2,10 +2,14 @@
 -- Heads that follow where each player looks (pattern from the husspotato7
 -- reference, user 2026-10-24), layered onto the neck's C0 so every animation
 -- keeps playing underneath (the Animator owns Transform, not C0).
---   Your own head follows your camera: locked tight onto it while shift lock
---   holds the mouse (the body is turning to catch up, Movement), eased otherwise.
---   Past sideways it keeps looking, then eases back to the front as the camera
---   comes round behind you (150-180 degrees), so it never flips sides.
+--   Your own head (user, 2026-10-24, "option 3": Huss's rules, natural limits):
+--   under shift lock (or first person) it follows the camera closely, within
+--   MAX_YAW / MAX_PITCH; with a free camera it eases forward and only glances
+--   toward the camera (GLANCE_*), so walking doesn't swing it round; while the
+--   guard, an attack or cast, or a lock-on holds the body's facing, it looks
+--   where the body faces (at the beast), not at the camera.
+--   Past sideways it eases back to the front as the camera comes round behind
+--   you (150-180 degrees), so it never flips sides.
 --   Your look goes to the server (Look remote, at most SEND_RATE a second and only
 --   when it moved), which puts it on your character as Look = Vector2(pitch, yaw);
 --   every other client eases your head toward it, within MAX_DISTANCE of its camera.
@@ -16,15 +20,19 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ActionState = require(script.Parent.ActionState)
 local HerbAnimator = require(script.Parent.HerbAnimator)
+local LockOn = require(script.Parent.LockOn)
 
 local player = Players.LocalPlayer
 
-local MAX_YAW = math.rad(100) -- left / right
-local MAX_PITCH = math.rad(55) -- up / down
+local MAX_YAW = math.rad(70) -- shift lock: left / right...
+local MAX_PITCH = math.rad(30) -- ...and up / down (natural limits; user, 2026-10-24)
+local GLANCE_YAW = math.rad(30) -- free camera: only a glance toward it...
+local GLANCE_PITCH = math.rad(10) -- ...so walking doesn't swing the head round
 local FORWARD_BLEND_START = math.rad(150) -- looking further round than this eases back to the front
-local SHARPNESS = 10 -- your own head, free camera
-local LOCKED_SHARPNESS = 40 -- your own head under shift lock: all but locked onto the camera
+local SHARPNESS = 6 -- your own head, free camera or held facing: eases
+local LOCKED_SHARPNESS = 30 -- your own head under shift lock: close behind the camera
 local OTHERS_SHARPNESS = 12 -- other players' heads toward their sent look
 local SEND_RATE = 5 -- looks sent a second, at most
 local SEND_MIN_CHANGE = 0.04 -- radians it must move before it's sent again
@@ -67,10 +75,28 @@ local function ease(rig: Rig, pitch: number, yaw: number, sharpness: number, dt:
 end
 
 -- Your own target: the camera, relative to the torso.
-local function myTarget(h: Humanoid, torso: BasePart): (number, number)
+-- Whether the camera aims for the body (shift lock or first person): then the
+-- head follows it to the full limits; otherwise it only glances.
+local function aiming(camera: Camera): boolean
+	return UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
+		or (camera.CFrame.Position - camera.Focus.Position).Magnitude <= 1.5
+end
+
+-- Something else owns where the body faces (the guard turns it to the beast,
+-- an attack or cast, a lock-on): the head looks where the body does.
+local function facingHeld(h: Humanoid): boolean
+	return ActionState.guardFacing ~= nil or ActionState.guarding or h:GetAttribute("Guarding") == true
+		or ActionState.locksFacing() or LockOn.target() ~= nil
+end
+
+-- Your own target, relative to the torso, and whether it's an aimed look.
+local function myTarget(h: Humanoid, torso: BasePart): (number, number, boolean)
 	local camera = workspace.CurrentCamera
 	if not (camera and camera.CameraSubject == h and h.Health > 0 and not HerbAnimator.isEating()) then
-		return 0, 0
+		return 0, 0, false
+	end
+	if facingHeld(h) then
+		return 0, 0, false
 	end
 	local look = torso.CFrame:VectorToObjectSpace(camera.CFrame.LookVector)
 	local cameraYaw = math.atan2(-look.X, -look.Z)
@@ -78,8 +104,10 @@ local function myTarget(h: Humanoid, torso: BasePart): (number, number)
 	-- also avoids flipping sides when the yaw wraps at 180
 	local blend = math.clamp((math.pi - math.abs(cameraYaw)) / (math.pi - FORWARD_BLEND_START), 0, 1)
 	local weight = blend * blend * (3 - 2 * blend)
-	return math.clamp(math.asin(math.clamp(look.Y, -1, 1)), -MAX_PITCH, MAX_PITCH) * weight,
-		math.clamp(cameraYaw, -MAX_YAW, MAX_YAW) * weight
+	local aimed = aiming(camera)
+	local maxYaw, maxPitch = if aimed then MAX_YAW else GLANCE_YAW, if aimed then MAX_PITCH else GLANCE_PITCH
+	return math.clamp(math.asin(math.clamp(look.Y, -1, 1)), -maxPitch, maxPitch) * weight,
+		math.clamp(cameraYaw, -maxYaw, maxYaw) * weight, aimed
 end
 
 local function send(pitch: number, yaw: number)
@@ -103,9 +131,8 @@ local function stepMine(dt: number)
 	if not (h and rig and torso) then
 		return
 	end
-	local pitch, yaw = myTarget(h, torso)
-	local locked = UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
-	ease(rig, pitch, yaw, if locked then LOCKED_SHARPNESS else SHARPNESS, dt)
+	local pitch, yaw, aimed = myTarget(h, torso)
+	ease(rig, pitch, yaw, if aimed then LOCKED_SHARPNESS else SHARPNESS, dt)
 	send(pitch, yaw)
 end
 

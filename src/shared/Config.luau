@@ -141,12 +141,12 @@ return {
 	},
 
 	Movement = {
-		RUN_BONUS = 10, -- added to walking speed, including herb buffs (16 -> 26)
+		RUN_BONUS = 14, -- added to walking speed, including herb buffs (12 -> 26: the walk was slowed 25%, the run kept; user 2026-10-24)
 		RUN_ANIMATION_SPEED = 26, -- studs/s at the run animation's original playback rate
 	},
 
 	Cultivation = {
-		BASE_WALKSPEED = 16,
+		BASE_WALKSPEED = 12, -- 25% slower than the old 16 (user, 2026-10-24); running stays 26 (Movement.RUN_BONUS)
 		STATE_REFRESH_SECONDS = 10, -- full HUD state push even when nothing expired
 		-- Passive-progress warnings: shown when the player has been idle a while and
 		-- the passive rate is this many times slower than active play would be.
@@ -384,6 +384,7 @@ return {
 		-- source position in front of the player can be guarded; hazards can't.
 		GUARD = {
 			MOVE = 0.5, -- walk speed share while guarding
+			WALKSPEED = 3, -- and at most this while guarding (user, 2026-10-24): both Movement scripts cap it
 			FRONT_DOT = -0.2, -- guards hits from within ~100° either side of facing (melee, projectiles)
 			CHIP = 0.15, -- share of a blocked hit's damage that still gets through
 			DRAIN = 2.5, -- guard drained per share of max health a blocked hit would deal

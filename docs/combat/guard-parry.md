@@ -7,7 +7,11 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
 - The guard goes up only between actions and while free to act, and drops when
   an action starts or the player is staggered or stunned; while the input is
   held it comes back up by itself. Attacks and casts don't start while it's up;
-  a dodge does. Walking at `MOVE` (half) speed, no sprinting, no Auto approach.
+  a dodge does. Walking at most `WALKSPEED` (3, user 2026-10-24), no sprinting, no
+  Auto approach. Both Movement scripts cap it: the client writes its own
+  WalkSpeed every frame and used to leave the guard out, so the old `MOVE` (half)
+  slow never reached the player. The head looks where the body faces while
+  guarding (HeadLook).
   The server enforces the no-sprint part too: `Movement.apply` drops the run
   bonus while the humanoid is `Guarding`, so a held Shift (or a client that keeps
   claiming to run) can't beat the slow (user, 2026-10-24).

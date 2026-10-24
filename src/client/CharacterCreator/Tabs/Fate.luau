@@ -3,7 +3,7 @@
 -- RaceVariant attributes) with a paid Change, then the race's free looks (one
 -- arrow picker per Races.Looks slot, e.g. Spirit Fox's tail and ears; hidden
 -- when the race has none), then the clan (Surname) with a paid Change, a note
--- that they stay with the slot, and the odds link (user, 2026-10-23). A reroll
+-- that they stay with the slot, and the odds button (user, 2026-10-23; a button, 2026-10-24). A reroll
 -- that changes the race resets the looks to that race's defaults. The paid
 -- Change buttons show only while Rules.PAID_REROLLS is on (off for now, user
 -- 2026-10-24). The first-character screen (Tabs/Begin) builds these same rows
@@ -166,7 +166,7 @@ function Fate.build(page: ScrollingFrame, ctx: any, opts: Options?)
 	if type(note) == "string" then
 		components.note(page, note, base + 21, "FateNote")
 	end
-	local link = components.link(page, "See the odds of every race and clan", base + 22, ctx.openOdds)
+	local odds = components.oddsButton(page, base + 22, ctx.openOdds)
 
 	state:onChanged(function(key)
 		if key == "RaceLook" then
@@ -174,7 +174,7 @@ function Fate.build(page: ScrollingFrame, ctx: any, opts: Options?)
 		end
 	end)
 
-	local handle = { link = link }
+	local handle = { odds = odds }
 	function handle.reset()
 		buildLooks()
 		paintLooks()

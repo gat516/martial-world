@@ -506,17 +506,23 @@ text("Note", BODY, 17, C.Muted, {
 	AutomaticSize = Enum.AutomaticSize.Y,
 	TextWrapped = true,
 })
-new("TextButton", {
-	Name = "Link",
+-- the odds button (user, 2026-10-24: "the odds of race should be a button"; Roblox's
+-- paid-random-items guidance prefers a labelled button over a bare link): a lacquer
+-- pill like Back, 56 tall (45 px at the phone floor), a gold "%" glyph before
+-- "See the odds", centred in a full-width 56 px row under the clan row
+local oddsHolder = new("Frame", {
+	Name = "OddsButton",
 	Parent = T,
 	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 0, 32),
-	FontFace = BOLD,
-	TextSize = 17,
-	TextColor3 = C.Gold,
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Text = "",
+	Size = UDim2.new(1, 0, 0, 56),
 })
+local odds, oddsKids = pillButton("Button", 200, 56, "", false)
+withChildren(odds, oddsKids)
+odds.AnchorPoint = Vector2.new(0.5, 0.5)
+odds.Position = UDim2.fromScale(0.5, 0.5)
+odds.Label.RichText = true
+odds.Label.Text = `<font size="22" color="#{C.Gold:ToHex()}">%</font>  See the odds`
+odds.Parent = oddsHolder
 
 local function grid(name, cell, gap)
 	return new("Frame", {

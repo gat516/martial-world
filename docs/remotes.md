@@ -23,6 +23,8 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
 | InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend" (stones plus weapon Dao), "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view, "ring" itemId, inRing: a stack into or out of the spirit ring, `Haul.setRing`; "storeAll": bank the haul at a bank point, `Haul.storeAll`) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
+| PartyAction | Function | C->S | `Party.handle` ("state", "invite"/"accept"/"decline"/"kick"/"promote" userId, "leave", "card" userId, "people", "join"/"visit" userId -> `Travel.toPlayer`; [party](systems/party.md#ui-contract-to-build-ui-designer)) | none yet |
+| PartyState | Event | S->C | `Party` ("party" snapshot or nil, "invite" `{ from, name, realm, partySize, expires }`, "inviteGone" userId reason, "friendHere" `{ userId, name }`) | none yet |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only; trait* actions take a target player, see [identity](systems/identity.md)) | AdminPanel |
 | CharacterAction | Function | C->S | `CharacterIdentity.handle` (`state`, `templates`, `hair`, `defaults`, `reroll`, `confirm`); test place only | CharacterCreator.Bridge |
@@ -39,7 +41,7 @@ Besides remotes, the server publishes fast-changing values as attributes:
 player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
 `BreakthroughReady`, `BreakthroughBlock`, `SurgeReady`, `SurgeUntil` (server time), `SurgeRealm` (the qi surge, [cultivation](systems/cultivation.md#qi-surge)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)), `HaulReady` (at a bank point with an unbanked haul: Store all is offered, [haul](systems/haul.md)); character `WeaponClass`, `WeaponStowed`
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)), `HaulReady` (at a bank point with an unbanked haul: Store all is offered, [haul](systems/haul.md)), `InSafeZone` (sect grounds or a spirit peak, `SafeZone`), `Party` (party id, [party](systems/party.md)); character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
 (see [enemies](systems/enemies.md), "Server and client"); workspace `Weather`,
@@ -53,4 +55,4 @@ requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`;
 `Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Haul.onBanked` (player, amounts, "store"/"travel"); `Travel.onTravel` (Haul banks quietly); `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
 (Meditation), `Cultivation.inCombat` (Combat), `CombatQi.fighting` (Combat), `Cultivation.startTribulation`
-(Tribulation), `Cultivation.surgeStage` and `.surge` (QiSurge), `Progression.slotTechnique` (Inventory).
+(Tribulation), `EnemyService.partyOf` (Party), `Cultivation.surgeStage` and `.surge` (QiSurge), `Progression.slotTechnique` (Inventory).

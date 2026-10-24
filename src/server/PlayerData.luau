@@ -106,6 +106,7 @@ export type Data = {
 		apexes: number, -- apex-tier beasts slain
 		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
 		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
+		partied: number, -- seconds in a party with a member nearby (server Party)
 	},
 	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
 	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
@@ -206,7 +207,7 @@ local function default(): Data
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
-			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0 },
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0 },
 		heartDemon = { trials = {}, declined = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},

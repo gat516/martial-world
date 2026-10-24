@@ -45,6 +45,7 @@ local PlayerSlow = require(script.Parent.PlayerSlow)
 local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
+local PartyPacing = require(ReplicatedStorage.Shared.Pacing).Party
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 local CC = CombatConfig.CC
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
@@ -215,6 +216,8 @@ local EnemyService = {}
 EnemyService.onKill = {} :: { (Player, Enemies.Def, Model) -> () }
 -- Called with (model, killed) when an enemy leaves: killed, or despawned.
 EnemyService.onRemoved = {} :: { (Model, boolean) -> () }
+-- Set by Party: the player's party members, themselves included ({ player } when solo).
+EnemyService.partyOf = nil :: ((Player) -> { Player })?
 
 export type SpawnOptions = {
 	home: Vector3?, -- where it wanders and leashes back to (default: where it spawns)
@@ -539,15 +542,19 @@ local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
 end
 
 -- Players who dealt enough of the beast's health to earn the kill
--- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE). Whoever dealt the most always
--- qualifies, so a kill is never left without anyone credited.
-local function credited(enemy: Enemy): { Player }
+-- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE), each with their own full drop: qi,
+-- stones and the onKill rolls (loot, seeds, first kills), so nobody can steal a kill.
+-- Whoever dealt the most always qualifies, so a kill is never left without anyone
+-- credited. Everyone else who hit it is a helper (a share of qi, `helpers` below).
+local function credited(enemy: Enemy): ({ Player }, { [Player]: boolean })
 	local share = if enemy.def.boss then Rewards.BOSS_KILL_SHARE else Rewards.KILL_SHARE
 	local needed = enemy.maxHealth * share
 	local top, topDamage = nil, 0
 	local list = {}
+	local hit = {}
 	for player, damage in enemy.damagers do
 		if player.Parent then
+			hit[player] = true
 			if damage >= needed then
 				table.insert(list, player)
 			elseif damage > topDamage then
@@ -558,7 +565,41 @@ local function credited(enemy: Enemy): { Player }
 	if #list == 0 and top then
 		table.insert(list, top)
 	end
+	return list, hit
+end
+
+local function near(player: Player, position: Vector3): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	return root ~= nil and humanoid ~= nil and humanoid.Health > 0
+		and (root.Position - position).Magnitude <= PartyPacing.RADIUS
+end
+
+-- Party members near the kill, the player excluded (Pacing.Party RADIUS).
+local function partyNear(player: Player, position: Vector3): { Player }
+	local list = {}
+	if EnemyService.partyOf then
+		for _, member in EnemyService.partyOf(player) do
+			if member ~= player and near(member, position) then
+				table.insert(list, member)
+			end
+		end
+	end
 	return list
+end
+
+-- Qi into the dantian (never past it), with the floating number or the "full" line.
+local function grantQi(player: Player, data: PlayerData.Data, amount: number, position: Vector3): number
+	local cap = Cultivation.stage(data).dantian
+	local given = math.max(0, math.min(math.floor(amount + 0.5), cap - data.rawQi))
+	data.rawQi += given
+	if given > 0 then
+		effectRemote:FireClient(player, "qi", position, given)
+	else
+		Cultivation.notify(player, "Your dantian is full. Circulate to refine it.")
+	end
+	return given
 end
 
 function EnemyService.died(enemy: Enemy)
@@ -570,31 +611,55 @@ function EnemyService.died(enemy: Enemy)
 	releaseSlot(enemy)
 	dismissSummons(enemy)
 	local position = enemy.root.Position
-	local winners = credited(enemy)
+	local winners, hit = credited(enemy)
+	local isWinner = {}
+	for _, player in winners do
+		isWinner[player] = true
+	end
 	for _, player in winners do
 		local data = player.Parent and PlayerData.get(player)
 		if data then
+			-- the group bonus: a little more beast qi per party member at the kill
+			local bonus = math.min(PartyPacing.BONUS_CAP, #partyNear(player, position) * PartyPacing.BONUS_PER_MEMBER)
 			local cap = Cultivation.stage(data).dantian
-			local amount = math.min(qiFor(enemy.def, data), cap - data.rawQi)
-			data.rawQi += math.max(0, amount)
+			local amount = math.max(0, math.min(math.floor(qiFor(enemy.def, data) * (1 + bonus) + 0.5), cap - data.rawQi))
 			data.stats.kills += 1
 			local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
 			data.stones += stones
 			Cultivation.markActive(player)
 			-- a boss opens the victory card first, so the rewards below land in it
 			if enemy.def.boss then
-				effectRemote:FireClient(player, "boss", enemy.def.name, math.max(0, amount))
+				effectRemote:FireClient(player, "boss", enemy.def.name, amount)
 			end
 			effectRemote:FireClient(player, "stones", position, stones)
 			for _, fn in EnemyService.onKill do
 				task.spawn(fn, player, enemy.def, enemy.model)
 			end
+			grantQi(player, data, amount, position)
 			Cultivation.pushState(player)
-			if amount > 0 then
-				effectRemote:FireClient(player, "qi", position, amount)
-			else
-				Cultivation.notify(player, "Your dantian is full. Circulate to refine it.")
+		end
+	end
+	-- helpers: hit it for less than the share, or a party member of a winner nearby
+	-- who didn't hit it at all. A share of their own qi for the beast, nothing else.
+	local helpers: { [Player]: boolean } = {}
+	for player in hit do
+		if not isWinner[player] then
+			helpers[player] = true
+		end
+	end
+	for _, player in winners do
+		for _, member in partyNear(player, position) do
+			if not isWinner[member] then
+				helpers[member] = true
 			end
+		end
+	end
+	for player in helpers do
+		local data = PlayerData.get(player)
+		if data then
+			Cultivation.markActive(player)
+			grantQi(player, data, qiFor(enemy.def, data) * PartyPacing.HELPER_QI_SHARE, position)
+			Cultivation.pushState(player)
 		end
 	end
 

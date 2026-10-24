@@ -4,7 +4,7 @@
 -- actually climbed: the path they walked (blade or garden, from kills and
 -- harvests), then the few things their record says most loudly (the beasts they
 -- slew, the danger they sought, their deaths, qi surges, the haul they risked or
--- banked, their peak, the Herbarium, root pills, hours in stillness and seclusion).
+-- banked, their peak, the Herbarium, root pills, the company they kept (or didn't), hours in stillness and seclusion).
 -- Each question has 2-3 answers; the one the player's own record contradicts is a
 -- denial. A new system that says how someone plays adds a counter in data.stats and
 -- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation grades
@@ -415,6 +415,51 @@ local function seclusionQuestion(data: PlayerData.Data): Candidate?
 	} }
 end
 
+-- Company (Party.luau): time in a party with someone nearby, or none at all.
+local function companyQuestion(data: PlayerData.Data): Question?
+	local minutes = (data.stats.partied or 0) / 60
+	if minutes < Config.SOLITARY_MAX_MINUTES then
+		if data.stats.kills + data.stats.harvests < Config.LEAN_MIN then
+			return nil -- too early to call anyone a loner
+		end
+		return {
+			id = "solitude",
+			lines = { "You never walked with another.", "Do you trust no one?" },
+			answers = {
+				{ text = "No one has earned it.", reply = "Then you carry it all yourself.", honest = true, heart = "trusted no one" },
+				{ text = "I like my own road.", reply = "A lonely road is still a road.", honest = true, heart = "walked alone by choice" },
+				{ text = "I always walk with friends.", reply = "Always? I saw only your shadow.", honest = false, heart = "would not admit your solitude" },
+			},
+		}
+	end
+	if minutes < Config.COMPANY_MIN_MINUTES then
+		return nil
+	end
+	local hours = minutes / 60
+	local shown = if minutes < 60 then `{math.floor(minutes + 0.5)} minutes`
+		elseif hours < 1.5 then "An hour"
+		else `{math.floor(hours + 0.5)} hours`
+	return {
+		id = "company",
+		lines = { `{shown} walking beside others.`, "Did you lean on them?" },
+		answers = {
+			{ text = "Yes, and they on me.", reply = "Then the bond holds both ways.", honest = true, heart = "climbed with others" },
+			{ text = "No. We walked as equals.", reply = "Equals. Rarer than you think.", honest = true, heart = "walked beside equals" },
+			{ text = "I've always walked alone.", reply = "Alone? Their footsteps say otherwise.", honest = false, heart = "would not admit your companions" },
+		},
+	}
+end
+
+-- The company question as a candidate: solitude weighs 1, company grows with the minutes.
+local function companyCandidate(data: PlayerData.Data): Candidate?
+	local q = companyQuestion(data)
+	if not q then
+		return nil
+	end
+	local minutes = (data.stats.partied or 0) / 60
+	return { weight = if q.id == "solitude" then 1 else weigh(minutes, Config.COMPANY_MIN_MINUTES), q = q }
+end
+
 -- Always there: why climb at all (every answer is honest).
 local function climbQuestion(): Question
 	return {
@@ -436,11 +481,11 @@ function HeartDemon.questions(data: PlayerData.Data): { Question }
 	local built = {
 		slainQuestion(data), dangerQuestion(data), fearQuestion(data), surgeQuestion(data),
 		haulQuestion(data), peakQuestion(data), herbariumQuestion(data), rootQuestion(data),
-		seclusionQuestion(data), stillQuestion(data),
+		companyCandidate(data), seclusionQuestion(data), stillQuestion(data),
 	}
 	local candidates: { Candidate } = {}
 	local order: { [Candidate]: number } = {}
-	for i = 1, 10 do -- `built` has holes where a question had nothing to ask
+	for i = 1, 11 do -- `built` has holes where a question had nothing to ask
 		local c = built[i]
 		if c then
 			table.insert(candidates, c)

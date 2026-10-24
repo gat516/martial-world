@@ -85,6 +85,11 @@ path, fear/pride and one more.
 11. **Stillness** (from `STILL_MIN_HOURS` = 0.5 h seated, seclusion not counted): "Were
     you searching, or only waiting?" (denial: "I hardly ever sit.").
 12. **Why climb**, the filler: three honest answers.
+13. **Company** (`partied`, seconds in a [party](party.md) with a member within 120
+    studs): under `SOLITARY_MAX_MINUTES` (2) "You never walked with another. Do you trust
+    no one?" (denial: "I always walk with friends."); from `COMPANY_MIN_MINUTES` (30)
+    "... walking beside others. Did you lean on them?" (denial: "I've always walked
+    alone."). Between: no question. Solitude weighs 1; company weighs by its minutes.
 Answer labels stay at 27 characters or fewer so they fit the response buttons on a phone.
 Heart notes are verb phrases ("remembered every beast you slew") so any second question
 joins the path's line.
@@ -122,6 +127,7 @@ note and every trial's in its detail ([character window](../character/character-
     Rebirth Pills).
   - The Herbarium needs no counter: discovered herbs and full pages are
     `data.herbarium.herbs` / `.tiers`.
+  `secluded` (seconds in seclusion, online and offline, Seclusion.luau) and `partied`
 - `data.heartDemon = { trials = {}, declined = {} }`.
 - Remotes: `CultivationAction` "heartDemon" (start, seated only: `{ major, name,
   questions = { { lines, answers = { { text, reply } } } } }`, honesty stays on the

@@ -11,7 +11,7 @@
 --     (none of them are in the snapshot), finds at or above SAFE_RARITY (banked the
 --     moment they're held), and whatever stacks sit in the spirit ring.
 --   - Banking is a beat, like "sell all" but "store all": at a bank point (the
---     sect's safe ground, Gates.inSect: their peak, the plaza; or any teleport
+--     safe zone, SafeZone.at: the sect's grounds, any spirit peak; or any teleport
 --     array), out of combat and with something unbanked, the player attribute
 --     `HaulReady` is set and the client offers a one-tap "Store all" prompt
 --     (InventoryAction "storeAll" -> Haul.storeAll) that banks the lot with one
@@ -34,12 +34,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
-local Gates = require(ReplicatedStorage.Shared.Gates)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Tuning = require(ReplicatedStorage.Shared.Pacing).Haul
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local SafeZone = require(script.Parent.SafeZone)
 local Travel = require(script.Parent.Travel)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
@@ -258,21 +258,13 @@ local function describe(a: Amounts): string
 	return table.concat(parts, ", ")
 end
 
-local function testbedHome(): Vector3
-	local arena = workspace:FindFirstChild("Arena")
-	local pad = arena and arena:FindFirstChild("SpawnPad")
-	return if pad and pad:IsA("BasePart") then pad.Position else Vector3.new(0, 649.1, 40)
-end
-
--- Whether standing here banks the haul: the sect's safe ground (their peak, the
--- plaza) or any teleport array. The testbed's whole arena reads as the sect, so
--- there only the spawn pad and its TestPeak count.
+-- Whether standing here banks the haul: a safe zone (SafeZone.at: the sect's
+-- grounds, any spirit peak; in the testbed the spawn pad's ring) or any teleport array.
 function Haul.safeAt(player: Player, position: Vector3): boolean
 	if Config.TESTBED then
-		local home = testbedHome()
-		return Vector2.new(position.X - home.X, position.Z - home.Z).Magnitude <= Tuning.TESTBED_BANK_RADIUS
+		return SafeZone.at(position)
 	end
-	return Gates.inSect(position) or Travel.standingOn(player) ~= nil
+	return SafeZone.at(position) or Travel.standingOn(player) ~= nil
 end
 
 -- Bank everything held now. Returns what was newly banked.

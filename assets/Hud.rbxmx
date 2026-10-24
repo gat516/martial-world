@@ -10222,8 +10222,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX992"><Properties>
@@ -10292,8 +10292,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX999"><Properties>
@@ -10372,8 +10372,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1007"><Properties>
@@ -10441,8 +10441,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1014"><Properties>
@@ -10511,8 +10511,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://82009829971041</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1021"><Properties>
@@ -10579,8 +10579,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1028"><Properties>
@@ -10649,8 +10649,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1035"><Properties>
@@ -10730,8 +10730,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1043"><Properties>
@@ -10800,8 +10800,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.06897</XS><XO>0</XO><YS>1.07143</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://72729867643691</url></Content>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX1050"><Properties>
@@ -11058,7 +11058,7 @@
     <UDim2 name="Size"><XS>0.35</XS><XO>0</XO><YS>0.335907</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
-    <Content name="Image"><url>rbxassetid://88219194445713</url></Content>
+    <Content name="Image"><url>rbxassetid://88576345735696</url></Content>
    </Properties>
     <Item class="UIAspectRatioConstraint" referent="RBX1081"><Properties>
      <string name="Name">UIAspectRatioConstraint</string>
@@ -11075,10 +11075,10 @@
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.566857</XS><XO>0</XO><YS>0.566857</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
      <int name="ZIndex">22</int>
-     <Content name="Image"><url>rbxassetid://113579784709637</url></Content>
-     <Color3 name="ImageColor3"><R>0.690196</R><G>0.886275</G><B>0.784314</B></Color3>
+     <Content name="Image"><url>rbxassetid://100066030627269</url></Content>
+     <Color3 name="ImageColor3"><R>0.941176</R><G>0.901961</G><B>0.803922</B></Color3>
      <token name="ScaleType">3</token>
     </Properties>
     </Item>
